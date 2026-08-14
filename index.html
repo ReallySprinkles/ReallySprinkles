@@ -9,74 +9,177 @@
     <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
 
     <style>
-        body {
-            font-family: "Times New Roman", Times, serif;
-            text-align: center;
-            background-color: #ffffff;
-            color: #000000;
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #7dd3fc;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-color: #f8fafc;
+                --card-bg: #ffffff;
+                --card-border: #e2e8f0;
+                --text-primary: #0f172a;
+                --text-secondary: #64748b;
+                --accent-color: #0284c7;
+                --accent-hover: #0369a1;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 40px 20px;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 560px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 16px;
+            border: 2px solid var(--card-border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
-            font-size: 2.2rem;
-            font-weight: bold;
-            margin-bottom: 8px;
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 6px;
         }
 
         .subtitle {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-top: 0;
-            margin-bottom: 20px;
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
         }
 
         .social-links {
-            margin-bottom: 60px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 48px;
         }
 
-        a {
-            color: #0000ff;
-            text-decoration: underline;
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent-color);
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 16px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            transition: all 0.2s ease;
         }
 
-        a:visited {
-            color: #0000ff;
+        .social-link:hover {
+            color: var(--accent-hover);
+            transform: translateY(-2px);
+            border-color: var(--accent-color);
         }
 
-        .project {
-            margin-top: 40px;
+        .projects {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            text-align: left;
+        }
+
+        .project-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: all 0.2s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         .project-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .project-title::after {
+            content: "↗";
+            font-size: 1.1rem;
+            transition: transform 0.2s ease;
+        }
+
+        .project-card:hover .project-title::after {
+            transform: translate(2px, -2px);
         }
 
         .project-description {
-            font-size: 1.05rem;
-            max-width: 480px;
-            margin: 0 auto;
-            line-height: 1.4;
+            font-size: 0.975rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
 
-    <h1>ReallySprinkles’s Stuff</h1>
-    <p class="subtitle">this is everything I have made ok</p>
-    
-    <div class="social-links">
-        <a href="https://tiktok.com/@sprinkles.dude" target="_blank" rel="noopener noreferrer">TikTok</a>
-    </div>
+    <div class="container">
+        <!-- Profile Header -->
+        <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="ReallySprinkles Avatar">
+        <h1>ReallySprinkles’s Stuff</h1>
+        <p class="subtitle">this is everything I have made ok</p>
+        
+        <!-- Social Links -->
+        <div class="social-links">
+            <a class="social-link" href="https://tiktok.com/@sprinkles.dude" target="_blank" rel="noopener noreferrer">TikTok</a>
+        </div>
 
-    <div class="project">
-        <a class="project-title" href="https://reallysprinkles.github.io/web-respringer/" target="_blank" rel="noopener noreferrer">web respringer</a>
-        <p class="project-description">
-            A minimal Progressive Web App (PWA) that runs a respring-style script inside a sandboxed iframe.
-        </p>
+        <!-- Project Cards -->
+        <div class="projects">
+            <a class="project-card" href="https://reallysprinkles.github.io/web-respringer/" target="_blank" rel="noopener noreferrer">
+                <div class="project-title">
+                    <span>web respringer</span>
+                </div>
+                <p class="project-description">
+                    A minimal Progressive Web App (PWA) that runs a respring-style script inside a sandboxed iframe.
+                </p>
+            </a>
+        </div>
     </div>
 
 </body>
