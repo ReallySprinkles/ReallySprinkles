@@ -1,0 +1,35 @@
+body {
+  background: #000;
+  color: #fff;
+  margin: 0;
+  font-family: sans-serif;
+}
+
+.center {
+  display: flex;
+	flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+#respring-iframe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  border: none;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+a {
+  color: #1ad2dc;
+  text-decoration: underline;
+}

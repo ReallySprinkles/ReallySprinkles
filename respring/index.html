@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Respring</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#000000">
+
+  <!-- iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="apple-touch-icon" href="./icons/icon-267.png">
+
+  <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+
+  <!-- App screen visible directly in browser -->
+  <div id="app" class="center">
+    <div id="loader">
+      Respringing... (didn't work? ping neon)
+      <br><br><br><br>
+      © 2026 <span class="me">neonmodder123</span>
+      Licensed under 
+      <a href="https://opensource.org/license/mit/" target="_blank">MIT</a>.
+      <br>
+      Modifying without credit is a violation of the license.
+    </div>
+
+    <iframe id="respring-iframe"
+      sandbox="allow-forms allow-modals allow-scripts allow-same-origin">
+    </iframe>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
