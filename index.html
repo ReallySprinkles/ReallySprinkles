@@ -313,6 +313,25 @@
             border-color: var(--card-border-hover);
             color: var(--accent-color);
         }
+
+        footer {
+            margin-top: 48px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .footer-ending {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .footer-copyright {
+            font-size: 0.825rem;
+            color: var(--text-secondary);
+        }
     </style>
 </head>
 <body>
@@ -395,6 +414,11 @@
                 </div>
             </div>
         </main>
+
+        <footer>
+            <div class="footer-ending">And that’s all.</div>
+            <div class="footer-copyright">ReallySprinkles / 2026</div>
+        </footer>
     </div>
 
     <script>
