@@ -1,1 +1,4 @@
-Website is down so I can make changes.
+{
+  "status": "down",
+  "message": "Website is down so I can make changes."
+}
