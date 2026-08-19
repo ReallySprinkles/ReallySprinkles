@@ -92,16 +92,15 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 20px;
+      gap: 30px;
       background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
       z-index: 100;
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: bold;
     }
 
-    .header-tab { opacity: 0.6; cursor: pointer; position: relative; }
-    .header-tab.active { opacity: 1; border-bottom: 2px solid #fff; padding-bottom: 2px; }
-    .header-tab::before { content: "• "; color: #ff0050; display: inline; }
+    .header-tab { opacity: 0.6; cursor: pointer; position: relative; padding-bottom: 4px; }
+    .header-tab.active { opacity: 1; border-bottom: 2px solid #fff; }
 
     /* Content Views */
     .view-panel { display: none; height: calc(100vh - 60px); width: 100vw; overflow-y: auto; }
@@ -193,6 +192,8 @@
     .stat-num { font-size: 1.1rem; font-weight: bold; }
     .stat-label { font-size: 0.75rem; color: #888; }
 
+    .profile-actions { display: flex; gap: 10px; margin-top: 5px; }
+
     /* Modals */
     .modal {
       display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -226,9 +227,8 @@
 
     <!-- Top Feed Headers -->
     <div class="top-header" id="top-header">
-      <div class="header-tab">Blogs</div>
-      <div class="header-tab active">For You</div>
-      <div class="header-tab">Following</div>
+      <div class="header-tab active" id="tab-foryou" onclick="switchFeedMode('foryou')">For You</div>
+      <div class="header-tab" id="tab-following" onclick="switchFeedMode('following')">Following</div>
     </div>
 
     <!-- Feed Panel -->
@@ -261,12 +261,15 @@
           <h2 id="profile-username">@user</h2>
           
           <div class="profile-stats">
-            <div class="stat-box"><div class="stat-num">0</div><div class="stat-label">Following</div></div>
+            <div class="stat-box"><div class="stat-num" id="following-count">0</div><div class="stat-label">Following</div></div>
             <div class="stat-box"><div class="stat-num">0</div><div class="stat-label">Fans</div></div>
             <div class="stat-box"><div class="stat-num">0</div><div class="stat-label">Hearts</div></div>
           </div>
 
-          <button class="btn-auth-login" style="width: auto; padding: 8px 20px; font-size: 0.85rem;" onclick="handleLogout()">Log Out</button>
+          <div class="profile-actions">
+            <button class="btn-auth-signup" style="width: auto; padding: 8px 16px; font-size: 0.85rem;" onclick="openModal('edit-profile-modal')">Edit Profile</button>
+            <button class="btn-auth-login" style="width: auto; padding: 8px 16px; font-size: 0.85rem;" onclick="handleLogout()">Log Out</button>
+          </div>
         </div>
       </div>
     </div>
@@ -296,12 +299,23 @@
     </div>
   </div>
 
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 5px;">Edit Profile</h3>
+      <input type="text" id="edit-username-input" class="auth-input" placeholder="New Username">
+      <button class="btn-auth-signup" id="save-profile-btn" onclick="handleSaveProfile()">Save Changes</button>
+      <button class="btn-auth-login" onclick="closeModal('edit-profile-modal')">Cancel</button>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://kdezxjizwqfmugkwpycb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkZXp4aml6d3FmbXVna3dweWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNzQ5OTgsImV4cCI6MjEwMjc1MDk5OH0.Pc2p7s3umB-7PyPtTupQcA5occ5xEZdQzs4K5Nwhv_8';
     
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let currentUser = null;
+    let currentFeedMode = 'foryou';
 
     async function checkUserSession() {
       try {
@@ -310,8 +324,11 @@
 
         if (currentUser) {
           document.getElementById('auth-screen').style.display = 'none';
-          document.getElementById('profile-username').innerText = '@' + (currentUser.user_metadata?.username || 'user');
+          const username = currentUser.user_metadata?.username || 'user';
+          document.getElementById('profile-username').innerText = '@' + username;
+          document.getElementById('edit-username-input').value = username;
           renderFeed();
+          loadFollowingCount();
         } else {
           document.getElementById('auth-screen').style.display = 'flex';
         }
@@ -353,6 +370,30 @@
       document.getElementById('auth-screen').style.display = 'flex';
     }
 
+    async function handleSaveProfile() {
+      const newUsername = document.getElementById('edit-username-input').value.trim();
+      if (!newUsername) return alert('Username cannot be empty!');
+
+      const btn = document.getElementById('save-profile-btn');
+      btn.innerText = 'Saving...';
+      btn.disabled = true;
+
+      const { error } = await supabaseClient.auth.updateUser({
+        data: { username: newUsername }
+      });
+
+      btn.innerText = 'Save Changes';
+      btn.disabled = false;
+
+      if (error) {
+        alert('Update failed: ' + error.message);
+      } else {
+        document.getElementById('profile-username').innerText = '@' + newUsername;
+        closeModal('edit-profile-modal');
+        alert('Profile updated!');
+      }
+    }
+
     function switchTab(viewId, btn) {
       document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -362,6 +403,13 @@
 
       const topHeader = document.getElementById('top-header');
       topHeader.style.display = (viewId === 'feed-view') ? 'flex' : 'none';
+    }
+
+    function switchFeedMode(mode) {
+      currentFeedMode = mode;
+      document.getElementById('tab-foryou').classList.toggle('active', mode === 'foryou');
+      document.getElementById('tab-following').classList.toggle('active', mode === 'following');
+      renderFeed();
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -408,14 +456,45 @@
       }
     }
 
+    async function loadFollowingCount() {
+      if (!currentUser) return;
+      const { count, error } = await supabaseClient
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('follower_id', currentUser.id);
+
+      if (!error && count !== null) {
+        document.getElementById('following-count').innerText = count;
+      }
+    }
+
     async function renderFeed() {
       const container = document.getElementById('feed');
       container.innerHTML = '';
 
-      const { data: videos, error } = await supabaseClient
+      let query = supabaseClient
         .from('videos')
-        .select(`id, video_url, caption, audio_title, profiles ( username )`)
+        .select(`id, user_id, video_url, caption, audio_title, profiles ( username )`)
         .order('created_at', { ascending: false });
+
+      if (currentFeedMode === 'following') {
+        if (!currentUser) return;
+        
+        const { data: following, error: followError } = await supabaseClient
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', currentUser.id);
+
+        if (followError || !following || following.length === 0) {
+          container.innerHTML = '<div style="padding-top: 150px; text-align: center; color: #888;">You aren\'t following anyone yet or they haven\'t posted!</div>';
+          return;
+        }
+
+        const followingIds = following.map(f => f.following_id);
+        query = query.in('user_id', followingIds);
+      }
+
+      const { data: videos, error } = await query;
 
       if (error) {
         container.innerHTML = `<div style="padding-top: 100px; text-align: center; color: #ff0050;">Error loading videos: ${error.message}</div>`;
@@ -423,7 +502,7 @@
       }
 
       if (!videos || videos.length === 0) {
-        container.innerHTML = '<div style="padding-top: 150px; text-align: center; color: #888;">No videos on Alive.ly yet.<br>Tap + to post the first one!</div>';
+        container.innerHTML = '<div style="padding-top: 150px; text-align: center; color: #888;">No videos found.<br>Tap + to post one!</div>';
         return;
       }
 
