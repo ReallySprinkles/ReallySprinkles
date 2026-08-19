@@ -3,18 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>musical.ly revival</title>
+  <title>Alive.ly</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
     
-    /* Navigation Bar */
     .navbar {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 60px;
       display: flex;
       justify-content: space-between;
@@ -24,6 +21,14 @@
       z-index: 100;
     }
     
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, #ff0050, #00f2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
     .btn {
       background: #ff0050;
       color: #fff;
@@ -34,7 +39,6 @@
       cursor: pointer;
     }
 
-    /* Feed Container */
     #feed {
       height: 100vh;
       overflow-y: mandatory;
@@ -63,7 +67,6 @@
       text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
 
-    /* Modal Styling */
     .modal {
       display: none;
       position: fixed;
@@ -96,21 +99,19 @@
 </head>
 <body>
 
-  <!-- Top Bar -->
   <div class="navbar">
-    <h2 style="font-size: 1.2rem;">musical.ly</h2>
+    <div class="logo">Alive.ly</div>
     <div id="auth-buttons">
       <button class="btn" onclick="openModal('auth-modal')">Login / Sign Up</button>
     </div>
   </div>
 
-  <!-- Video Feed -->
   <div id="feed"></div>
 
   <!-- Auth Modal -->
   <div id="auth-modal" class="modal">
     <div class="modal-content">
-      <h3>Account Access</h3>
+      <h3>Welcome to Alive.ly</h3>
       <input type="email" id="auth-email" placeholder="Email">
       <input type="password" id="auth-password" placeholder="Password">
       <input type="text" id="auth-username" placeholder="Username (Sign Up Only)">
@@ -123,11 +124,11 @@
   <!-- Upload Modal -->
   <div id="upload-modal" class="modal">
     <div class="modal-content">
-      <h3>Upload Musical.ly Video</h3>
+      <h3>Post to Alive.ly</h3>
       <input type="file" id="video-file" accept="video/mp4,video/mov">
-      <input type="text" id="video-caption" placeholder="Caption (e.g., #musically)">
+      <input type="text" id="video-caption" placeholder="Caption (e.g., #alively)">
       <input type="text" id="video-audio" placeholder="Audio Title">
-      <button class="btn" onclick="handleUpload()">Publish Video</button>
+      <button class="btn" id="upload-btn" onclick="handleUpload()">Publish Video</button>
       <button class="btn" style="background:transparent; border:1px solid #666;" onclick="closeModal('upload-modal')">Cancel</button>
     </div>
   </div>
@@ -139,7 +140,6 @@
 
     let currentUser = null;
 
-    // Check user state on load
     async function initAuth() {
       const { data: { user } } = await supabase.auth.getUser();
       currentUser = user;
@@ -158,22 +158,22 @@
       }
     }
 
-    // Modal Control Helpers
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // Authentication Handlers
     async function handleSignUp() {
       const email = document.getElementById('auth-email').value;
       const password = document.getElementById('auth-password').value;
       const username = document.getElementById('auth-username').value;
 
+      if (!email || !password || !username) return alert('Please fill in all fields!');
+
       const { data, error } = await supabase.auth.signUp({
         email, password, options: { data: { username } }
       });
 
-      if (error) alert(error.message);
-      else { alert('Account created!'); closeModal('auth-modal'); initAuth(); }
+      if (error) alert('Sign Up Error: ' + error.message);
+      else { alert('Account created successfully! You are logged in.'); closeModal('auth-modal'); initAuth(); }
     }
 
     async function handleLogin() {
@@ -181,7 +181,7 @@
       const password = document.getElementById('auth-password').value;
 
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) alert(error.message);
+      if (error) alert('Login Error: ' + error.message);
       else { closeModal('auth-modal'); currentUser = data.user; updateAuthUI(); }
     }
 
@@ -191,9 +191,8 @@
       updateAuthUI();
     }
 
-    // Video Upload Handler
     async function handleUpload() {
-      if (!currentUser) return alert('Must be logged in to upload!');
+      if (!currentUser) return alert('You must log in first!');
 
       const fileInput = document.getElementById('video-file');
       const caption = document.getElementById('video-caption').value;
@@ -202,16 +201,23 @@
       if (!fileInput.files.length) return alert('Please choose a video file');
       const file = fileInput.files[0];
 
+      const uploadBtn = document.getElementById('upload-btn');
+      uploadBtn.innerText = 'Uploading...';
+      uploadBtn.disabled = true;
+
       const filePath = `${currentUser.id}/${Date.now()}_${file.name}`;
 
-      // 1. Upload file to Storage Bucket
       const { error: storageError } = await supabase.storage.from('videos').upload(filePath, file);
-      if (storageError) return alert('Storage upload failed: ' + storageError.message);
+      
+      if (storageError) {
+        alert('Storage Error: ' + storageError.message);
+        uploadBtn.innerText = 'Publish Video';
+        uploadBtn.disabled = false;
+        return;
+      }
 
-      // 2. Get Media URL
       const { data: urlData } = supabase.storage.from('videos').getPublicUrl(filePath);
 
-      // 3. Save Record in Videos Table
       const { error: dbError } = await supabase.from('videos').insert([{
         user_id: currentUser.id,
         video_url: urlData.publicUrl,
@@ -219,26 +225,34 @@
         audio_title: audioTitle
       }]);
 
-      if (dbError) alert('DB insert failed: ' + dbError.message);
-      else {
+      uploadBtn.innerText = 'Publish Video';
+      uploadBtn.disabled = false;
+
+      if (dbError) {
+        alert('Database Error: ' + dbError.message);
+      } else {
         alert('Video uploaded live!');
         closeModal('upload-modal');
         renderFeed();
       }
     }
 
-    // Feed Renderer
     async function renderFeed() {
       const container = document.getElementById('feed');
       container.innerHTML = '';
 
-      const { data: videos } = await supabase
+      const { data: videos, error } = await supabase
         .from('videos')
         .select(`id, video_url, caption, audio_title, profiles ( username )`)
         .order('created_at', { ascending: false });
 
+      if (error) {
+        container.innerHTML = `<div style="padding-top: 100px; text-align: center; color: #ff0050;">Error loading feed: ${error.message}</div>`;
+        return;
+      }
+
       if (!videos || videos.length === 0) {
-        container.innerHTML = '<div style="padding-top: 100px; text-align: center;">No videos yet. Log in and upload the first one!</div>';
+        container.innerHTML = '<div style="padding-top: 100px; text-align: center;">No videos on Alive.ly yet. Log in and upload the first one!</div>';
         return;
       }
 
