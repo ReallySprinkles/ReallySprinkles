@@ -2,20 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Alive.ly</title>
-  <!-- Fixed: Correct Supabase JS Library Import -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; overflow: hidden; }
 
-    /* Mandatory Auth Landing Screen */
+    /* Auth Landing Screen */
     #auth-screen {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
       background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.85)), url('https://picsum.photos/1080/1920') center/cover no-repeat;
-      z-index: 500;
+      z-index: 1000;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -25,23 +24,23 @@
     }
 
     .brand-title {
-      font-size: 3rem;
+      font-size: 3.2rem;
       font-weight: 900;
-      background: linear-gradient(45deg, #ff0050, #00f2fe);
+      background: linear-gradient(45deg, #00f2fe, #4facfe);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 5px;
+      margin-bottom: 2px;
     }
 
     .brand-tagline {
-      font-size: 0.95rem;
-      color: rgba(255, 255, 255, 0.8);
-      margin-bottom: 30px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 35px;
     }
 
     .auth-box {
       width: 100%;
-      max-width: 320px;
+      max-width: 310px;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -51,102 +50,163 @@
       width: 100%;
       padding: 14px;
       border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(0, 0, 0, 0.5);
       color: #fff;
       font-size: 1rem;
       outline: none;
     }
 
-    .btn-primary {
+    .btn-auth-signup {
       width: 100%;
       padding: 14px;
-      border-radius: 8px;
+      border-radius: 6px;
       border: none;
-      background: linear-gradient(45deg, #ff0050, #00f2fe);
+      background: linear-gradient(90deg, #1d976c, #2193b0);
       color: #fff;
       font-weight: bold;
-      font-size: 1rem;
+      font-size: 1.05rem;
       cursor: pointer;
     }
 
-    .btn-secondary {
+    .btn-auth-login {
       width: 100%;
       padding: 14px;
-      border-radius: 8px;
-      border: 1px solid #fff;
+      border-radius: 6px;
+      border: 1.5px solid #fff;
       background: transparent;
       color: #fff;
       font-weight: bold;
-      font-size: 1rem;
+      font-size: 1.05rem;
       cursor: pointer;
     }
 
-    /* Main App View */
-    .navbar {
+    /* Main App Layout */
+    .app-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+
+    /* Top Feed Bar Header */
+    .top-header {
       position: fixed;
       top: 0; left: 0; right: 0;
-      height: 60px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
-      z-index: 100;
-    }
-
-    #feed {
-      height: 100vh;
-      overflow-y: mandatory;
-      scroll-snap-type: y mandatory;
-    }
-
-    .video-card {
-      position: relative;
-      height: 100vh;
-      width: 100vw;
-      scroll-snap-align: start;
+      height: 55px;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #111;
+      gap: 20px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
+      z-index: 100;
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+
+    .header-tab { opacity: 0.6; cursor: pointer; position: relative; }
+    .header-tab.active { opacity: 1; border-bottom: 2px solid #fff; padding-bottom: 2px; }
+    .header-tab::before { content: "• "; color: #ff0050; display: inline; }
+
+    /* Content Views */
+    .view-panel { display: none; height: calc(100vh - 60px); width: 100vw; overflow-y: auto; }
+    .view-panel.active { display: block; }
+
+    /* Feed Screen */
+    #feed-view { height: calc(100vh - 60px); overflow-y: mandatory; scroll-snap-type: y mandatory; }
+
+    .video-card {
+      position: relative;
+      height: calc(100vh - 60px);
+      width: 100vw;
+      scroll-snap-align: start;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     video { width: 100%; height: 100%; object-fit: cover; }
 
-    .overlay {
+    /* Overlay Details */
+    .video-overlay {
       position: absolute;
-      bottom: 30px; left: 15px; right: 80px;
+      bottom: 20px;
+      left: 15px;
+      right: 75px;
       z-index: 10;
-      text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
     }
 
-    /* Upload Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.9);
-      z-index: 600;
-      justify-content: center;
-      align-items: center;
-    }
+    .video-author { font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+    .video-caption { font-size: 0.9rem; line-height: 1.3; margin-bottom: 8px; color: #eee; }
+    .video-audio { font-size: 0.8rem; opacity: 0.85; display: flex; align-items: center; gap: 5px; }
 
-    .modal-content {
-      background: #181818;
-      padding: 25px;
-      border-radius: 14px;
-      width: 90%;
-      max-width: 360px;
+    /* Side Action Icons */
+    .side-actions {
+      position: absolute;
+      right: 12px;
+      bottom: 30px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      align-items: center;
+      gap: 18px;
+      z-index: 20;
+    }
+
+    .action-item { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; font-weight: bold; }
+    .action-icon {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex; justify-content: center; align-items: center;
+      font-size: 1.2rem; margin-bottom: 3px;
+      backdrop-filter: blur(5px);
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: #000;
+      border-top: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 200;
+    }
+
+    .nav-btn { display: flex; flex-direction: column; align-items: center; color: #8e8e93; text-decoration: none; font-size: 1.2rem; cursor: pointer; }
+    .nav-btn.active { color: #fff; }
+
+    .upload-plus-btn {
+      width: 44px; height: 32px;
+      background: linear-gradient(45deg, #00f2fe, #4facfe);
+      border-radius: 8px;
+      display: flex; justify-content: center; align-items: center;
+      color: #fff; font-size: 1.4rem; font-weight: bold;
+    }
+
+    /* Search & Profile Panels */
+    .panel-content { padding: 70px 20px 20px 20px; }
+    
+    .profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 25px; }
+    .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #222; margin-bottom: 12px; border: 2px solid #00f2fe; }
+    .profile-stats { display: flex; gap: 25px; margin: 15px 0; }
+    .stat-box { text-align: center; }
+    .stat-num { font-size: 1.1rem; font-weight: bold; }
+    .stat-label { font-size: 0.75rem; color: #888; }
+
+    /* Modals */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.9); z-index: 800; justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: #181818; padding: 25px; border-radius: 14px; width: 90%; max-width: 350px;
+      display: flex; flex-direction: column; gap: 12px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Mandatory Auth Landing Screen -->
+  <!-- Mandatory Auth Screen -->
   <div id="auth-screen">
     <div class="brand-title">Alive.ly</div>
     <div class="brand-tagline">value every moment, live Alive.ly</div>
@@ -156,42 +216,91 @@
       <input type="password" id="password" class="auth-input" placeholder="Password">
       <input type="text" id="username" class="auth-input" placeholder="Username (Sign Up only)">
       
-      <button class="btn-primary" onclick="handleSignUp()">Sign Up</button>
-      <button class="btn-secondary" onclick="handleLogin()">Log In</button>
+      <button class="btn-auth-signup" onclick="handleSignUp()">Sign Up</button>
+      <button class="btn-auth-login" onclick="handleLogin()">Log In</button>
     </div>
   </div>
 
-  <!-- App Main View -->
-  <div class="navbar">
-    <div class="brand-title" style="font-size:1.3rem;">Alive.ly</div>
-    <div>
-      <button class="btn-primary" style="padding: 8px 16px; width: auto;" onclick="openModal('upload-modal')">+ Upload</button>
-      <button class="btn-secondary" style="padding: 8px 14px; width: auto; font-size: 0.85rem;" onclick="handleLogout()">Logout</button>
-    </div>
-  </div>
+  <!-- App Views -->
+  <div class="app-container">
 
-  <!-- Video Feed -->
-  <div id="feed"></div>
+    <!-- Top Feed Headers -->
+    <div class="top-header" id="top-header">
+      <div class="header-tab">Blogs</div>
+      <div class="header-tab active">For You</div>
+      <div class="header-tab">Following</div>
+    </div>
+
+    <!-- Feed Panel -->
+    <div id="feed-view" class="view-panel active">
+      <div id="feed"></div>
+    </div>
+
+    <!-- Search / Discover Panel -->
+    <div id="search-view" class="view-panel">
+      <div class="panel-content">
+        <input type="text" class="auth-input" placeholder="🔍 Search users or tags..." style="margin-bottom: 20px;">
+        <h3>Trending Tags</h3>
+        <p style="color:#666; margin-top:10px;">#Musically &nbsp;&nbsp; #AliveLy &nbsp;&nbsp; #Viral</p>
+      </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div id="activity-view" class="view-panel">
+      <div class="panel-content">
+        <h3 style="margin-bottom:15px;">All Activity</h3>
+        <p style="color:#666;">No new notifications yet.</p>
+      </div>
+    </div>
+
+    <!-- Profile Panel -->
+    <div id="profile-view" class="view-panel">
+      <div class="panel-content">
+        <div class="profile-header">
+          <div class="profile-avatar"></div>
+          <h2 id="profile-username">@user</h2>
+          
+          <div class="profile-stats">
+            <div class="stat-box"><div class="stat-num">0</div><div class="stat-label">Following</div></div>
+            <div class="stat-box"><div class="stat-num">0</div><div class="stat-label">Fans</div></div>
+            <div class="stat-box"><div class="stat-num">0</div><div class="stat-label">Hearts</div></div>
+          </div>
+
+          <button class="btn-auth-login" style="width: auto; padding: 8px 20px; font-size: 0.85rem;" onclick="handleLogout()">Log Out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+      <div class="nav-btn active" onclick="switchTab('feed-view', this)">🏠</div>
+      <div class="nav-btn" onclick="switchTab('search-view', this)">🔍</div>
+      <div class="nav-btn" onclick="openModal('upload-modal')">
+        <div class="upload-plus-btn">+</div>
+      </div>
+      <div class="nav-btn" onclick="switchTab('activity-view', this)">⚡</div>
+      <div class="nav-btn" onclick="switchTab('profile-view', this)">👤</div>
+    </div>
+
+  </div>
 
   <!-- Upload Modal -->
   <div id="upload-modal" class="modal">
     <div class="modal-content">
-      <h3 style="margin-bottom: 10px;">Post Video to Alive.ly</h3>
+      <h3 style="margin-bottom: 5px;">Post to Alive.ly</h3>
       <input type="file" id="video-file" class="auth-input" accept="video/mp4,video/mov">
-      <input type="text" id="video-caption" class="auth-input" placeholder="Caption (e.g. #alively)">
+      <input type="text" id="video-caption" class="auth-input" placeholder="Caption (#alively)">
       <input type="text" id="video-audio" class="auth-input" placeholder="Audio Title">
-      <button class="btn-primary" id="upload-btn" onclick="handleUpload()">Publish</button>
-      <button class="btn-secondary" onclick="closeModal('upload-modal')">Cancel</button>
+      <button class="btn-auth-signup" id="upload-btn" onclick="handleUpload()">Publish</button>
+      <button class="btn-auth-login" onclick="closeModal('upload-modal')">Cancel</button>
     </div>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://kdezxjizwqfmugkwpycb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkZXp4aml6d3FmbXVna3dweWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNzQ5OTgsImV4cCI6MjEwMjc1MDk5OH0.Pc2p7s3umB-7PyPtTupQcA5occ5xEZdQzs4K5Nwhv_8';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkZXp4aml6d3FmbXVna3dweWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNzQ5OTgsImV4cCI6MjEwMjc0MDk5OH0.Pc2p7s3umB-7PyPtTupQcA5occ5xEZdQzs4K5Nwhv_8';
     
-    // Explicit initialization using global window object
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     let currentUser = null;
 
     async function checkUserSession() {
@@ -201,6 +310,7 @@
 
         if (currentUser) {
           document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('profile-username').innerText = '@' + (currentUser.user_metadata?.username || 'user');
           renderFeed();
         } else {
           document.getElementById('auth-screen').style.display = 'flex';
@@ -215,45 +325,43 @@
       const password = document.getElementById('password').value.trim();
       const username = document.getElementById('username').value.trim();
 
-      if (!email || !password || !username) {
-        return alert('Please fill in your email, password, and username!');
-      }
+      if (!email || !password || !username) return alert('Fill in all fields to sign up!');
 
       const { data, error } = await supabaseClient.auth.signUp({
-        email, 
-        password, 
-        options: { data: { username } }
+        email, password, options: { data: { username } }
       });
 
-      if (error) {
-        alert('Sign Up Error: ' + error.message);
-      } else {
-        alert('Account created! Logging you in...');
-        checkUserSession();
-      }
+      if (error) alert('Sign Up Error: ' + error.message);
+      else { alert('Account created!'); checkUserSession(); }
     }
 
     async function handleLogin() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
 
-      if (!email || !password) {
-        return alert('Please enter your email and password!');
-      }
+      if (!email || !password) return alert('Enter email and password!');
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-      if (error) {
-        alert('Login Error: ' + error.message);
-      } else {
-        checkUserSession();
-      }
+      if (error) alert('Login Error: ' + error.message);
+      else checkUserSession();
     }
 
     async function handleLogout() {
       await supabaseClient.auth.signOut();
       currentUser = null;
       document.getElementById('auth-screen').style.display = 'flex';
+    }
+
+    function switchTab(viewId, btn) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(viewId).classList.add('active');
+      if (btn) btn.classList.add('active');
+
+      const topHeader = document.getElementById('top-header');
+      topHeader.style.display = (viewId === 'feed-view') ? 'flex' : 'none';
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -264,7 +372,7 @@
       const caption = document.getElementById('video-caption').value;
       const audioTitle = document.getElementById('video-audio').value || 'Original Sound';
 
-      if (!fileInput.files.length) return alert('Please select a video file first!');
+      if (!fileInput.files.length) return alert('Select a video file first!');
       const file = fileInput.files[0];
 
       const btn = document.getElementById('upload-btn');
@@ -276,10 +384,8 @@
       const { error: storageError } = await supabaseClient.storage.from('videos').upload(filePath, file);
 
       if (storageError) {
-        alert('Storage Upload Error: ' + storageError.message);
-        btn.innerText = 'Publish';
-        btn.disabled = false;
-        return;
+        alert('Upload Error: ' + storageError.message);
+        btn.innerText = 'Publish'; btn.disabled = false; return;
       }
 
       const { data: urlData } = supabaseClient.storage.from('videos').getPublicUrl(filePath);
@@ -291,14 +397,13 @@
         audio_title: audioTitle
       }]);
 
-      btn.innerText = 'Publish';
-      btn.disabled = false;
+      btn.innerText = 'Publish'; btn.disabled = false;
 
-      if (dbError) {
-        alert('Database Error: ' + dbError.message);
-      } else {
-        alert('Video published to Alive.ly!');
+      if (dbError) alert('DB Error: ' + dbError.message);
+      else {
+        alert('Video uploaded live!');
         closeModal('upload-modal');
+        switchTab('feed-view', document.querySelectorAll('.nav-btn')[0]);
         renderFeed();
       }
     }
@@ -318,7 +423,7 @@
       }
 
       if (!videos || videos.length === 0) {
-        container.innerHTML = '<div style="padding-top: 100px; text-align: center;">No videos on Alive.ly yet. Tap + Upload to post the first one!</div>';
+        container.innerHTML = '<div style="padding-top: 150px; text-align: center; color: #888;">No videos on Alive.ly yet.<br>Tap + to post the first one!</div>';
         return;
       }
 
@@ -327,17 +432,23 @@
         card.className = 'video-card';
         card.innerHTML = `
           <video src="${v.video_url}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
-          <div class="overlay">
-            <div style="font-weight:bold; margin-bottom: 4px;">${v.profiles ? '@' + v.profiles.username : '@user'}</div>
-            <div style="margin-bottom: 6px;">${v.caption || ''}</div>
-            <div style="font-size:0.85rem; opacity:0.8;">♫ ${v.audio_title || 'Original Sound'}</div>
+          
+          <div class="video-overlay">
+            <div class="video-author">${v.profiles ? '@' + v.profiles.username : '@user'}</div>
+            <div class="video-caption">${v.caption || ''}</div>
+            <div class="video-audio">♫ ${v.audio_title || 'Original Sound'}</div>
+          </div>
+
+          <div class="side-actions">
+            <div class="action-item"><div class="action-icon">💛</div>0</div>
+            <div class="action-item"><div class="action-icon">💬</div>0</div>
+            <div class="action-item"><div class="action-icon">↗️</div>Share</div>
           </div>
         `;
         container.appendChild(card);
       });
     }
 
-    // Initialize session check after DOM load
     window.addEventListener('DOMContentLoaded', checkUserSession);
   </script>
 </body>
