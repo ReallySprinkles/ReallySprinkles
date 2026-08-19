@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>musical.ly revival</title>
+  <!-- Load Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <h1>musical.ly revival API connected</h1>
+  <div id="feed"></div>
+
+  <script>
+    // Your Supabase Configuration
+    const SUPABASE_URL = 'https://kdezxjizwqfmugkwpycb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkZXp4aml6d3FmbXVna3dweWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNzQ5OTgsImV4cCI6MjEwMjc1MDk5OH0.Pc2p7s3umB-7PyPtTupQcA5occ5xEZdQzs4K5Nwhv_8';
+    
+    // Initialize Client
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 1. Fetch Live Video Feed
+    async function loadFeed() {
+      const { data: videos, error } = await supabase
+        .from('videos')
+        .select(`
+          id,
+          video_url,
+          caption,
+          audio_title,
+          created_at,
+          profiles ( username, avatar_url ),
+          likes ( id )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching feed:', error);
+        return;
+      }
+      
+      console.log('Live feed from Supabase:', videos);
+      return videos;
+    }
+
+    // 2. Upload Video to Storage Bucket and Insert Metadata
+    async function uploadVideo(file, userId, caption, audioTitle = 'Original Sound') {
+      const filePath = `${userId}/${Date.now()}.mp4`;
+
+      // Upload file to 'videos' bucket
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('videos')
+        .upload(filePath, file);
+
+      if (storageError) {
+        console.error('Upload error:', storageError);
+        return;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('videos')
+        .getPublicUrl(filePath);
+
+      // Insert record into 'videos' table
+      const { error: dbError } = await supabase
+        .from('videos')
+        .insert([{ 
+          user_id: userId, 
+          video_url: urlData.publicUrl, 
+          caption: caption,
+          audio_title: audioTitle
+        }]);
+
+      if (dbError) {
+        console.error('Database insertion error:', dbError);
+      } else {
+        console.log('Video published live!');
+        loadFeed(); // Refresh feed
+      }
+    }
+
+    // 3. Like a Video
+    async function likeVideo(videoId, userId) {
+      const { data, error } = await supabase
+        .from('likes')
+        .insert([{ video_id: videoId, user_id: userId }]);
+
+      if (error) {
+        console.error('Error liking video:', error);
+      } else {
+        console.log('Video liked!');
+      }
+    }
+
+    // Load initial feed on launch
+    loadFeed();
+  </script>
+</body>
+</html>
