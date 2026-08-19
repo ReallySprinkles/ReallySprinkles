@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Alive.ly</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Fixed: Correct Supabase JS Library Import -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
@@ -13,7 +14,7 @@
     #auth-screen {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1920') center/cover no-repeat;
+      background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.85)), url('https://picsum.photos/1080/1920') center/cover no-repeat;
       z-index: 500;
       display: flex;
       flex-direction: column;
@@ -35,7 +36,7 @@
     .brand-tagline {
       font-size: 0.95rem;
       color: rgba(255, 255, 255, 0.8);
-      margin-bottom: 40px;
+      margin-bottom: 30px;
     }
 
     .auth-box {
@@ -54,7 +55,7 @@
       background: rgba(0, 0, 0, 0.6);
       color: #fff;
       font-size: 1rem;
-      backdrop-filter: blur(10px);
+      outline: none;
     }
 
     .btn-primary {
@@ -67,7 +68,6 @@
       font-weight: bold;
       font-size: 1rem;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(255, 0, 80, 0.4);
     }
 
     .btn-secondary {
@@ -82,7 +82,7 @@
       cursor: pointer;
     }
 
-    /* Main App Feed UI */
+    /* Main App View */
     .navbar {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -161,7 +161,7 @@
     </div>
   </div>
 
-  <!-- App Main View (Hidden until Auth) -->
+  <!-- App Main View -->
   <div class="navbar">
     <div class="brand-title" style="font-size:1.3rem;">Alive.ly</div>
     <div>
@@ -170,10 +170,10 @@
     </div>
   </div>
 
-  <!-- Video Stream -->
+  <!-- Video Feed -->
   <div id="feed"></div>
 
-  <!-- Video Upload Modal -->
+  <!-- Upload Modal -->
   <div id="upload-modal" class="modal">
     <div class="modal-content">
       <h3 style="margin-bottom: 10px;">Post Video to Alive.ly</h3>
@@ -188,19 +188,25 @@
   <script>
     const SUPABASE_URL = 'https://kdezxjizwqfmugkwpycb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkZXp4aml6d3FmbXVna3dweWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNzQ5OTgsImV4cCI6MjEwMjc1MDk5OH0.Pc2p7s3umB-7PyPtTupQcA5occ5xEZdQzs4K5Nwhv_8';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Explicit initialization using global window object
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
 
     async function checkUserSession() {
-      const { data: { user } } = await supabase.auth.getUser();
-      currentUser = user;
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        currentUser = user;
 
-      if (currentUser) {
-        document.getElementById('auth-screen').style.display = 'none';
-        renderFeed();
-      } else {
-        document.getElementById('auth-screen').style.display = 'flex';
+        if (currentUser) {
+          document.getElementById('auth-screen').style.display = 'none';
+          renderFeed();
+        } else {
+          document.getElementById('auth-screen').style.display = 'flex';
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
       }
     }
 
@@ -210,17 +216,19 @@
       const username = document.getElementById('username').value.trim();
 
       if (!email || !password || !username) {
-        return alert('Fill in email, password, and username to sign up!');
+        return alert('Please fill in your email, password, and username!');
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email, password, options: { data: { username } }
+      const { data, error } = await supabaseClient.auth.signUp({
+        email, 
+        password, 
+        options: { data: { username } }
       });
 
       if (error) {
-        alert('Sign Up Failed: ' + error.message);
+        alert('Sign Up Error: ' + error.message);
       } else {
-        alert('Account created!');
+        alert('Account created! Logging you in...');
         checkUserSession();
       }
     }
@@ -230,20 +238,20 @@
       const password = document.getElementById('password').value.trim();
 
       if (!email || !password) {
-        return alert('Enter your email and password!');
+        return alert('Please enter your email and password!');
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
-        alert('Login Failed: ' + error.message);
+        alert('Login Error: ' + error.message);
       } else {
         checkUserSession();
       }
     }
 
     async function handleLogout() {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       currentUser = null;
       document.getElementById('auth-screen').style.display = 'flex';
     }
@@ -256,7 +264,7 @@
       const caption = document.getElementById('video-caption').value;
       const audioTitle = document.getElementById('video-audio').value || 'Original Sound';
 
-      if (!fileInput.files.length) return alert('Select an MP4/MOV file first!');
+      if (!fileInput.files.length) return alert('Please select a video file first!');
       const file = fileInput.files[0];
 
       const btn = document.getElementById('upload-btn');
@@ -265,18 +273,18 @@
 
       const filePath = `${currentUser.id}/${Date.now()}_${file.name}`;
 
-      const { error: storageError } = await supabase.storage.from('videos').upload(filePath, file);
+      const { error: storageError } = await supabaseClient.storage.from('videos').upload(filePath, file);
 
       if (storageError) {
-        alert('Upload Error: ' + storageError.message);
+        alert('Storage Upload Error: ' + storageError.message);
         btn.innerText = 'Publish';
         btn.disabled = false;
         return;
       }
 
-      const { data: urlData } = supabase.storage.from('videos').getPublicUrl(filePath);
+      const { data: urlData } = supabaseClient.storage.from('videos').getPublicUrl(filePath);
 
-      const { error: dbError } = await supabase.from('videos').insert([{
+      const { error: dbError } = await supabaseClient.from('videos').insert([{
         user_id: currentUser.id,
         video_url: urlData.publicUrl,
         caption: caption,
@@ -287,9 +295,9 @@
       btn.disabled = false;
 
       if (dbError) {
-        alert('DB Error: ' + dbError.message);
+        alert('Database Error: ' + dbError.message);
       } else {
-        alert('Video uploaded successfully!');
+        alert('Video published to Alive.ly!');
         closeModal('upload-modal');
         renderFeed();
       }
@@ -299,18 +307,18 @@
       const container = document.getElementById('feed');
       container.innerHTML = '';
 
-      const { data: videos, error } = await supabase
+      const { data: videos, error } = await supabaseClient
         .from('videos')
         .select(`id, video_url, caption, audio_title, profiles ( username )`)
         .order('created_at', { ascending: false });
 
       if (error) {
-        container.innerHTML = `<div style="padding-top: 100px; text-align: center; color: #ff0050;">Error loading feed: ${error.message}</div>`;
+        container.innerHTML = `<div style="padding-top: 100px; text-align: center; color: #ff0050;">Error loading videos: ${error.message}</div>`;
         return;
       }
 
       if (!videos || videos.length === 0) {
-        container.innerHTML = '<div style="padding-top: 100px; text-align: center;">No videos posted yet. Tap + Upload to post the first one!</div>';
+        container.innerHTML = '<div style="padding-top: 100px; text-align: center;">No videos on Alive.ly yet. Tap + Upload to post the first one!</div>';
         return;
       }
 
@@ -329,7 +337,8 @@
       });
     }
 
-    checkUserSession();
+    // Initialize session check after DOM load
+    window.addEventListener('DOMContentLoaded', checkUserSession);
   </script>
 </body>
 </html>
