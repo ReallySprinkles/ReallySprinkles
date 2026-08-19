@@ -7,8 +7,82 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
-    
+    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+
+    /* Mandatory Auth Landing Screen */
+    #auth-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1920') center/cover no-repeat;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .brand-title {
+      font-size: 3rem;
+      font-weight: 900;
+      background: linear-gradient(45deg, #ff0050, #00f2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 5px;
+    }
+
+    .brand-tagline {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 40px;
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      font-size: 1rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(45deg, #ff0050, #00f2fe);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255, 0, 80, 0.4);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #fff;
+      background: transparent;
+      color: #fff;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    /* Main App Feed UI */
     .navbar {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -20,31 +94,13 @@
       background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
       z-index: 100;
     }
-    
-    .logo {
-      font-size: 1.4rem;
-      font-weight: 800;
-      background: linear-gradient(45deg, #ff0050, #00f2fe);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .btn {
-      background: #ff0050;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: bold;
-      cursor: pointer;
-    }
 
     #feed {
       height: 100vh;
       overflow-y: mandatory;
       scroll-snap-type: y mandatory;
     }
-    
+
     .video-card {
       position: relative;
       height: 100vh;
@@ -55,81 +111,77 @@
       align-items: center;
       background: #111;
     }
-    
+
     video { width: 100%; height: 100%; object-fit: cover; }
-    
+
     .overlay {
       position: absolute;
-      bottom: 30px;
-      left: 15px;
-      right: 80px;
+      bottom: 30px; left: 15px; right: 80px;
       z-index: 10;
       text-shadow: 0 1px 4px rgba(0,0,0,0.8);
     }
 
+    /* Upload Modal */
     .modal {
       display: none;
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.85);
-      z-index: 200;
+      background: rgba(0,0,0,0.9);
+      z-index: 600;
       justify-content: center;
       align-items: center;
     }
 
     .modal-content {
-      background: #222;
+      background: #181818;
       padding: 25px;
-      border-radius: 12px;
+      border-radius: 14px;
       width: 90%;
-      max-width: 400px;
+      max-width: 360px;
       display: flex;
       flex-direction: column;
-      gap: 15px;
-    }
-
-    .modal-content input {
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background: #111;
-      color: #fff;
+      gap: 12px;
     }
   </style>
 </head>
 <body>
 
-  <div class="navbar">
-    <div class="logo">Alive.ly</div>
-    <div id="auth-buttons">
-      <button class="btn" onclick="openModal('auth-modal')">Login / Sign Up</button>
+  <!-- Mandatory Auth Landing Screen -->
+  <div id="auth-screen">
+    <div class="brand-title">Alive.ly</div>
+    <div class="brand-tagline">value every moment, live Alive.ly</div>
+
+    <div class="auth-box">
+      <input type="email" id="email" class="auth-input" placeholder="Email address">
+      <input type="password" id="password" class="auth-input" placeholder="Password">
+      <input type="text" id="username" class="auth-input" placeholder="Username (Sign Up only)">
+      
+      <button class="btn-primary" onclick="handleSignUp()">Sign Up</button>
+      <button class="btn-secondary" onclick="handleLogin()">Log In</button>
     </div>
   </div>
 
+  <!-- App Main View (Hidden until Auth) -->
+  <div class="navbar">
+    <div class="brand-title" style="font-size:1.3rem;">Alive.ly</div>
+    <div>
+      <button class="btn-primary" style="padding: 8px 16px; width: auto;" onclick="openModal('upload-modal')">+ Upload</button>
+      <button class="btn-secondary" style="padding: 8px 14px; width: auto; font-size: 0.85rem;" onclick="handleLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Video Stream -->
   <div id="feed"></div>
 
-  <!-- Auth Modal -->
-  <div id="auth-modal" class="modal">
-    <div class="modal-content">
-      <h3>Welcome to Alive.ly</h3>
-      <input type="email" id="auth-email" placeholder="Email">
-      <input type="password" id="auth-password" placeholder="Password">
-      <input type="text" id="auth-username" placeholder="Username (Sign Up Only)">
-      <button class="btn" onclick="handleSignUp()">Sign Up</button>
-      <button class="btn" style="background:#444;" onclick="handleLogin()">Log In</button>
-      <button class="btn" style="background:transparent; border:1px solid #666;" onclick="closeModal('auth-modal')">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Upload Modal -->
+  <!-- Video Upload Modal -->
   <div id="upload-modal" class="modal">
     <div class="modal-content">
-      <h3>Post to Alive.ly</h3>
-      <input type="file" id="video-file" accept="video/mp4,video/mov">
-      <input type="text" id="video-caption" placeholder="Caption (e.g., #alively)">
-      <input type="text" id="video-audio" placeholder="Audio Title">
-      <button class="btn" id="upload-btn" onclick="handleUpload()">Publish Video</button>
-      <button class="btn" style="background:transparent; border:1px solid #666;" onclick="closeModal('upload-modal')">Cancel</button>
+      <h3 style="margin-bottom: 10px;">Post Video to Alive.ly</h3>
+      <input type="file" id="video-file" class="auth-input" accept="video/mp4,video/mov">
+      <input type="text" id="video-caption" class="auth-input" placeholder="Caption (e.g. #alively)">
+      <input type="text" id="video-audio" class="auth-input" placeholder="Audio Title">
+      <button class="btn-primary" id="upload-btn" onclick="handleUpload()">Publish</button>
+      <button class="btn-secondary" onclick="closeModal('upload-modal')">Cancel</button>
     </div>
   </div>
 
@@ -140,79 +192,85 @@
 
     let currentUser = null;
 
-    async function initAuth() {
+    async function checkUserSession() {
       const { data: { user } } = await supabase.auth.getUser();
       currentUser = user;
-      updateAuthUI();
-    }
 
-    function updateAuthUI() {
-      const container = document.getElementById('auth-buttons');
       if (currentUser) {
-        container.innerHTML = `
-          <button class="btn" onclick="openModal('upload-modal')">+ Upload</button>
-          <button class="btn" style="background:#333; margin-left: 8px;" onclick="handleLogout()">Logout</button>
-        `;
+        document.getElementById('auth-screen').style.display = 'none';
+        renderFeed();
       } else {
-        container.innerHTML = `<button class="btn" onclick="openModal('auth-modal')">Login / Sign Up</button>`;
+        document.getElementById('auth-screen').style.display = 'flex';
       }
     }
 
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
     async function handleSignUp() {
-      const email = document.getElementById('auth-email').value;
-      const password = document.getElementById('auth-password').value;
-      const username = document.getElementById('auth-username').value;
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const username = document.getElementById('username').value.trim();
 
-      if (!email || !password || !username) return alert('Please fill in all fields!');
+      if (!email || !password || !username) {
+        return alert('Fill in email, password, and username to sign up!');
+      }
 
       const { data, error } = await supabase.auth.signUp({
         email, password, options: { data: { username } }
       });
 
-      if (error) alert('Sign Up Error: ' + error.message);
-      else { alert('Account created successfully! You are logged in.'); closeModal('auth-modal'); initAuth(); }
+      if (error) {
+        alert('Sign Up Failed: ' + error.message);
+      } else {
+        alert('Account created!');
+        checkUserSession();
+      }
     }
 
     async function handleLogin() {
-      const email = document.getElementById('auth-email').value;
-      const password = document.getElementById('auth-password').value;
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!email || !password) {
+        return alert('Enter your email and password!');
+      }
 
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) alert('Login Error: ' + error.message);
-      else { closeModal('auth-modal'); currentUser = data.user; updateAuthUI(); }
+
+      if (error) {
+        alert('Login Failed: ' + error.message);
+      } else {
+        checkUserSession();
+      }
     }
 
     async function handleLogout() {
       await supabase.auth.signOut();
       currentUser = null;
-      updateAuthUI();
+      document.getElementById('auth-screen').style.display = 'flex';
     }
 
-    async function handleUpload() {
-      if (!currentUser) return alert('You must log in first!');
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+    async function handleUpload() {
       const fileInput = document.getElementById('video-file');
       const caption = document.getElementById('video-caption').value;
       const audioTitle = document.getElementById('video-audio').value || 'Original Sound';
 
-      if (!fileInput.files.length) return alert('Please choose a video file');
+      if (!fileInput.files.length) return alert('Select an MP4/MOV file first!');
       const file = fileInput.files[0];
 
-      const uploadBtn = document.getElementById('upload-btn');
-      uploadBtn.innerText = 'Uploading...';
-      uploadBtn.disabled = true;
+      const btn = document.getElementById('upload-btn');
+      btn.innerText = 'Publishing...';
+      btn.disabled = true;
 
       const filePath = `${currentUser.id}/${Date.now()}_${file.name}`;
 
       const { error: storageError } = await supabase.storage.from('videos').upload(filePath, file);
-      
+
       if (storageError) {
-        alert('Storage Error: ' + storageError.message);
-        uploadBtn.innerText = 'Publish Video';
-        uploadBtn.disabled = false;
+        alert('Upload Error: ' + storageError.message);
+        btn.innerText = 'Publish';
+        btn.disabled = false;
         return;
       }
 
@@ -225,13 +283,13 @@
         audio_title: audioTitle
       }]);
 
-      uploadBtn.innerText = 'Publish Video';
-      uploadBtn.disabled = false;
+      btn.innerText = 'Publish';
+      btn.disabled = false;
 
       if (dbError) {
-        alert('Database Error: ' + dbError.message);
+        alert('DB Error: ' + dbError.message);
       } else {
-        alert('Video uploaded live!');
+        alert('Video uploaded successfully!');
         closeModal('upload-modal');
         renderFeed();
       }
@@ -252,7 +310,7 @@
       }
 
       if (!videos || videos.length === 0) {
-        container.innerHTML = '<div style="padding-top: 100px; text-align: center;">No videos on Alive.ly yet. Log in and upload the first one!</div>';
+        container.innerHTML = '<div style="padding-top: 100px; text-align: center;">No videos posted yet. Tap + Upload to post the first one!</div>';
         return;
       }
 
@@ -271,8 +329,7 @@
       });
     }
 
-    initAuth();
-    renderFeed();
+    checkUserSession();
   </script>
 </body>
 </html>
