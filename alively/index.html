@@ -189,6 +189,37 @@
     .action-icon:active { transform: scale(1.2); }
     .action-icon.liked { color: #ff0050; }
 
+    /* Musical.ly Crown Badge Wrapper Styling */
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .crown-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 22px;
+      height: 22px;
+      background: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      z-index: 5;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-avatar-container .crown-badge {
+      width: 28px;
+      height: 28px;
+      top: -2px;
+      right: -2px;
+      font-size: 0.9rem;
+    }
+
     /* Bottom Navigation Bar */
     .bottom-nav {
       position: fixed;
@@ -217,7 +248,7 @@
     .panel-content { padding: 70px 20px 20px 20px; }
     
     .profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 25px; }
-    .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #222; margin-bottom: 12px; border: 2px solid #00f2fe; object-fit: cover; }
+    .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #222; border: 2px solid #00f2fe; object-fit: cover; display: block; }
     .profile-bio { font-size: 0.85rem; color: #ccc; margin-top: 6px; max-width: 250px; }
     .profile-stats { display: flex; gap: 25px; margin: 15px 0; }
     .stat-box { text-align: center; }
@@ -300,7 +331,7 @@
 </head>
 <body>
 
-  <!-- Mandatory Auth Screen -->
+  <!-- Auth Screen -->
   <div id="auth-screen">
     <div class="brand-title">Alive.ly</div>
     <div class="brand-tagline">value every moment, live Alive.ly</div>
@@ -345,11 +376,14 @@
       </div>
     </div>
 
-    <!-- Current User Profile Panel -->
+    <!-- Profile Panel -->
     <div id="profile-view" class="view-panel">
       <div class="panel-content">
         <div class="profile-header">
-          <img id="profile-avatar-img" class="profile-avatar" src="https://picsum.photos/200/200" alt="Avatar" />
+          <div class="avatar-wrapper profile-avatar-container" style="margin-bottom: 12px;">
+            <img id="profile-avatar-img" class="profile-avatar" src="https://picsum.photos/200/200" alt="Avatar" />
+            <div id="profile-crown-badge" class="crown-badge" style="display: none;">👑</div>
+          </div>
           <h2 id="profile-username">@user</h2>
           <div id="profile-bio-text" class="profile-bio">alive.ly user</div>
           
@@ -403,7 +437,10 @@
         <span onclick="closeModal('user-profile-modal')" style="cursor: pointer; font-size: 1.4rem;">✕</span>
       </div>
       <div class="profile-header" style="margin-bottom: 0;">
-        <img id="view-user-avatar" class="profile-avatar" src="https://picsum.photos/200/200" alt="Avatar" />
+        <div class="avatar-wrapper profile-avatar-container" style="margin-bottom: 12px;">
+          <img id="view-user-avatar" class="profile-avatar" src="https://picsum.photos/200/200" alt="Avatar" />
+          <div id="view-user-crown-badge" class="crown-badge" style="display: none;">👑</div>
+        </div>
         <h2 id="view-user-username">@user</h2>
         <div id="view-user-bio" class="profile-bio">alive.ly user</div>
         
@@ -451,12 +488,14 @@
         <span onclick="closeModal('mod-panel-modal')" style="cursor: pointer; font-size: 1.4rem;">✕</span>
       </div>
       
-      <div class="mod-section-title">Manage User (Crown / Ban)</div>
-      <input type="text" id="mod-target-user" class="auth-input" placeholder="Target Username (e.g. sprinkles)">
+      <div class="mod-section-title">Manage Crown Badge</div>
+      <input type="text" id="mod-target-user" class="auth-input" placeholder="Target Username">
       <div style="display: flex; gap: 8px;">
         <button class="btn-auth-signup" style="background: #ff007f;" onclick="modToggleCrown(true)">👑 Crown</button>
         <button class="btn-auth-login" style="border-color: #666;" onclick="modToggleCrown(false)">Uncrown</button>
       </div>
+
+      <div class="mod-section-title">Manage Permissions & Ban</div>
       <div style="display: flex; gap: 8px;">
         <button class="btn-auth-signup" style="background: #e50914;" onclick="modToggleBan(true)">⛔ Ban User</button>
         <button class="btn-auth-login" style="border-color: #666;" onclick="modToggleBan(false)">Unban</button>
@@ -518,20 +557,16 @@
         currentAvatarUrl = profile.avatar_url;
       }
 
-      // Check Crown status or username == 'sprinkles'
-      const isCrowned = profile?.is_crowned || username.toLowerCase() === 'sprinkles';
-      const crownBadge = isCrowned ? ' 👑' : '';
+      const isCrowned = profile?.is_crowned || false;
 
-      document.getElementById('profile-username').innerText = '@' + username + crownBadge;
+      document.getElementById('profile-username').innerText = '@' + username;
       document.getElementById('profile-bio-text').innerText = bio;
       document.getElementById('profile-avatar-img').src = currentAvatarUrl;
+      document.getElementById('profile-crown-badge').style.display = isCrowned ? 'flex' : 'none';
 
-      // Automatically grant mod panel button access to sprinkles or crowned users
-      if (username.toLowerCase() === 'sprinkles' || profile?.is_crowned) {
-        document.getElementById('mod-panel-trigger-btn').style.display = 'inline-block';
-      } else {
-        document.getElementById('mod-panel-trigger-btn').style.display = 'none';
-      }
+      // Mod panel triggers ONLY for explicitly assigned mod/admin usernames or flags (NOT crowned status)
+      const isModAdmin = username.toLowerCase() === 'sprinkles' || profile?.is_admin === true;
+      document.getElementById('mod-panel-trigger-btn').style.display = isModAdmin ? 'inline-block' : 'none';
 
       document.getElementById('edit-username-input').value = username;
       document.getElementById('edit-bio-input').value = bio;
@@ -588,12 +623,12 @@
       if (!profile) return alert('User not found!');
 
       activeViewTargetUser = profile;
-      const isCrowned = profile.is_crowned || profile.username.toLowerCase() === 'sprinkles';
-      const crownBadge = isCrowned ? ' 👑' : '';
+      const isCrowned = profile.is_crowned || false;
 
-      document.getElementById('view-user-username').innerText = '@' + profile.username + crownBadge;
+      document.getElementById('view-user-username').innerText = '@' + profile.username;
       document.getElementById('view-user-bio').innerText = profile.bio || 'alive.ly user';
       document.getElementById('view-user-avatar').src = profile.avatar_url || 'https://picsum.photos/200/200';
+      document.getElementById('view-user-crown-badge').style.display = isCrowned ? 'flex' : 'none';
 
       const { count: targetFollowing } = await supabaseClient
         .from('follows')
@@ -688,15 +723,17 @@
       resultsContainer.innerHTML = '';
       (users || []).forEach(u => {
         const div = document.createElement('div');
-        const isCrowned = u.is_crowned || u.username.toLowerCase() === 'sprinkles';
-        const crownBadge = isCrowned ? ' 👑' : '';
+        const isCrowned = u.is_crowned || false;
 
         div.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px; background:#111; border-radius:8px; margin-bottom:8px; cursor:pointer;';
         div.onclick = () => openUserProfile(u.id);
         div.innerHTML = `
-          <img src="${u.avatar_url || 'https://picsum.photos/200/200'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+          <div class="avatar-wrapper">
+            <img src="${u.avatar_url || 'https://picsum.photos/200/200'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; display:block;">
+            ${isCrowned ? '<div class="crown-badge">👑</div>' : ''}
+          </div>
           <div>
-            <div style="font-weight:bold;">@${u.username}${crownBadge}</div>
+            <div style="font-weight:bold;">@${u.username}</div>
             <div style="font-size:0.75rem; color:#888;">${u.bio || 'alive.ly user'}</div>
           </div>
         `;
@@ -766,7 +803,6 @@
       }
     }
 
-    // Avatar preview
     document.getElementById('edit-avatar-file').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -781,8 +817,6 @@
 
       if (!email || !password || !username) return alert('Fill in all fields to sign up!');
 
-      const isSprinkles = username.toLowerCase() === 'sprinkles';
-
       const { data, error } = await supabaseClient.auth.signUp({
         email, password, options: { data: { username } }
       });
@@ -796,7 +830,7 @@
             email: email,
             bio: 'alive.ly user',
             avatar_url: 'https://picsum.photos/200/200',
-            is_crowned: isSprinkles
+            is_crowned: false
           });
         }
         alert('Account created!'); 
@@ -1005,17 +1039,18 @@
         div.className = 'comment-item';
         
         const username = c.profiles?.username || 'user';
-        const isCrowned = c.profiles?.is_crowned || username.toLowerCase() === 'sprinkles';
-        const crownBadge = isCrowned ? ' 👑' : '';
+        const isCrowned = c.profiles?.is_crowned || false;
 
-        // Allow Quick Delete if Mod
-        const isMod = currentUserProfile && (currentUserProfile.username.toLowerCase() === 'sprinkles' || currentUserProfile.is_crowned);
+        const isMod = currentUserProfile && (currentUserProfile.username.toLowerCase() === 'sprinkles' || currentUserProfile.is_admin === true);
         const deleteBtn = isMod ? `<span onclick="modDeleteCommentDirect('${c.id}')" style="color:#e50914; cursor:pointer; font-size:0.75rem; margin-left:8px;">[Delete]</span>` : '';
 
         div.innerHTML = `
-          <img src="${c.profiles?.avatar_url || 'https://picsum.photos/200/200'}" class="comment-avatar">
+          <div class="avatar-wrapper">
+            <img src="${c.profiles?.avatar_url || 'https://picsum.photos/200/200'}" class="comment-avatar">
+            ${isCrowned ? '<div class="crown-badge" style="width:16px; height:16px; font-size:0.5rem; top:-2px; right:-2px;">👑</div>' : ''}
+          </div>
           <div style="flex: 1;">
-            <div style="font-weight:bold; font-size:0.8rem; color:#aaa;">@${username}${crownBadge} ${deleteBtn}</div>
+            <div style="font-weight:bold; font-size:0.8rem; color:#aaa;">@${username} ${deleteBtn}</div>
             <div style="margin-top:2px;">${c.comment_text || ''}</div>
           </div>
         `;
@@ -1092,9 +1127,7 @@
         const authorId = v.profiles?.id || v.user_id;
         const authorUsername = v.profiles?.username || 'user';
         const authorAvatar = v.profiles?.avatar_url || 'https://picsum.photos/200/200';
-        
-        const isCrowned = v.profiles?.is_crowned || authorUsername.toLowerCase() === 'sprinkles';
-        const crownBadge = isCrowned ? ' 👑' : '';
+        const isCrowned = v.profiles?.is_crowned || false;
 
         const { count: likesCount } = await supabaseClient
           .from('likes')
@@ -1123,14 +1156,17 @@
           <video src="${v.video_url}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
           
           <div class="video-overlay">
-            <div class="video-author" onclick="openUserProfile('${authorId}')">@${authorUsername}${crownBadge}</div>
+            <div class="video-author" onclick="openUserProfile('${authorId}')">@${authorUsername}</div>
             <div class="video-caption">${v.caption || ''}</div>
             <div class="video-audio">♫ ${v.audio_title || 'Original Sound'}</div>
           </div>
 
           <div class="side-actions">
             <div class="action-item" onclick="openUserProfile('${authorId}')">
-              <img src="${authorAvatar}" style="width:42px; height:42px; border-radius:50%; border:2px solid #00f2fe; object-fit:cover; margin-bottom:3px; cursor:pointer;">
+              <div class="avatar-wrapper">
+                <img src="${authorAvatar}" style="width:42px; height:42px; border-radius:50%; border:2px solid #00f2fe; object-fit:cover; display:block; cursor:pointer;">
+                ${isCrowned ? '<div class="crown-badge">👑</div>' : ''}
+              </div>
             </div>
             <div class="action-item" onclick="toggleLike('${v.id}')">
               <div class="action-icon ${isLiked ? 'liked' : ''}" id="like-icon-${v.id}">💛</div>
