@@ -228,7 +228,7 @@
       background: #000;
       border-top: 1px solid #1a1a1a;
       display: flex;
-      justify-space-around;
+      justify-content: space-around;
       align-items: center;
       z-index: 200;
     }
@@ -372,7 +372,7 @@
     <div id="activity-view" class="view-panel">
       <div class="panel-content">
         <h3 style="margin-bottom:15px;">All Activity</h3>
-        <p style="color:#666;">No new notifications yet.</p>
+        <p style="color:#666;">Notifications are coming soon.</p>
       </div>
     </div>
 
@@ -406,7 +406,7 @@
     <div class="bottom-nav">
       <div class="nav-btn active" onclick="switchTab('feed-view', this)">🏠</div>
       <div class="nav-btn" onclick="switchTab('search-view', this)">🔍</div>
-      <div class="nav-btn" onclick="window.location.href='https://reallysprinkles.com/alively/upload'">
+      <div class="nav-btn" onclick="window.open('https://reallysprinkles.com/alively/upload')">
         <div class="upload-plus-btn">+</div>
       </div>
       <div class="nav-btn" onclick="switchTab('activity-view', this)">⚡</div>
