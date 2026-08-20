@@ -871,7 +871,7 @@
 
       const { data: comments, count } = await supabaseClient
         .from('comments')
-        .select('id, comment_text, created_at, profiles ( username, avatar_url )', { count: 'exact' })
+        .select('id, text, created_at, profiles ( username, avatar_url )', { count: 'exact' })
         .eq('video_id', videoId)
         .order('created_at', { ascending: true });
 
@@ -894,7 +894,7 @@
           <img src="${c.profiles?.avatar_url || 'https://picsum.photos/200/200'}" class="comment-avatar">
           <div>
             <div style="font-weight:bold; font-size:0.8rem; color:#aaa;">@${c.profiles?.username || 'user'}</div>
-            <div style="margin-top:2px;">${c.comment_text}</div>
+            <div style="margin-top:2px;">${c.text}</div>
           </div>
         `;
         container.appendChild(div);
@@ -906,15 +906,15 @@
     async function handlePostComment() {
       if (!currentUser) return alert('Log in to comment!');
       const input = document.getElementById('comment-input');
-      const text = input.value.trim();
-      if (!text || !activeCommentVideoId) return;
+      const textVal = input.value.trim();
+      if (!textVal || !activeCommentVideoId) return;
 
       input.value = '';
 
       const { error } = await supabaseClient.from('comments').insert([{
         user_id: currentUser.id,
         video_id: activeCommentVideoId,
-        comment_text: text
+        text: textVal
       }]);
 
       if (error) alert('Error commenting: ' + error.message);
