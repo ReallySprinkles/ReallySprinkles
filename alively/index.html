@@ -186,7 +186,8 @@
     .panel-content { padding: 70px 20px 20px 20px; }
     
     .profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 25px; }
-    .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #222; margin-bottom: 12px; border: 2px solid #00f2fe; }
+    .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #222; margin-bottom: 12px; border: 2px solid #00f2fe; object-fit: cover; }
+    .profile-bio { font-size: 0.85rem; color: #ccc; margin-top: 6px; max-width: 250px; }
     .profile-stats { display: flex; gap: 25px; margin: 15px 0; }
     .stat-box { text-align: center; }
     .stat-num { font-size: 1.1rem; font-weight: bold; }
@@ -201,7 +202,11 @@
     }
     .modal-content {
       background: #181818; padding: 25px; border-radius: 14px; width: 90%; max-width: 350px;
-      display: flex; flex-direction: column; gap: 12px;
+      display: flex; flex-direction: column; gap: 12px; text-align: center;
+    }
+
+    .edit-avatar-preview {
+      width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #00f2fe; margin: 0 auto;
     }
   </style>
 </head>
@@ -257,8 +262,9 @@
     <div id="profile-view" class="view-panel">
       <div class="panel-content">
         <div class="profile-header">
-          <div class="profile-avatar"></div>
+          <img id="profile-avatar-img" class="profile-avatar" src="https://picsum.photos/200/200" alt="Avatar" />
           <h2 id="profile-username">@user</h2>
+          <div id="profile-bio-text" class="profile-bio">alive.ly user</div>
           
           <div class="profile-stats">
             <div class="stat-box"><div class="stat-num" id="following-count">0</div><div class="stat-label">Following</div></div>
@@ -303,8 +309,11 @@
   <div id="edit-profile-modal" class="modal">
     <div class="modal-content">
       <h3 style="margin-bottom: 5px;">Edit Profile</h3>
-      <input type="text" id="edit-username-input" class="auth-input" placeholder="New Username">
-      <button class="btn-auth-signup" id="save-profile-btn" onclick="handleSaveProfile()">Save Changes</button>
+      <img id="edit-avatar-preview" class="edit-avatar-preview" src="https://picsum.photos/200/200" alt="Avatar Preview" />
+      <input type="file" id="edit-avatar-file" class="auth-input" accept="image/*">
+      <input type="text" id="edit-username-input" class="auth-input" placeholder="Username">
+      <input type="text" id="edit-bio-input" class="auth-input" placeholder="Bio (alive.ly user)">
+      <button class="btn-auth-signup" id="save-profile-btn" onclick="handleSaveProfile()">Save & Sync to App</button>
       <button class="btn-auth-login" onclick="closeModal('edit-profile-modal')">Cancel</button>
     </div>
   </div>
@@ -316,6 +325,7 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     let currentUser = null;
     let currentFeedMode = 'foryou';
+    let currentAvatarUrl = 'https://picsum.photos/200/200';
 
     async function checkUserSession() {
       try {
@@ -324,9 +334,7 @@
 
         if (currentUser) {
           document.getElementById('auth-screen').style.display = 'none';
-          const username = currentUser.user_metadata?.username || 'user';
-          document.getElementById('profile-username').innerText = '@' + username;
-          document.getElementById('edit-username-input').value = username;
+          await loadUserProfile();
           renderFeed();
           loadFollowingCount();
         } else {
@@ -336,6 +344,39 @@
         console.error("Session check error:", err);
       }
     }
+
+    async function loadUserProfile() {
+      if (!currentUser) return;
+      const defaultName = currentUser.user_metadata?.username || 'user';
+
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+      const username = profile?.username || defaultName;
+      const bio = profile?.bio || 'alive.ly user';
+      if (profile?.avatar_url) {
+        currentAvatarUrl = profile.avatar_url;
+      }
+
+      document.getElementById('profile-username').innerText = '@' + username;
+      document.getElementById('profile-bio-text').innerText = bio;
+      document.getElementById('profile-avatar-img').src = currentAvatarUrl;
+
+      document.getElementById('edit-username-input').value = username;
+      document.getElementById('edit-bio-input').value = bio;
+      document.getElementById('edit-avatar-preview').src = currentAvatarUrl;
+    }
+
+    // Avatar preview when selecting file
+    document.getElementById('edit-avatar-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('edit-avatar-preview').src = URL.createObjectURL(file);
+      }
+    });
 
     async function handleSignUp() {
       const email = document.getElementById('email').value.trim();
@@ -349,7 +390,19 @@
       });
 
       if (error) alert('Sign Up Error: ' + error.message);
-      else { alert('Account created!'); checkUserSession(); }
+      else { 
+        if (data.user) {
+          await supabaseClient.from('profiles').upsert({
+            id: data.user.id,
+            username: username,
+            email: email,
+            bio: 'alive.ly user',
+            avatar_url: 'https://picsum.photos/200/200'
+          });
+        }
+        alert('Account created!'); 
+        checkUserSession(); 
+      }
     }
 
     async function handleLogin() {
@@ -372,25 +425,65 @@
 
     async function handleSaveProfile() {
       const newUsername = document.getElementById('edit-username-input').value.trim();
+      const newBio = document.getElementById('edit-bio-input').value.trim();
+      const avatarFileInput = document.getElementById('edit-avatar-file');
+
       if (!newUsername) return alert('Username cannot be empty!');
 
       const btn = document.getElementById('save-profile-btn');
       btn.innerText = 'Saving...';
       btn.disabled = true;
 
-      const { error } = await supabaseClient.auth.updateUser({
-        data: { username: newUsername }
-      });
+      try {
+        let finalAvatarUrl = currentAvatarUrl;
 
-      btn.innerText = 'Save Changes';
-      btn.disabled = false;
+        // 1. Handle avatar image upload if selected
+        if (avatarFileInput.files.length > 0) {
+          const file = avatarFileInput.files[0];
+          const fileExt = file.name.split('.').pop();
+          const filePath = `${currentUser.id}/${Date.now()}.${fileExt}`;
 
-      if (error) {
-        alert('Update failed: ' + error.message);
-      } else {
-        document.getElementById('profile-username').innerText = '@' + newUsername;
+          const { error: uploadError } = await supabaseClient.storage
+            .from('avatars')
+            .upload(filePath, file, { upsert: true });
+
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabaseClient.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+          finalAvatarUrl = urlData.publicUrl;
+        }
+
+        // 2. Update Supabase Auth metadata
+        await supabaseClient.auth.updateUser({
+          data: { username: newUsername }
+        });
+
+        // 3. Upsert profiles table so Netlify TikTok/Musical.ly API functions sync bio & PFP
+        const { error: dbError } = await supabaseClient
+          .from('profiles')
+          .upsert({
+            id: currentUser.id,
+            username: newUsername,
+            bio: newBio,
+            avatar_url: finalAvatarUrl,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+
+        if (dbError) throw dbError;
+
+        currentAvatarUrl = finalAvatarUrl;
+        await loadUserProfile();
         closeModal('edit-profile-modal');
-        alert('Profile updated!');
+        alert('Profile updated and synced to TikTok/Musical.ly API!');
+
+      } catch (err) {
+        alert('Update failed: ' + err.message);
+      } finally {
+        btn.innerText = 'Save & Sync to App';
+        btn.disabled = false;
       }
     }
 
