@@ -228,7 +228,7 @@
       background: #000;
       border-top: 1px solid #1a1a1a;
       display: flex;
-      justify-space-around;
+      justify-content: space-around;
       align-items: center;
       z-index: 200;
     }
@@ -927,9 +927,6 @@
 
       const topHeader = document.getElementById('top-header');
       topHeader.style.display = (viewId === 'feed-view') ? 'flex' : 'none';
-      if (viewId === 'profile-view') {
-        loadMyStats();
-      }
     }
 
     function switchFeedMode(mode) {
@@ -983,14 +980,6 @@
       }
     }
 
-    async function fetchUpdatedLikeCount(videoId) {
-      const { count } = await supabaseClient
-        .from('likes')
-        .select('id', { count: 'exact', head: true })
-        .eq('video_id', videoId);
-      return count || 0;
-    }
-
     async function toggleLike(videoId) {
       if (!currentUser) return alert('Log in to like videos!');
 
@@ -1015,11 +1004,6 @@
         iconEl.classList.add('liked');
         countEl.innerText = currentCount + 1;
       }
-
-      // Re-sync exact count directly from Supabase database to avoid any discrepancies
-      const accurateCount = await fetchUpdatedLikeCount(videoId);
-      countEl.innerText = accurateCount;
-
       loadMyStats();
     }
 
