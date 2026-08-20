@@ -182,7 +182,10 @@
       font-size: 1.2rem; margin-bottom: 3px;
       backdrop-filter: blur(5px);
       cursor: pointer;
+      transition: transform 0.1s ease;
     }
+    .action-icon:active { transform: scale(1.2); }
+    .action-icon.liked { color: #ff0050; }
 
     /* Bottom Navigation Bar */
     .bottom-nav {
@@ -229,6 +232,58 @@
     .modal-content {
       background: #181818; padding: 25px; border-radius: 14px; width: 90%; max-width: 380px;
       display: flex; flex-direction: column; gap: 12px; text-align: center; max-height: 85vh; overflow-y: auto;
+    }
+
+    /* Comments Bottom Sheet Modal */
+    #comments-modal {
+      align-items: flex-end;
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .comments-sheet {
+      background: #121212;
+      width: 100vw;
+      max-width: 500px;
+      height: 60vh;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.8);
+    }
+    .comments-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #222;
+      font-weight: bold;
+    }
+    .comments-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .comment-item {
+      display: flex;
+      gap: 10px;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+    .comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .comment-input-area {
+      display: flex;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid #222;
     }
 
     .edit-avatar-preview {
@@ -318,6 +373,21 @@
 
   </div>
 
+  <!-- Comments Bottom Sheet Modal -->
+  <div id="comments-modal" class="modal">
+    <div class="comments-sheet">
+      <div class="comments-header">
+        <span id="comments-count-title">0 Comments</span>
+        <span onclick="closeModal('comments-modal')" style="cursor: pointer; font-size: 1.2rem;">✕</span>
+      </div>
+      <div id="comments-list" class="comments-list"></div>
+      <div class="comment-input-area">
+        <input type="text" id="comment-input" class="auth-input" placeholder="Add a comment..." style="padding: 10px;">
+        <button class="btn-auth-signup" style="width: auto; padding: 0 16px; font-size: 0.85rem;" onclick="handlePostComment()">Post</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Public Profile View Modal -->
   <div id="user-profile-modal" class="modal">
     <div class="modal-content">
@@ -374,6 +444,7 @@
     let currentFeedMode = 'foryou';
     let currentAvatarUrl = 'https://picsum.photos/200/200';
     let activeViewTargetUser = null;
+    let activeCommentVideoId = null;
 
     async function checkUserSession() {
       try {
@@ -431,8 +502,25 @@
         .select('id', { count: 'exact', head: true })
         .eq('following_id', currentUser.id);
 
+      // Total hearts calculated across all user videos
+      const { data: userVideos } = await supabaseClient
+        .from('videos')
+        .select('id')
+        .eq('user_id', currentUser.id);
+
+      let totalHearts = 0;
+      if (userVideos && userVideos.length > 0) {
+        const videoIds = userVideos.map(v => v.id);
+        const { count: heartsCount } = await supabaseClient
+          .from('likes')
+          .select('id', { count: 'exact', head: true })
+          .in('video_id', videoIds);
+        totalHearts = heartsCount || 0;
+      }
+
       document.getElementById('my-following-count').innerText = followingCount || 0;
       document.getElementById('my-followers-count').innerText = followersCount || 0;
+      document.getElementById('my-hearts-count').innerText = totalHearts;
     }
 
     async function openUserProfile(userId) {
@@ -467,8 +555,24 @@
         .select('id', { count: 'exact', head: true })
         .eq('following_id', profile.id);
 
+      const { data: targetVideos } = await supabaseClient
+        .from('videos')
+        .select('id')
+        .eq('user_id', profile.id);
+
+      let totalHearts = 0;
+      if (targetVideos && targetVideos.length > 0) {
+        const vIds = targetVideos.map(v => v.id);
+        const { count: heartsCount } = await supabaseClient
+          .from('likes')
+          .select('id', { count: 'exact', head: true })
+          .in('video_id', vIds);
+        totalHearts = heartsCount || 0;
+      }
+
       document.getElementById('view-user-following').innerText = targetFollowing || 0;
       document.getElementById('view-user-followers').innerText = targetFollowers || 0;
+      document.getElementById('view-user-hearts').innerText = totalHearts;
 
       if (currentUser) {
         const { data: isFollowing } = await supabaseClient
@@ -726,6 +830,97 @@
       }
     }
 
+    /* LIKES LOGIC */
+    async function toggleLike(videoId) {
+      if (!currentUser) return alert('Log in to like videos!');
+
+      const countEl = document.getElementById(`like-count-${videoId}`);
+      const iconEl = document.getElementById(`like-icon-${videoId}`);
+
+      const { data: existingLike } = await supabaseClient
+        .from('likes')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('video_id', videoId)
+        .maybeSingle();
+
+      let currentCount = parseInt(countEl.innerText) || 0;
+
+      if (existingLike) {
+        await supabaseClient.from('likes').delete().eq('id', existingLike.id);
+        iconEl.classList.remove('liked');
+        countEl.innerText = Math.max(0, currentCount - 1);
+      } else {
+        await supabaseClient.from('likes').insert([{ user_id: currentUser.id, video_id: videoId }]);
+        iconEl.classList.add('liked');
+        countEl.innerText = currentCount + 1;
+      }
+      loadMyStats();
+    }
+
+    /* COMMENTS LOGIC */
+    async function openComments(videoId) {
+      activeCommentVideoId = videoId;
+      openModal('comments-modal');
+      loadComments(videoId);
+    }
+
+    async function loadComments(videoId) {
+      const container = document.getElementById('comments-list');
+      container.innerHTML = '<div style="color:#888; text-align:center; padding:20px;">Loading comments...</div>';
+
+      const { data: comments, count } = await supabaseClient
+        .from('comments')
+        .select('id, comment_text, created_at, profiles ( username, avatar_url )', { count: 'exact' })
+        .eq('video_id', videoId)
+        .order('created_at', { ascending: true });
+
+      document.getElementById('comments-count-title').innerText = `${count || 0} Comments`;
+
+      // Update feed count dynamically
+      const feedCommentCountEl = document.getElementById(`comment-count-${videoId}`);
+      if (feedCommentCountEl) feedCommentCountEl.innerText = count || 0;
+
+      if (!comments || comments.length === 0) {
+        container.innerHTML = '<div style="color:#888; text-align:center; padding:20px;">No comments yet. Be the first!</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      comments.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comment-item';
+        div.innerHTML = `
+          <img src="${c.profiles?.avatar_url || 'https://picsum.photos/200/200'}" class="comment-avatar">
+          <div>
+            <div style="font-weight:bold; font-size:0.8rem; color:#aaa;">@${c.profiles?.username || 'user'}</div>
+            <div style="margin-top:2px;">${c.comment_text}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function handlePostComment() {
+      if (!currentUser) return alert('Log in to comment!');
+      const input = document.getElementById('comment-input');
+      const text = input.value.trim();
+      if (!text || !activeCommentVideoId) return;
+
+      input.value = '';
+
+      const { error } = await supabaseClient.from('comments').insert([{
+        user_id: currentUser.id,
+        video_id: activeCommentVideoId,
+        comment_text: text
+      }]);
+
+      if (error) alert('Error commenting: ' + error.message);
+      else loadComments(activeCommentVideoId);
+    }
+
     async function renderFeed() {
       const container = document.getElementById('feed');
       container.innerHTML = '';
@@ -764,10 +959,33 @@
         return;
       }
 
-      videos.forEach(v => {
+      for (const v of videos) {
         const authorId = v.profiles?.id || v.user_id;
         const authorUsername = v.profiles?.username || 'user';
         const authorAvatar = v.profiles?.avatar_url || 'https://picsum.photos/200/200';
+
+        // Fetch Likes Count & User Like Status
+        const { count: likesCount } = await supabaseClient
+          .from('likes')
+          .select('id', { count: 'exact', head: true })
+          .eq('video_id', v.id);
+
+        let isLiked = false;
+        if (currentUser) {
+          const { data: userLike } = await supabaseClient
+            .from('likes')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('video_id', v.id)
+            .maybeSingle();
+          if (userLike) isLiked = true;
+        }
+
+        // Fetch Comments Count
+        const { count: commentsCount } = await supabaseClient
+          .from('comments')
+          .select('id', { count: 'exact', head: true })
+          .eq('video_id', v.id);
 
         const card = document.createElement('div');
         card.className = 'video-card';
@@ -784,13 +1002,19 @@
             <div class="action-item" onclick="openUserProfile('${authorId}')">
               <img src="${authorAvatar}" style="width:42px; height:42px; border-radius:50%; border:2px solid #00f2fe; object-fit:cover; margin-bottom:3px; cursor:pointer;">
             </div>
-            <div class="action-item"><div class="action-icon">💛</div>0</div>
-            <div class="action-item"><div class="action-icon">💬</div>0</div>
+            <div class="action-item" onclick="toggleLike('${v.id}')">
+              <div class="action-icon ${isLiked ? 'liked' : ''}" id="like-icon-${v.id}">💛</div>
+              <span id="like-count-${v.id}">${likesCount || 0}</span>
+            </div>
+            <div class="action-item" onclick="openComments('${v.id}')">
+              <div class="action-icon">💬</div>
+              <span id="comment-count-${v.id}">${commentsCount || 0}</span>
+            </div>
             <div class="action-item"><div class="action-icon">↗️</div>Share</div>
           </div>
         `;
         container.appendChild(card);
-      });
+      }
     }
 
     window.addEventListener('DOMContentLoaded', checkUserSession);
