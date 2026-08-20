@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload Video & Cover</title>
+  <title>Upload Video</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
@@ -16,7 +16,7 @@
       min-height: 100vh;
       margin: 0;
     }
-    .upload-card {
+    .card {
       background: #1e1e1e;
       padding: 24px;
       border-radius: 12px;
@@ -24,78 +24,71 @@
       max-width: 400px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
-    h2 {
-      margin-top: 0;
-      text-align: center;
-    }
-    .form-group {
-      margin-bottom: 16px;
-    }
-    label {
-      display: block;
-      font-size: 14px;
-      margin-bottom: 6px;
-      color: #aaa;
-    }
-    input[type="text"], input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background: #2a2a2a;
-      color: #fff;
-      box-sizing: border-box;
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 14px; margin-bottom: 6px; color: #aaa; }
+    input[type="text"], input[type="email"], input[type="password"], input[type="file"] {
+      width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #333;
+      background: #2a2a2a; color: #fff; box-sizing: border-box;
     }
     button {
-      width: 100%;
-      padding: 12px;
-      background: #fe2c55;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 16px;
-      margin-top: 10px;
+      width: 100%; padding: 12px; background: #fe2c55; border: none;
+      border-radius: 6px; color: white; font-weight: bold; cursor: pointer;
+      font-size: 16px; margin-top: 10px;
     }
-    button:disabled {
-      background: #555;
-      cursor: not-allowed;
-    }
-    #status {
-      margin-top: 15px;
-      text-align: center;
-      font-size: 14px;
-    }
+    button:disabled { background: #555; cursor: not-allowed; }
+    #status { margin-top: 15px; text-align: center; font-size: 14px; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
-<div class="upload-card">
-  <h2>Upload Video</h2>
-  <form id="uploadForm">
-    <div class="form-group">
-      <label>Video File (MP4/MOV)*</label>
-      <input type="file" id="videoFile" accept="video/*" required>
-    </div>
+<div class="card">
+  <!-- AUTH SECTION -->
+  <div id="authSection">
+    <h2>Sign In to Upload</h2>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" required>
+      </div>
+      <button type="submit">Log In</button>
+    </form>
+  </div>
 
-    <div class="form-group">
-      <label>Cover Image (JPG/PNG)</label>
-      <input type="file" id="coverFile" accept="image/*">
-    </div>
+  <!-- UPLOAD SECTION -->
+  <div id="uploadSection" class="hidden">
+    <h2>Upload Video</h2>
+    <p id="userInfo" style="font-size:12px; color:#aaa; text-align:center;"></p>
+    <form id="uploadForm">
+      <div class="form-group">
+        <label>Video File (MP4/MOV)*</label>
+        <input type="file" id="videoFile" accept="video/*" required>
+      </div>
 
-    <div class="form-group">
-      <label>Caption</label>
-      <input type="text" id="caption" placeholder="Check out this video!">
-    </div>
+      <div class="form-group">
+        <label>Cover Image (JPG/PNG)</label>
+        <input type="file" id="coverFile" accept="image/*">
+      </div>
 
-    <div class="form-group">
-      <label>Audio Title</label>
-      <input type="text" id="audioTitle" placeholder="Original Sound">
-    </div>
+      <div class="form-group">
+        <label>Caption</label>
+        <input type="text" id="caption" placeholder="Check out this video!">
+      </div>
 
-    <button type="submit" id="submitBtn">Upload</button>
-  </form>
+      <div class="form-group">
+        <label>Audio Title</label>
+        <input type="text" id="audioTitle" placeholder="Original Sound">
+      </div>
+
+      <button type="submit" id="submitBtn">Upload</button>
+      <button type="button" id="logoutBtn" style="background:#333; margin-top:8px;">Log Out</button>
+    </form>
+  </div>
+
   <div id="status"></div>
 </div>
 
@@ -106,19 +99,72 @@
   const { createClient } = supabase;
   const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  const authSection = document.getElementById('authSection');
+  const uploadSection = document.getElementById('uploadSection');
+  const loginForm = document.getElementById('loginForm');
   const uploadForm = document.getElementById('uploadForm');
   const submitBtn = document.getElementById('submitBtn');
   const statusDiv = document.getElementById('status');
+  const userInfo = document.getElementById('userInfo');
 
+  let currentUser = null;
+
+  // Check auth state on load
+  async function checkUser() {
+    const { data: { user } } = await _supabase.auth.getUser();
+    currentUser = user;
+    if (user) {
+      authSection.classList.add('hidden');
+      uploadSection.classList.remove('hidden');
+      userInfo.innerText = `Logged in as: ${user.email}`;
+    } else {
+      authSection.classList.remove('hidden');
+      uploadSection.classList.add('hidden');
+    }
+  }
+
+  checkUser();
+
+  // Handle Login
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusDiv.style.color = '#fff';
+    statusDiv.innerText = 'Authenticating...';
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      statusDiv.style.color = '#f44336';
+      statusDiv.innerText = error.message;
+    } else {
+      statusDiv.innerText = '';
+      checkUser();
+    }
+  });
+
+  // Handle Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await _supabase.auth.signOut();
+    checkUser();
+  });
+
+  // Handle Upload
   uploadForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    if (!currentUser) {
+      statusDiv.style.color = '#f44336';
+      statusDiv.innerText = 'You must be logged in to upload.';
+      return;
+    }
 
     const videoInput = document.getElementById('videoFile').files[0];
     const coverInput = document.getElementById('coverFile').files[0];
     const caption = document.getElementById('caption').value;
     const audioTitle = document.getElementById('audioTitle').value || 'Original Sound';
-
-    if (!videoInput) return;
 
     submitBtn.disabled = true;
     statusDiv.style.color = '#fff';
@@ -127,7 +173,7 @@
     try {
       // 1. Upload Video File
       const videoExt = videoInput.name.split('.').pop();
-      const videoFileName = `${Date.now()}_video.${videoExt}`;
+      const videoFileName = `${currentUser.id}/${Date.now()}_video.${videoExt}`;
       const { error: videoErr } = await _supabase.storage
         .from('videos')
         .upload(videoFileName, videoInput);
@@ -136,11 +182,11 @@
 
       const videoUrl = _supabase.storage.from('videos').getPublicUrl(videoFileName).data.publicUrl;
 
-      // 2. Upload Cover File (if provided)
+      // 2. Upload Cover File
       let coverUrl = null;
       if (coverInput) {
         const coverExt = coverInput.name.split('.').pop();
-        const coverFileName = `${Date.now()}_cover.${coverExt}`;
+        const coverFileName = `${currentUser.id}/${Date.now()}_cover.${coverExt}`;
         const { error: coverErr } = await _supabase.storage
           .from('covers')
           .upload(coverFileName, coverInput);
@@ -150,9 +196,10 @@
         coverUrl = _supabase.storage.from('covers').getPublicUrl(coverFileName).data.publicUrl;
       }
 
-      // 3. Save Record into Supabase "videos" Table
+      // 3. Save Record with Authenticated User ID
       const { error: dbErr } = await _supabase.from('videos').insert([
         {
+          user_id: currentUser.id,
           video_url: videoUrl,
           cover_url: coverUrl,
           caption: caption,
