@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tune.ly - Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-gray-900 text-white flex justify-center">
+  <div class="w-full max-w-md min-h-screen relative p-4 pb-16">
+    <div class="flex flex-col items-center pt-2">
+      <div class="relative">
+        <img id="avatar" class="w-20 h-20 rounded-full border-2 border-white object-cover shadow-lg" src="https://via.placeholder.com/150">
+        <span id="crownBadge" class="hidden absolute -top-2 right-0 text-xl drop-shadow">👑</span>
+      </div>
+      <h2 id="username" class="font-bold mt-2 text-base">@username</h2>
+      <p id="bio" class="text-xs text-gray-400 mt-0.5">Creating on Tune.ly 🎵</p>
+
+      <button id="logoutBtn" class="mt-4 px-5 py-1.5 border border-gray-700 text-xs rounded-full hover:bg-gray-800 transition">Sign Out</button>
+    </div>
+
+    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mt-8 mb-3">My Tunes</h3>
+    <div id="userGrid" class="grid grid-cols-3 gap-1">
+      <p class="text-xs text-gray-500 col-span-3">Loading videos...</p>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-black/95 border-t border-gray-800 flex justify-around items-center h-14 z-50 max-w-md mx-auto">
+      <a href="../" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Feed</a>
+      <a href="../search/" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Search</a>
+      <a href="../upload/" class="flex flex-col items-center"><div class="bg-[#FF0050] p-2 rounded-full text-white">+</div></a>
+      <a href="../inbox/" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Inbox</a>
+      <a href="./" class="flex flex-col items-center text-[#FF0050] text-[10px] font-medium">Profile</a>
+    </nav>
+  </div>
+
+  <script type="module">
+    import { supabase } from '../js/supabase-config.js';
+    import { requireAuth } from '../js/auth-check.js';
+
+    async function loadProfile() {
+      const user = await requireAuth();
+      if (!user) return;
+
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      if (profile) {
+        document.getElementById('username').textContent = `@${profile.username || user.email.split('@')[0]}`;
+        if (profile.is_crowned) document.getElementById('crownBadge').classList.remove('hidden');
+      }
+
+      const { data: posts } = await supabase.from('posts').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      const userGrid = document.getElementById('userGrid');
+
+      if (!posts || posts.length === 0) {
+        userGrid.innerHTML = `<p class="text-xs text-gray-500 col-span-3">You haven't posted any tunes yet.</p>`;
+        return;
+      }
+
+      userGrid.innerHTML = posts.map(post => `
+        <div class="aspect-[3/4] bg-black rounded overflow-hidden">
+          <video class="w-full h-full object-cover" src="${post.video_url}"></video>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = '../login/';
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html>
