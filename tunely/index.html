@@ -22,11 +22,11 @@
     </div>
 
     <!-- Comments Drawer Modal -->
-    <div id="commentsModal" class="fixed inset-0 bg-black/60 z-50 flex flex-col justify-end hidden">
-      <div class="bg-gray-900 border-t border-gray-800 rounded-t-2xl p-4 h-2/3 flex flex-col">
+    <div id="commentsModal" class="fixed inset-0 bg-black/60 z-40 flex flex-col justify-end pb-14 hidden">
+      <div class="bg-gray-900 border-t border-gray-800 rounded-t-2xl p-4 h-3/4 flex flex-col max-w-md w-full mx-auto shadow-2xl">
         <div class="flex justify-between items-center pb-3 border-b border-gray-800">
           <h3 class="text-xs font-bold text-gray-300">Comments</h3>
-          <button id="closeCommentsBtn" class="text-gray-400 hover:text-white text-sm">✕</button>
+          <button id="closeCommentsBtn" class="text-gray-400 hover:text-white text-sm font-bold p-1">✕</button>
         </div>
         
         <div id="commentsList" class="flex-1 overflow-y-auto my-3 space-y-3">
@@ -34,8 +34,8 @@
         </div>
 
         <form id="commentForm" class="flex gap-2 border-t border-gray-800 pt-3">
-          <input type="text" id="commentInput" placeholder="Add a comment..." required class="flex-1 bg-gray-800 border border-gray-700 rounded-full px-3 py-1.5 text-xs focus:outline-none focus:border-[#FF0050]">
-          <button type="submit" class="bg-[#FF0050] px-4 py-1.5 text-xs font-bold rounded-full">Post</button>
+          <input type="text" id="commentInput" placeholder="Add a comment..." required class="flex-1 bg-gray-800 border border-gray-700 rounded-full px-3 py-2 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-[#FF0050]">
+          <button type="submit" class="bg-[#FF0050] text-white px-4 py-2 text-xs font-bold rounded-full hover:bg-pink-600 transition">Post</button>
         </form>
       </div>
     </div>
@@ -164,7 +164,6 @@
       } else {
         await supabase.from('likes').insert({ post_id: postId, user_id: currentUser.id });
         
-        // Trigger inbox notification to creator
         if (postOwnerId !== currentUser.id) {
           await supabase.from('notifications').insert({
             user_id: postOwnerId,
@@ -204,11 +203,15 @@
     async function loadComments(postId) {
       commentsList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Loading comments...</p>`;
       
-      const { data: comments } = await supabase
+      const { data: comments, error } = await supabase
         .from('comments')
-        .select('content, created_at, profiles(username, avatar_url)')
+        .select('content, created_at, profiles:user_id(username, avatar_url)')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Fetch comments error:', error);
+      }
 
       if (!comments || comments.length === 0) {
         commentsList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">No comments yet. Be the first!</p>`;
@@ -217,10 +220,10 @@
 
       commentsList.innerHTML = comments.map(c => `
         <div class="flex gap-2.5 items-start">
-          <img class="w-7 h-7 rounded-full object-cover" src="${c.profiles?.avatar_url || 'https://via.placeholder.com/150'}">
-          <div>
+          <img class="w-7 h-7 rounded-full object-cover flex-shrink-0" src="${c.profiles?.avatar_url || 'https://via.placeholder.com/150'}">
+          <div class="min-w-0 flex-1">
             <span class="text-[11px] font-bold text-gray-300">@${c.profiles?.username || 'user'}</span>
-            <p class="text-xs text-gray-100">${c.content}</p>
+            <p class="text-xs text-gray-100 break-words">${c.content}</p>
           </div>
         </div>
       `).join('');
@@ -234,11 +237,17 @@
       const content = input.value.trim();
       if (!content || !activePostId) return;
 
-      await supabase.from('comments').insert({
+      const { error } = await supabase.from('comments').insert({
         post_id: activePostId,
         user_id: currentUser.id,
         content
       });
+
+      if (error) {
+        console.error('Post comment error:', error);
+        alert('Could not post comment.');
+        return;
+      }
 
       input.value = '';
       loadComments(activePostId);
