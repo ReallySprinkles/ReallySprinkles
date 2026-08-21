@@ -1,16 +1,16 @@
 import { supabase } from './supabase-config.js';
 
-export async function requireAuth() {
+export async function requireAuth(isRoot = false) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) {
-    window.location.href = 'login.html';
+    window.location.href = isRoot ? 'login/' : '../login/';
   }
   return session?.user;
 }
 
-export async function redirectIfAuth() {
+export async function redirectIfAuth(isRoot = false) {
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
-    window.location.href = 'index.html';
+    window.location.href = isRoot ? './' : '../';
   }
 }
