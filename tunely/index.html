@@ -47,12 +47,12 @@
     import { supabase } from './js/supabase-config.js';
 
     async function fetchFeed() {
-      // Added !left joins to prevent filtering out posts without linked audio or profiles
+      // Explicitly specify posts_user_id_fkey to resolve ambiguous foreign key relationships
       const { data: posts, error } = await supabase
         .from('posts')
         .select(`
           id, video_url, caption, likes_count,
-          profiles!left ( username, is_crowned, avatar_url ),
+          profiles:posts_user_id_fkey!left ( username, is_crowned, avatar_url ),
           audios!left ( title, artist )
         `)
         .order('created_at', { ascending: false });
