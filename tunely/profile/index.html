@@ -45,8 +45,8 @@
           </div>
 
           <div>
-            <label class="block text-[10px] font-semibold text-gray-400 uppercase mb-1">Avatar Image URL</label>
-            <input type="url" id="editAvatarUrl" placeholder="https://..." class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs focus:outline-none focus:border-[#FF0050]">
+            <label class="block text-[10px] font-semibold text-gray-400 uppercase mb-1">Profile Picture</label>
+            <input type="file" id="editAvatarFile" accept="image/*" class="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-gray-700 cursor-pointer">
           </div>
 
           <div class="flex gap-2 pt-2">
@@ -73,6 +73,7 @@
     import { requireAuth } from '../js/auth-check.js';
 
     let currentUser = null;
+    let currentAvatarUrl = '';
 
     async function loadProfile() {
       currentUser = await requireAuth();
@@ -83,13 +84,17 @@
       if (profile) {
         document.getElementById('username').textContent = `@${profile.username || currentUser.email.split('@')[0]}`;
         document.getElementById('bio').textContent = profile.bio || 'Creating on Tune.ly 🎵';
-        if (profile.avatar_url) document.getElementById('avatar').src = profile.avatar_url;
+        
+        currentAvatarUrl = profile.avatar_url || '';
+        if (currentAvatarUrl) {
+          document.getElementById('avatar').src = currentAvatarUrl;
+        }
+
         if (profile.is_crowned) document.getElementById('crownBadge').classList.remove('hidden');
 
-        // Pre-fill edit modal form with current data
+        // Pre-fill edit modal form
         document.getElementById('editUsername').value = profile.username || '';
         document.getElementById('editBio').value = profile.bio || '';
-        document.getElementById('editAvatarUrl').value = profile.avatar_url || '';
       }
 
       const { data: posts } = await supabase.from('posts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
@@ -112,7 +117,7 @@
     document.getElementById('openEditModalBtn').addEventListener('click', () => editModal.classList.remove('hidden'));
     document.getElementById('closeEditModalBtn').addEventListener('click', () => editModal.classList.add('hidden'));
 
-    // Handle updating profile data
+    // Handle updating profile data & uploading avatar
     document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const status = document.getElementById('editStatus');
@@ -120,12 +125,37 @@
 
       const updatedUsername = document.getElementById('editUsername').value.trim();
       const updatedBio = document.getElementById('editBio').value.trim();
-      const updatedAvatarUrl = document.getElementById('editAvatarUrl').value.trim();
+      const avatarFile = document.getElementById('editAvatarFile').files[0];
 
+      let uploadedAvatarUrl = currentAvatarUrl;
+
+      // Upload file to Supabase storage if selected
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, avatarFile, { upsert: true });
+
+        if (uploadError) {
+          status.textContent = `Image upload failed: ${uploadError.message}`;
+          return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        uploadedAvatarUrl = publicUrlData.publicUrl;
+      }
+
+      // Update Database Record
       const { error } = await supabase.from('profiles').update({
         username: updatedUsername,
         bio: updatedBio,
-        avatar_url: updatedAvatarUrl
+        avatar_url: uploadedAvatarUrl
       }).eq('id', currentUser.id);
 
       if (error) {
@@ -133,6 +163,7 @@
       } else {
         editModal.classList.add('hidden');
         status.textContent = '';
+        document.getElementById('editAvatarFile').value = '';
         loadProfile();
       }
     });
