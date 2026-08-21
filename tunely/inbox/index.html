@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tune.ly - Inbox</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-gray-900 text-white flex justify-center">
+  <div class="w-full max-w-md min-h-screen relative p-4 pb-16">
+    <h1 class="text-base font-bold mb-4 border-b border-gray-800 pb-3 text-center">Notifications</h1>
+
+    <div class="space-y-3">
+      <div class="flex items-center gap-3 bg-gray-800/40 p-3 rounded-xl border border-gray-800/80">
+        <div class="w-9 h-9 bg-pink-500/20 text-[#FF0050] rounded-full flex items-center justify-center text-sm font-bold">❤️</div>
+        <div class="text-xs">
+          <p><span class="font-bold">sarah_tunes</span> liked your video.</p>
+          <p class="text-[10px] text-gray-500 mt-0.5">2 hours ago</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 bg-gray-800/40 p-3 rounded-xl border border-gray-800/80">
+        <div class="w-9 h-9 bg-yellow-500/20 text-yellow-400 rounded-full flex items-center justify-center text-sm font-bold">👑</div>
+        <div class="text-xs">
+          <p><span class="font-bold">Tune.ly Team</span> featured your post!</p>
+          <p class="text-[10px] text-gray-500 mt-0.5">1 day ago</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-black/95 border-t border-gray-800 flex justify-around items-center h-14 z-50 max-w-md mx-auto">
+      <a href="../" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Feed</a>
+      <a href="../search/" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Search</a>
+      <a href="../upload/" class="flex flex-col items-center"><div class="bg-[#FF0050] p-2 rounded-full text-white">+</div></a>
+      <a href="./" class="flex flex-col items-center text-[#FF0050] text-[10px] font-medium">Inbox</a>
+      <a href="../profile/" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Profile</a>
+    </nav>
+  </div>
+
+  <script type="module">
+    import { requireAuth } from '../js/auth-check.js';
+    requireAuth();
+  </script>
+</body>
+</html>
