@@ -17,12 +17,45 @@
       <h2 id="username" class="font-bold mt-2 text-base">@username</h2>
       <p id="bio" class="text-xs text-gray-400 mt-0.5">Creating on Tune.ly 🎵</p>
 
-      <button id="logoutBtn" class="mt-4 px-5 py-1.5 border border-gray-700 text-xs rounded-full hover:bg-gray-800 transition">Sign Out</button>
+      <div class="flex gap-2 mt-4">
+        <button id="openEditModalBtn" class="px-5 py-1.5 bg-[#FF0050] font-semibold text-xs rounded-full hover:bg-pink-600 transition">Edit Profile</button>
+        <button id="logoutBtn" class="px-5 py-1.5 border border-gray-700 text-xs rounded-full hover:bg-gray-800 transition">Sign Out</button>
+      </div>
     </div>
 
     <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mt-8 mb-3">My Tunes</h3>
     <div id="userGrid" class="grid grid-cols-3 gap-1">
       <p class="text-xs text-gray-500 col-span-3">Loading videos...</p>
+    </div>
+
+    <!-- Edit Profile Modal Overlay -->
+    <div id="editModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden">
+      <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+        <h3 class="font-bold text-sm text-center">Edit Profile</h3>
+        
+        <form id="editProfileForm" class="space-y-3">
+          <div>
+            <label class="block text-[10px] font-semibold text-gray-400 uppercase mb-1">Username</label>
+            <input type="text" id="editUsername" required class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs focus:outline-none focus:border-[#FF0050]">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-semibold text-gray-400 uppercase mb-1">Bio</label>
+            <textarea id="editBio" rows="2" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs focus:outline-none focus:border-[#FF0050] resize-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-semibold text-gray-400 uppercase mb-1">Avatar Image URL</label>
+            <input type="url" id="editAvatarUrl" placeholder="https://..." class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-xs focus:outline-none focus:border-[#FF0050]">
+          </div>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" id="closeEditModalBtn" class="w-1/2 py-2 border border-gray-700 text-xs rounded-xl hover:bg-gray-800 transition">Cancel</button>
+            <button type="submit" id="saveProfileBtn" class="w-1/2 py-2 bg-[#FF0050] font-bold text-xs rounded-xl hover:bg-pink-600 transition">Save</button>
+          </div>
+        </form>
+        <p id="editStatus" class="text-[10px] text-center text-gray-400 min-h-[12px]"></p>
+      </div>
     </div>
 
     <!-- Navigation Bar -->
@@ -39,17 +72,27 @@
     import { supabase } from '../js/supabase-config.js';
     import { requireAuth } from '../js/auth-check.js';
 
-    async function loadProfile() {
-      const user = await requireAuth();
-      if (!user) return;
+    let currentUser = null;
 
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    async function loadProfile() {
+      currentUser = await requireAuth();
+      if (!currentUser) return;
+
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+      
       if (profile) {
-        document.getElementById('username').textContent = `@${profile.username || user.email.split('@')[0]}`;
+        document.getElementById('username').textContent = `@${profile.username || currentUser.email.split('@')[0]}`;
+        document.getElementById('bio').textContent = profile.bio || 'Creating on Tune.ly 🎵';
+        if (profile.avatar_url) document.getElementById('avatar').src = profile.avatar_url;
         if (profile.is_crowned) document.getElementById('crownBadge').classList.remove('hidden');
+
+        // Pre-fill edit modal form with current data
+        document.getElementById('editUsername').value = profile.username || '';
+        document.getElementById('editBio').value = profile.bio || '';
+        document.getElementById('editAvatarUrl').value = profile.avatar_url || '';
       }
 
-      const { data: posts } = await supabase.from('posts').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+      const { data: posts } = await supabase.from('posts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
       const userGrid = document.getElementById('userGrid');
 
       if (!posts || posts.length === 0) {
@@ -63,6 +106,36 @@
         </div>
       `).join('');
     }
+
+    // Modal display triggers
+    const editModal = document.getElementById('editModal');
+    document.getElementById('openEditModalBtn').addEventListener('click', () => editModal.classList.remove('hidden'));
+    document.getElementById('closeEditModalBtn').addEventListener('click', () => editModal.classList.add('hidden'));
+
+    // Handle updating profile data
+    document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('editStatus');
+      status.textContent = 'Saving changes...';
+
+      const updatedUsername = document.getElementById('editUsername').value.trim();
+      const updatedBio = document.getElementById('editBio').value.trim();
+      const updatedAvatarUrl = document.getElementById('editAvatarUrl').value.trim();
+
+      const { error } = await supabase.from('profiles').update({
+        username: updatedUsername,
+        bio: updatedBio,
+        avatar_url: updatedAvatarUrl
+      }).eq('id', currentUser.id);
+
+      if (error) {
+        status.textContent = error.message;
+      } else {
+        editModal.classList.add('hidden');
+        status.textContent = '';
+        loadProfile();
+      }
+    });
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
       await supabase.auth.signOut();
