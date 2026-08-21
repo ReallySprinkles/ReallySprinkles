@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tune.ly - Upload</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-gray-900 text-white flex justify-center">
+  <div class="w-full max-w-md min-h-screen relative p-4 pb-16">
+    <h1 class="text-lg font-bold mb-6 text-center tracking-wide">Post a Tune</h1>
+
+    <form id="uploadForm" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1">Select Video File (.mp4)</label>
+        <input type="file" id="videoFile" accept="video/*" required class="w-full text-xs text-gray-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-[#FF0050] file:text-white file:font-semibold cursor-pointer">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-400 mb-1">Caption</label>
+        <textarea id="caption" placeholder="Write a caption... #lipsync #tunely" class="w-full p-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-xs focus:outline-none focus:border-[#FF0050] h-24 resize-none"></textarea>
+      </div>
+
+      <button type="submit" id="submitBtn" class="w-full py-3 bg-[#FF0050] font-bold text-xs rounded-xl shadow-lg hover:bg-pink-600 transition">Publish Video</button>
+    </form>
+    
+    <p id="status" class="mt-4 text-xs text-center text-gray-400 min-h-[16px]"></p>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-black/95 border-t border-gray-800 flex justify-around items-center h-14 z-50 max-w-md mx-auto">
+      <a href="../" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Feed</a>
+      <a href="../search/" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Search</a>
+      <a href="./" class="flex flex-col items-center"><div class="bg-[#FF0050] p-2 rounded-full text-white">+</div></a>
+      <a href="../inbox/" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Inbox</a>
+      <a href="../profile/" class="flex flex-col items-center text-gray-400 hover:text-white text-[10px] font-medium">Profile</a>
+    </nav>
+  </div>
+
+  <script type="module">
+    import { supabase } from '../js/supabase-config.js';
+    import { requireAuth } from '../js/auth-check.js';
+
+    let user;
+    requireAuth().then(u => user = u);
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('status');
+      const submitBtn = document.getElementById('submitBtn');
+      const videoFile = document.getElementById('videoFile').files[0];
+      const caption = document.getElementById('caption').value;
+
+      if (!user) return;
+
+      submitBtn.disabled = true;
+      status.textContent = "Uploading video file to storage...";
+
+      const filePath = `${user.id}/${Date.now()}.mp4`;
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('videos')
+        .upload(filePath, videoFile);
+
+      if (storageError) {
+        status.textContent = storageError.message;
+        submitBtn.disabled = false;
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('videos').getPublicUrl(filePath);
+
+      status.textContent = "Creating post record...";
+      const { error: dbError } = await supabase.from('posts').insert({
+        user_id: user.id,
+        video_url: publicUrl,
+        caption: caption
+      });
+
+      if (dbError) {
+        status.textContent = dbError.message;
+        submitBtn.disabled = false;
+      } else {
+        window.location.href = '../';
+      }
+    });
+  </script>
+</body>
+</html>
