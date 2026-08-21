@@ -54,9 +54,7 @@
       scroll-snap-type: y mandatory;
       scrollbar-width: none;
     }
-    .feed-container::-webkit-scrollbar {
-      display: none;
-    }
+    .feed-container::-webkit-scrollbar { display: none; }
 
     /* VIDEO CARD */
     .video-card {
@@ -77,7 +75,7 @@
       object-fit: cover;
     }
 
-    /* RIGHT SIDE ACTIONS */
+    /* ACTIONS SIDEBAR */
     .actions-sidebar {
       position: absolute;
       right: 12px;
@@ -104,15 +102,18 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 22px;
+      transition: transform 0.1s ease;
     }
+    .action-btn:active .action-icon { transform: scale(1.2); }
+    .action-btn.liked .action-icon { color: #fe2c55; }
     .action-label {
       font-size: 12px;
       margin-top: 4px;
       font-weight: 600;
     }
 
-    /* BOTTOM OVERLAY INFO */
+    /* VIDEO OVERLAY INFO */
     .video-info {
       position: absolute;
       bottom: 80px;
@@ -125,19 +126,10 @@
       font-size: 16px;
       font-weight: 700;
       margin-bottom: 6px;
+      cursor: pointer;
     }
-    .caption {
-      font-size: 14px;
-      margin-bottom: 8px;
-      line-height: 1.3;
-    }
-    .audio-track {
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #ddd;
-    }
+    .caption { font-size: 14px; margin-bottom: 8px; line-height: 1.3; }
+    .audio-track { font-size: 13px; color: #ddd; }
 
     /* BOTTOM NAVBAR */
     .bottom-nav {
@@ -157,13 +149,9 @@
       color: #888;
       text-decoration: none;
       font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      cursor: pointer;
     }
-    .nav-item.active {
-      color: #fff;
-    }
+    .nav-item.active { color: #fff; }
     .upload-btn {
       background: #00d2ff;
       color: #000;
@@ -178,20 +166,100 @@
       text-decoration: none;
     }
 
-    /* LOADING & EMPTY STATES */
+    /* MODAL SLIDE-UP PANELS */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 20;
+      display: none;
+    }
+    .modal-drawer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100vw;
+      height: 65vh;
+      background: #1e1e1e;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      z-index: 25;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+    .modal-drawer.active { transform: translateY(0); }
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid #333;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .close-btn { background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; }
+
+    /* COMMENTS UI */
+    .comments-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .comment-item { font-size: 13px; line-height: 1.4; }
+    .comment-author { font-weight: bold; color: #aaa; margin-right: 6px; }
+    .comment-input-area {
+      display: flex;
+      padding: 12px;
+      border-top: 1px solid #333;
+      gap: 8px;
+    }
+    .comment-input-area input {
+      flex: 1;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      border-radius: 20px;
+      padding: 8px 14px;
+      color: #fff;
+      outline: none;
+    }
+    .comment-input-area button {
+      background: #fe2c55;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /* PROFILE UI */
+    .profile-content { padding: 20px; text-align: center; }
+    .profile-avatar { width: 70px; height: 70px; border-radius: 50%; background: #444; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+    .profile-stats { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
+    .stat-box { display: flex; flex-direction: column; }
+    .stat-val { font-weight: bold; font-size: 16px; }
+    .stat-lbl { font-size: 12px; color: #888; }
+
     .status-msg {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       color: #888;
-      font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <!-- TOP HEADER NAVIGATION -->
+  <!-- TOP HEADER -->
   <div class="top-header">
     <span class="active">For You</span>
     <span>Following</span>
@@ -202,14 +270,47 @@
     <div class="status-msg" id="statusMsg">Loading feed...</div>
   </div>
 
-  <!-- BOTTOM NAVIGATION BAR -->
+  <!-- BOTTOM NAVBAR -->
   <nav class="bottom-nav">
-    <a href="/alively" class="nav-item active">🏠</a>
-    <a href="#" class="nav-item">🔍</a>
+    <div class="nav-item active" onclick="closeModals()">🏠</div>
+    <div class="nav-item">🔍</div>
     <a href="/alively/upload" class="upload-btn">+</a>
-    <a href="#" class="nav-item">⚡</a>
-    <a href="#" class="nav-item">👤</a>
+    <div class="nav-item">⚡</div>
+    <div class="nav-item" onclick="openProfile('testuser')">👤</div>
   </nav>
+
+  <!-- MODAL OVERLAY -->
+  <div class="modal-overlay" id="overlay" onclick="closeModals()"></div>
+
+  <!-- COMMENTS DRAWER -->
+  <div class="modal-drawer" id="commentsDrawer">
+    <div class="drawer-header">
+      <span>Comments</span>
+      <button class="close-btn" onclick="closeModals()">✕</button>
+    </div>
+    <div class="comments-list" id="commentsList"></div>
+    <form class="comment-input-area" id="commentForm">
+      <input type="text" id="commentInput" placeholder="Add a comment..." required>
+      <button type="submit">Post</button>
+    </form>
+  </div>
+
+  <!-- PROFILE DRAWER -->
+  <div class="modal-drawer" id="profileDrawer">
+    <div class="drawer-header">
+      <span id="profileTitle">Profile</span>
+      <button class="close-btn" onclick="closeModals()">✕</button>
+    </div>
+    <div class="profile-content">
+      <div class="profile-avatar">👤</div>
+      <h3 id="profileUsername">@testuser</h3>
+      <div class="profile-stats">
+        <div class="stat-box"><span class="stat-val">0</span><span class="stat-lbl">Following</span></div>
+        <div class="stat-box"><span class="stat-val">12</span><span class="stat-lbl">Followers</span></div>
+        <div class="stat-box"><span class="stat-val" id="profileLikes">0</span><span class="stat-lbl">Likes</span></div>
+      </div>
+    </div>
+  </div>
 
   <script>
     const SUPABASE_URL = 'https://kdezxjizwqfmugkwpycb.supabase.co';
@@ -220,6 +321,14 @@
 
     const feed = document.getElementById('feed');
     const statusMsg = document.getElementById('statusMsg');
+    const overlay = document.getElementById('overlay');
+    const commentsDrawer = document.getElementById('commentsDrawer');
+    const profileDrawer = document.getElementById('profileDrawer');
+    const commentsList = document.getElementById('commentsList');
+    const commentForm = document.getElementById('commentForm');
+    
+    let activeVideoId = null;
+    let localComments = {};
 
     async function loadVideos() {
       try {
@@ -229,45 +338,37 @@
           .order('id', { ascending: false });
 
         if (error) throw error;
-
         if (!videos || videos.length === 0) {
-          statusMsg.innerText = 'No videos found.';
+          statusMsg.innerText = 'No videos uploaded yet.';
           return;
         }
 
         statusMsg.remove();
 
-        videos.forEach((vid, idx) => {
+        videos.forEach((vid) => {
           const card = document.createElement('div');
           card.className = 'video-card';
-
           const posterAttr = vid.cover_url ? `poster="${vid.cover_url}"` : '';
 
           card.innerHTML = `
-            <video 
-              src="${vid.video_url}" 
-              ${posterAttr}
-              loop 
-              playsinline 
-              webkit-playsinline>
-            </video>
+            <video src="${vid.video_url}" ${posterAttr} loop playsinline webkit-playsinline></video>
 
             <div class="actions-sidebar">
-              <button class="action-btn">
+              <button class="action-btn" onclick="toggleLike(this)">
                 <div class="action-icon">💛</div>
-                <span class="action-label">1</span>
+                <span class="action-label count">0</span>
               </button>
-              <button class="action-btn">
+              <button class="action-btn" onclick="openComments(${vid.id})">
                 <div class="action-icon">💬</div>
-                <span class="action-label">0</span>
+                <span class="action-label" id="comment-count-${vid.id}">0</span>
               </button>
-              <button class="action-btn">
+              <button class="action-btn" onclick="shareVideo('${vid.video_url}')">
                 <div class="action-icon">↗️</div>
               </button>
             </div>
 
             <div class="video-info">
-              <div class="username">@testuser</div>
+              <div class="username" onclick="openProfile('testuser')">@testuser</div>
               <div class="caption">${escapeHtml(vid.caption || '')}</div>
               <div class="audio-track">🎵 - ${escapeHtml(vid.audio_title || 'Original Sound')}</div>
             </div>
@@ -277,19 +378,97 @@
         });
 
         setupAutoplayObserver();
-
       } catch (err) {
         statusMsg.innerText = 'Error loading feed: ' + err.message;
       }
     }
 
-    // Auto-play / pause video when scrolled into view
+    // TOGGLE LIKE BUTTON
+    function toggleLike(btn) {
+      const isLiked = btn.classList.toggle('liked');
+      const countSpan = btn.querySelector('.count');
+      let count = parseInt(countSpan.innerText, 10);
+
+      if (isLiked) {
+        btn.querySelector('.action-icon').innerText = '❤️';
+        countSpan.innerText = count + 1;
+      } else {
+        btn.querySelector('.action-icon').innerText = '💛';
+        countSpan.innerText = Math.max(0, count - 1);
+      }
+    }
+
+    // COMMENTS SYSTEM
+    function openComments(videoId) {
+      activeVideoId = videoId;
+      overlay.style.display = 'block';
+      commentsDrawer.classList.add('active');
+      renderComments();
+    }
+
+    function renderComments() {
+      commentsList.innerHTML = '';
+      const comments = localComments[activeVideoId] || [];
+
+      if (comments.length === 0) {
+        commentsList.innerHTML = '<div style="color:#666; text-align:center;">No comments yet. Be the first!</div>';
+        return;
+      }
+
+      comments.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'comment-item';
+        item.innerHTML = `<span class="comment-author">@${c.user}:</span>${escapeHtml(c.text)}`;
+        commentsList.appendChild(item);
+      });
+    }
+
+    commentForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('commentInput');
+      const text = input.value.trim();
+      if (!text || !activeVideoId) return;
+
+      if (!localComments[activeVideoId]) localComments[activeVideoId] = [];
+      localComments[activeVideoId].push({ user: 'you', text });
+
+      input.value = '';
+      renderComments();
+
+      // Update badge count
+      const countLabel = document.getElementById(`comment-count-${activeVideoId}`);
+      if (countLabel) countLabel.innerText = localComments[activeVideoId].length;
+    });
+
+    // PROFILE SYSTEM
+    function openProfile(username) {
+      document.getElementById('profileTitle').innerText = `@${username}`;
+      document.getElementById('profileUsername').innerText = `@${username}`;
+      overlay.style.display = 'block';
+      profileDrawer.classList.add('active');
+    }
+
+    // CLOSE ALL MODALS
+    function closeModals() {
+      overlay.style.display = 'none';
+      commentsDrawer.classList.remove('active');
+      profileDrawer.classList.remove('active');
+    }
+
+    // SHARE LINK
+    function shareVideo(url) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(url);
+        alert('Video link copied to clipboard!');
+      }
+    }
+
+    // AUTOPLAY OBSERVER
     function setupAutoplayObserver() {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           const video = entry.target.querySelector('video');
           if (!video) return;
-
           if (entry.isIntersecting) {
             video.play().catch(() => {});
           } else {
@@ -299,9 +478,7 @@
         });
       }, { threshold: 0.6 });
 
-      document.querySelectorAll('.video-card').forEach(card => {
-        observer.observe(card);
-      });
+      document.querySelectorAll('.video-card').forEach(card => observer.observe(card));
     }
 
     function escapeHtml(str) {
