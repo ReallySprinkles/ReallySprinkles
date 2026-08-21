@@ -1,16 +1,26 @@
-/* Musical.ly Brand Theme */
 :root {
-  --musically-pink: #FF0050;
-  --musically-bg: #121212;
+  --tunely-pink: #FF0050;
+  --tunely-bg: #121212;
 }
 
 body {
-  background-color: var(--musically-bg);
-  color: white;
+  background-color: var(--tunely-bg);
+  color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Vinyl Disc Rotation */
+/* Hide scrollbar for clean UI */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Vinyl Disc Animation */
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
