@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tune.ly</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; height: 100vh; overflow: hidden; }
+
+    /* Auth Landing Screen */
+    #auth-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.85)), url('https://picsum.photos/1080/1920') center/cover no-repeat;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .brand-title {
+      font-size: 3.2rem;
+      font-weight: 900;
+      background: linear-gradient(45deg, #00f2fe, #4facfe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 2px;
+    }
+
+    .brand-tagline {
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 35px;
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 310px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .btn-auth-signup {
+      width: 100%;
+      padding: 14px;
+      border-radius: 6px;
+      border: none;
+      background: linear-gradient(90deg, #1d976c, #2193b0);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.05rem;
+      cursor: pointer;
+    }
+
+    .btn-auth-login {
+      width: 100%;
+      padding: 14px;
+      border-radius: 6px;
+      border: 1.5px solid #fff;
+      background: transparent;
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.05rem;
+      cursor: pointer;
+    }
+
+    .btn-follow {
+      padding: 8px 24px;
+      border-radius: 20px;
+      border: none;
+      background: linear-gradient(45deg, #00f2fe, #4facfe);
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-follow.following {
+      background: #333;
+      color: #ccc;
+      border: 1px solid #555;
+    }
+
+    /* Main App Layout */
+    .app-container { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
+
+    /* Top Feed Bar Header */
+    .top-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 55px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
+      z-index: 100;
+      font-size: 1rem;
+      font-weight: bold;
+    }
+
+    .header-tab { opacity: 0.6; cursor: pointer; position: relative; padding-bottom: 4px; }
+    .header-tab.active { opacity: 1; border-bottom: 2px solid #fff; }
+
+    /* Content Views */
+    .view-panel { display: none; height: calc(100vh - 60px); width: 100vw; overflow-y: auto; }
+    .view-panel.active { display: block; }
+
+    /* Feed Screen */
+    #feed-view { height: calc(100vh - 60px); overflow-y: mandatory; scroll-snap-type: y mandatory; }
+
+    .video-card {
+      position: relative;
+      height: calc(100vh - 60px);
+      width: 100vw;
+      scroll-snap-align: start;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Overlay Details */
+    .video-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 15px;
+      right: 75px;
+      z-index: 10;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .video-author {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .video-author:hover { text-decoration: underline; color: #00f2fe; }
+    .video-caption { font-size: 0.9rem; line-height: 1.3; margin-bottom: 8px; color: #eee; }
+    .video-audio { font-size: 0.8rem; opacity: 0.85; display: flex; align-items: center; gap: 5px; }
+
+    /* Side Action Icons */
+    .side-actions {
+      position: absolute;
+      right: 12px;
+      bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      z-index: 20;
+    }
+
+    .action-item { display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; font-weight: bold; }
+    .action-icon {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex; justify-content: center; align-items: center;
+      font-size: 1.2rem; margin-bottom: 3px;
+      backdrop-filter: blur(5px);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    .action-icon:active { transform: scale(1.2); }
+    .action-icon.liked { color: #ff0050; }
+
+    /* Musical.ly Crown Badge Wrapper Styling */
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .crown-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      width: 22px;
+      height: 22px;
+      background: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      z-index: 5;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-avatar-container .crown-badge {
+      width: 28px;
+      height: 28px;
+      top: -2px;
+      right: -2px;
+      font-size: 0.9rem;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: #000;
+      border-top: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 200;
+    }
+
+    .nav-btn { display: flex; flex-direction: column; align-items: center; color: #8e8e93; text-decoration: none; font-size: 1.2rem; cursor: pointer; }
+    .nav-btn.active { color: #fff; }
+
+    .upload-plus-btn {
+      width: 44px; height: 32px;
+      background: linear-gradient(45deg, #00f2fe, #4facfe);
+      border-radius: 8px;
+      display: flex; justify-content: center; align-items: center;
+      color: #fff; font-size: 1.4rem; font-weight: bold;
+    }
+
+    /* Search & Profile Panels */
+    .panel-content { padding: 70px 20px 20px 20px; }
+    
+    .profile-header { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 25px; }
+    .profile-avatar { width: 90px; height: 90px; border-radius: 50%; background: #222; border: 2px solid #00f2fe; object-fit: cover; display: block; }
+    .profile-bio { font-size: 0.85rem; color: #ccc; margin-top: 6px; max-width: 250px; }
+    .profile-stats { display: flex; gap: 25px; margin: 15px 0; }
+    .stat-box { text-align: center; }
+    .stat-num { font-size: 1.1rem; font-weight: bold; }
+    .stat-label { font-size: 0.75rem; color: #888; }
+
+    .profile-actions { display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap; justify-content: center; }
+
+    /* Modals */
+    .modal {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.9); z-index: 800; justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: #181818; padding: 25px; border-radius: 14px; width: 90%; max-width: 380px;
+      display: flex; flex-direction: column; gap: 12px; text-align: center; max-height: 85vh; overflow-y: auto;
+    }
+
+    /* Comments Bottom Sheet Modal */
+    #comments-modal {
+      align-items: flex-end;
+      background: rgba(0, 0, 0, 0.5);
+    }
+    .comments-sheet {
+      background: #121212;
+      width: 100vw;
+      max-width: 500px;
+      height: 60vh;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.8);
+    }
+    .comments-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #222;
+      font-weight: bold;
+    }
+    .comments-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .comment-item {
+      display: flex;
+      gap: 10px;
+      text-align: left;
+      font-size: 0.85rem;
+      align-items: flex-start;
+    }
+    .comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .comment-input-area {
+      display: flex;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid #222;
+    }
+
+    .edit-avatar-preview {
+      width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #00f2fe; margin: 0 auto;
+    }
+
+    /* Mod Panel Specific Styles */
+    .mod-btn { background: #fe2c55 !important; border: none !important; color: #fff !important; }
+    .mod-section-title { font-size: 0.95rem; font-weight: bold; color: #fe2c55; text-align: left; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Screen -->
+  <div id="auth-screen">
+    <div class="brand-title">Tune.ly</div>
+    <div class="brand-tagline">value every moment, live Tune.ly</div>
+
+    <div class="auth-box">
+      <input type="email" id="email" class="auth-input" placeholder="Email address">
+      <input type="password" id="password" class="auth-input" placeholder="Password">
+      <input type="text" id="username" class="auth-input" placeholder="Username (Sign Up only)">
+      
+      <button class="btn-auth-signup" onclick="handleSignUp()">Sign Up</button>
+      <button class="btn-auth-login" onclick="handleLogin()">Log In</button>
+    </div>
+  </div>
+
+  <!-- App Views -->
+  <div class="app-container">
+
+    <!-- Top Feed Headers -->
+    <div class="top-header" id="top-header">
+      <div class="header-tab active" id="tab-foryou" onclick="switchFeedMode('foryou')">For You</div>
+      <div class="header-tab" id="tab-following" onclick="switchFeedMode('following')">Following</div>
+    </div>
+
+    <!-- Feed Panel -->
+    <div id="feed-view" class="view-panel active">
+      <div id="feed"></div>
+    </div>
+
+    <!-- Search / Discover Panel -->
+    <div id="search-view" class="view-panel">
+      <div class="panel-content">
+        <input type="text" class="auth-input" placeholder="🔍 Search users..." oninput="handleUserSearch(this.value)" style="margin-bottom: 20px;">
+        <div id="search-results"></div>
+      </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div id="activity-view" class="view-panel">
+      <div class="panel-content">
+        <h3 style="margin-bottom:15px;">All Activity</h3>
+        <p style="color:#666;">No new notifications yet.</p>
+      </div>
+    </div>
+
+    <!-- Profile Panel -->
+    <div id="profile-view" class="view-panel">
+      <div class="panel-content">
+        <div class="profile-header">
+          <div class="avatar-wrapper profile-avatar-container" style="margin-bottom: 12px;">
+            <img id="profile-avatar-img" class="profile-avatar" src="https://picsum.photos/200/200" alt="Avatar" />
+            <div id="profile-crown-badge" class="crown-badge" style="display: none;">👑</div>
+          </div>
+          <h2 id="profile-username">@user</h2>
+          <div id="profile-bio-text" class="profile-bio">tune.ly user</div>
+          
+          <div class="profile-stats">
+            <div class="stat-box"><div class="stat-num" id="my-following-count">0</div><div class="stat-label">Following</div></div>
+            <div class="stat-box"><div class="stat-num" id="my-followers-count">0</div><div class="stat-label">Fans</div></div>
+            <div class="stat-box"><div class="stat-num" id="my-hearts-count">0</div><div class="stat-label">Hearts</div></div>
+          </div>
+
+          <div class="profile-actions">
+            <button class="btn-auth-signup" style="width: auto; padding: 8px 16px; font-size: 0.85rem;" onclick="openModal('edit-profile-modal')">Edit Profile</button>
+            <button id="mod-panel-trigger-btn" class="btn-auth-signup mod-btn" style="width: auto; padding: 8px 16px; font-size: 0.85rem; display: none;" onclick="openModal('mod-panel-modal')">🛡️ Mod Panel</button>
+            <button class="btn-auth-login" style="width: auto; padding: 8px 16px; font-size: 0.85rem;" onclick="handleLogout()">Log Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="bottom-nav">
+      <div class="nav-btn active" onclick="switchTab('feed-view', this)">🏠</div>
+      <div class="nav-btn" onclick="switchTab('search-view', this)">🔍</div>
+      <div class="nav-btn" onclick="window.location.href='https://reallysprinkles.com/tunely/upload'">
+        <div class="upload-plus-btn">+</div>
+      </div>
+      <div class="nav-btn" onclick="switchTab('activity-view', this)">⚡</div>
+      <div class="nav-btn" onclick="switchTab('profile-view', this)">👤</div>
+    </div>
+
+  </div>
+
+  <!-- Comments Bottom Sheet Modal -->
+  <div id="comments-modal" class="modal">
+    <div class="comments-sheet">
+      <div class="comments-header">
+        <span id="comments-count-title">0 Comments</span>
+        <span onclick="closeModal('comments-modal')" style="cursor: pointer; font-size: 1.2rem;">✕</span>
+      </div>
+      <div id="comments-list" class="comments-list"></div>
+      <div class="comment-input-area">
+        <input type="text" id="comment-input" class="auth-input" placeholder="Add a comment..." style="padding: 10px;">
+        <button class="btn-auth-signup" style="width: auto; padding: 0 16px; font-size: 0.85rem;" onclick="handlePostComment()">Post</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Public Profile View Modal -->
+  <div id="user-profile-modal" class="modal">
+    <div class="modal-content">
+      <div style="text-align: right; margin-bottom: -10px;">
+        <span onclick="closeModal('user-profile-modal')" style="cursor: pointer; font-size: 1.4rem;">✕</span>
+      </div>
+      <div class="profile-header" style="margin-bottom: 0;">
+        <div class="avatar-wrapper profile-avatar-container" style="margin-bottom: 12px;">
+          <img id="view-user-avatar" class="profile-avatar" src="https://picsum.photos/200/200" alt="Avatar" />
+          <div id="view-user-crown-badge" class="crown-badge" style="display: none;">👑</div>
+        </div>
+        <h2 id="view-user-username">@user</h2>
+        <div id="view-user-bio" class="profile-bio">tune.ly user</div>
+        
+        <div class="profile-stats">
+          <div class="stat-box"><div class="stat-num" id="view-user-following">0</div><div class="stat-label">Following</div></div>
+          <div class="stat-box"><div class="stat-num" id="view-user-followers">0</div><div class="stat-label">Fans</div></div>
+          <div class="stat-box"><div class="stat-num" id="view-user-hearts">0</div><div class="stat-label">Hearts</div></div>
+        </div>
+
+        <button id="view-user-follow-btn" class="btn-follow" onclick="toggleFollowTargetUser()">Follow</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 5px;">Post to Tune.ly</h3>
+      <input type="file" id="video-file" class="auth-input" accept="video/mp4,video/mov">
+      <input type="text" id="video-caption" class="auth-input" placeholder="Caption (#tunely)">
+      <input type="text" id="video-audio" class="auth-input" placeholder="Audio Title">
+      <button class="btn-auth-signup" id="upload-btn" onclick="handleUpload()">Publish</button>
+      <button class="btn-auth-login" onclick="closeModal('upload-modal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 5px;">Edit Profile</h3>
+      <img id="edit-avatar-preview" class="edit-avatar-preview" src="https://picsum.photos/200/200" alt="Avatar Preview" />
+      <input type="file" id="edit-avatar-file" class="auth-input" accept="image/*">
+      <input type="text" id="edit-username-input" class="auth-input" placeholder="Username">
+      <input type="text" id="edit-bio-input" class="auth-input" placeholder="Bio (tune.ly user)">
+      <button class="btn-auth-signup" id="save-profile-btn" onclick="handleSaveProfile()">Save & Sync to App</button>
+      <button class="btn-auth-login" onclick="closeModal('edit-profile-modal')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Moderator Panel Modal -->
+  <div id="mod-panel-modal" class="modal">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="color: #fe2c55;">🛡️ Mod Panel</h3>
+        <span onclick="closeModal('mod-panel-modal')" style="cursor: pointer; font-size: 1.4rem;">✕</span>
+      </div>
+      
+      <div class="mod-section-title">Manage Crown Badge</div>
+      <input type="text" id="mod-target-user" class="auth-input" placeholder="Target Username">
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-auth-signup" style="background: #ff007f;" onclick="modToggleCrown(true)">👑 Crown</button>
+        <button class="btn-auth-login" style="border-color: #666;" onclick="modToggleCrown(false)">Uncrown</button>
+      </div>
+
+      <div class="mod-section-title">Manage Permissions & Ban</div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-auth-signup" style="background: #e50914;" onclick="modToggleBan(true)">⛔ Ban User</button>
+        <button class="btn-auth-login" style="border-color: #666;" onclick="modToggleBan(false)">Unban</button>
+      </div>
+
+      <div class="mod-section-title">Delete Content</div>
+      <input type="text" id="mod-target-id" class="auth-input" placeholder="Target ID (Video or Comment ID)">
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-auth-signup" style="background: #e50914;" onclick="modDeleteVideo()">🗑️ Video</button>
+        <button class="btn-auth-signup" style="background: #e50914;" onclick="modDeleteComment()">💬 Comment</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://kdezxjizwqfmugkwpycb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtkZXp4aml6d3FmbXVna3dweWNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxNzQ5OTgsImV4cCI6MjEwMjc1MDk5OH0.Pc2p7s3umB-7PyPtTupQcA5occ5xEZdQzs4K5Nwhv_8';
+    
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let currentUser = null;
+    let currentUserProfile = null;
+    let currentFeedMode = 'foryou';
+    let currentAvatarUrl = 'https://picsum.photos/200/200';
+    let activeViewTargetUser = null;
+    let activeCommentVideoId = null;
+
+    async function checkUserSession() {
+      try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        currentUser = user;
+
+        if (currentUser) {
+          document.getElementById('auth-screen').style.display = 'none';
+          await loadUserProfile();
+          renderFeed();
+          loadMyStats();
+        } else {
+          document.getElementById('auth-screen').style.display = 'flex';
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
+      }
+    }
+
+    async function loadUserProfile() {
+      if (!currentUser) return;
+      const defaultName = currentUser.user_metadata?.username || 'user';
+
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+      currentUserProfile = profile;
+      const username = profile?.username || defaultName;
+      const bio = profile?.bio || 'tune.ly user';
+      if (profile?.avatar_url) {
+        currentAvatarUrl = profile.avatar_url;
+      }
+
+      const isCrowned = profile?.is_crowned || false;
+
+      document.getElementById('profile-username').innerText = '@' + username;
+      document.getElementById('profile-bio-text').innerText = bio;
+      document.getElementById('profile-avatar-img').src = currentAvatarUrl;
+      document.getElementById('profile-crown-badge').style.display = isCrowned ? 'flex' : 'none';
+
+      // Mod panel triggers ONLY for explicitly assigned mod/admin usernames or flags (NOT crowned status)
+      const isModAdmin = username.toLowerCase() === 'sprinkles' || profile?.is_admin === true;
+      document.getElementById('mod-panel-trigger-btn').style.display = isModAdmin ? 'inline-block' : 'none';
+
+      document.getElementById('edit-username-input').value = username;
+      document.getElementById('edit-bio-input').value = bio;
+      document.getElementById('edit-avatar-preview').src = currentAvatarUrl;
+    }
+
+    async function loadMyStats() {
+      if (!currentUser) return;
+
+      const { count: followingCount } = await supabaseClient
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('follower_id', currentUser.id);
+
+      const { count: followersCount } = await supabaseClient
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('following_id', currentUser.id);
+
+      const { data: userVideos } = await supabaseClient
+        .from('videos')
+        .select('id')
+        .eq('user_id', currentUser.id);
+
+      let totalHearts = 0;
+      if (userVideos && userVideos.length > 0) {
+        const videoIds = userVideos.map(v => v.id);
+        const { count: heartsCount } = await supabaseClient
+          .from('likes')
+          .select('id', { count: 'exact', head: true })
+          .in('video_id', videoIds);
+        totalHearts = heartsCount || 0;
+      }
+
+      document.getElementById('my-following-count').innerText = followingCount || 0;
+      document.getElementById('my-followers-count').innerText = followersCount || 0;
+      document.getElementById('my-hearts-count').innerText = totalHearts;
+    }
+
+    async function openUserProfile(userId) {
+      if (!userId) return;
+      
+      if (currentUser && userId === currentUser.id) {
+        switchTab('profile-view', document.querySelectorAll('.nav-btn')[4]);
+        return;
+      }
+
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (!profile) return alert('User not found!');
+
+      activeViewTargetUser = profile;
+      const isCrowned = profile.is_crowned || false;
+
+      document.getElementById('view-user-username').innerText = '@' + profile.username;
+      document.getElementById('view-user-bio').innerText = profile.bio || 'tune.ly user';
+      document.getElementById('view-user-avatar').src = profile.avatar_url || 'https://picsum.photos/200/200';
+      document.getElementById('view-user-crown-badge').style.display = isCrowned ? 'flex' : 'none';
+
+      const { count: targetFollowing } = await supabaseClient
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('follower_id', profile.id);
+
+      const { count: targetFollowers } = await supabaseClient
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('following_id', profile.id);
+
+      const { data: targetVideos } = await supabaseClient
+        .from('videos')
+        .select('id')
+        .eq('user_id', profile.id);
+
+      let totalHearts = 0;
+      if (targetVideos && targetVideos.length > 0) {
+        const vIds = targetVideos.map(v => v.id);
+        const { count: heartsCount } = await supabaseClient
+          .from('likes')
+          .select('id', { count: 'exact', head: true })
+          .in('video_id', vIds);
+        totalHearts = heartsCount || 0;
+      }
+
+      document.getElementById('view-user-following').innerText = targetFollowing || 0;
+      document.getElementById('view-user-followers').innerText = targetFollowers || 0;
+      document.getElementById('view-user-hearts').innerText = totalHearts;
+
+      if (currentUser) {
+        const { data: isFollowing } = await supabaseClient
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', profile.id)
+          .maybeSingle();
+
+        const followBtn = document.getElementById('view-user-follow-btn');
+        if (isFollowing) {
+          followBtn.innerText = 'Following';
+          followBtn.classList.add('following');
+        } else {
+          followBtn.innerText = 'Follow';
+          followBtn.classList.remove('following');
+        }
+      }
+
+      openModal('user-profile-modal');
+    }
+
+    async function toggleFollowTargetUser() {
+      if (!currentUser) return alert('Log in to follow users!');
+
+      const followBtn = document.getElementById('view-user-follow-btn');
+      const targetId = activeViewTargetUser.id;
+
+      const { data: existingFollow } = await supabaseClient
+        .from('follows')
+        .select('id')
+        .eq('follower_id', currentUser.id)
+        .eq('following_id', targetId)
+        .maybeSingle();
+
+      if (existingFollow) {
+        await supabaseClient.from('follows').delete().eq('id', existingFollow.id);
+        followBtn.innerText = 'Follow';
+        followBtn.classList.remove('following');
+      } else {
+        await supabaseClient.from('follows').insert([{
+          follower_id: currentUser.id,
+          following_id: targetId
+        }]);
+        followBtn.innerText = 'Following';
+        followBtn.classList.add('following');
+      }
+
+      openUserProfile(targetId);
+      loadMyStats();
+    }
+
+    async function handleUserSearch(query) {
+      const resultsContainer = document.getElementById('search-results');
+      if (!query.trim()) { resultsContainer.innerHTML = ''; return; }
+
+      const { data: users } = await supabaseClient
+        .from('profiles')
+        .select('id, username, bio, avatar_url, is_crowned')
+        .ilike('username', `%${query}%`)
+        .limit(10);
+
+      resultsContainer.innerHTML = '';
+      (users || []).forEach(u => {
+        const div = document.createElement('div');
+        const isCrowned = u.is_crowned || false;
+
+        div.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px; background:#111; border-radius:8px; margin-bottom:8px; cursor:pointer;';
+        div.onclick = () => openUserProfile(u.id);
+        div.innerHTML = `
+          <div class="avatar-wrapper">
+            <img src="${u.avatar_url || 'https://picsum.photos/200/200'}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; display:block;">
+            ${isCrowned ? '<div class="crown-badge">👑</div>' : ''}
+          </div>
+          <div>
+            <div style="font-weight:bold;">@${u.username}</div>
+            <div style="font-size:0.75rem; color:#888;">${u.bio || 'tune.ly user'}</div>
+          </div>
+        `;
+        resultsContainer.appendChild(div);
+      });
+    }
+
+    /* MOD PANEL ACTIONS */
+    async function modToggleCrown(status) {
+      const targetUser = document.getElementById('mod-target-user').value.trim();
+      if (!targetUser) return alert('Enter target username!');
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ is_crowned: status })
+        .eq('username', targetUser);
+
+      if (error) alert('Error: ' + error.message);
+      else {
+        alert(`Successfully ${status ? 'crowned' : 'uncrowned'} @${targetUser}!`);
+        renderFeed();
+      }
+    }
+
+    async function modToggleBan(status) {
+      const targetUser = document.getElementById('mod-target-user').value.trim();
+      if (!targetUser) return alert('Enter target username!');
+
+      const { error } = await supabaseClient
+        .from('profiles')
+        .update({ is_banned: status })
+        .eq('username', targetUser);
+
+      if (error) alert('Error: ' + error.message);
+      else alert(`Successfully ${status ? 'banned' : 'unbanned'} @${targetUser}!`);
+    }
+
+    async function modDeleteVideo() {
+      const targetId = document.getElementById('mod-target-id').value.trim();
+      if (!targetId) return alert('Enter video ID!');
+
+      const { error } = await supabaseClient
+        .from('videos')
+        .delete()
+        .eq('id', targetId);
+
+      if (error) alert('Error deleting video: ' + error.message);
+      else {
+        alert(`Video ${targetId} deleted!`);
+        renderFeed();
+      }
+    }
+
+    async function modDeleteComment() {
+      const targetId = document.getElementById('mod-target-id').value.trim();
+      if (!targetId) return alert('Enter comment ID!');
+
+      const { error } = await supabaseClient
+        .from('comments')
+        .delete()
+        .eq('id', targetId);
+
+      if (error) alert('Error deleting comment: ' + error.message);
+      else {
+        alert(`Comment ${targetId} deleted!`);
+        if (activeCommentVideoId) loadComments(activeCommentVideoId);
+      }
+    }
+
+    document.getElementById('edit-avatar-file').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        document.getElementById('edit-avatar-preview').src = URL.createObjectURL(file);
+      }
+    });
+
+    async function handleSignUp() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const username = document.getElementById('username').value.trim();
+
+      if (!email || !password || !username) return alert('Fill in all fields to sign up!');
+
+      const { data, error } = await supabaseClient.auth.signUp({
+        email, password, options: { data: { username } }
+      });
+
+      if (error) alert('Sign Up Error: ' + error.message);
+      else { 
+        if (data.user) {
+          await supabaseClient.from('profiles').upsert({
+            id: data.user.id,
+            username: username,
+            email: email,
+            bio: 'tune.ly user',
+            avatar_url: 'https://picsum.photos/200/200',
+            is_crowned: false
+          });
+        }
+        alert('Account created!'); 
+        checkUserSession(); 
+      }
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!email || !password) return alert('Enter email and password!');
+
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) alert('Login Error: ' + error.message);
+      else checkUserSession();
+    }
+
+    async function handleLogout() {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      currentUserProfile = null;
+      document.getElementById('auth-screen').style.display = 'flex';
+    }
+
+    async function handleSaveProfile() {
+      const newUsername = document.getElementById('edit-username-input').value.trim();
+      const newBio = document.getElementById('edit-bio-input').value.trim();
+      const avatarFileInput = document.getElementById('edit-avatar-file');
+
+      if (!newUsername) return alert('Username cannot be empty!');
+
+      const btn = document.getElementById('save-profile-btn');
+      btn.innerText = 'Saving...';
+      btn.disabled = true;
+
+      try {
+        let finalAvatarUrl = currentAvatarUrl;
+
+        if (avatarFileInput.files.length > 0) {
+          const file = avatarFileInput.files[0];
+          const fileExt = file.name.split('.').pop();
+          const filePath = `${currentUser.id}/${Date.now()}.${fileExt}`;
+
+          const { error: uploadError } = await supabaseClient.storage
+            .from('avatars')
+            .upload(filePath, file, { upsert: true });
+
+          if (uploadError) throw uploadError;
+
+          const { data: urlData } = supabaseClient.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+          finalAvatarUrl = urlData.publicUrl;
+        }
+
+        await supabaseClient.auth.updateUser({
+          data: { username: newUsername }
+        });
+
+        const { error: dbError } = await supabaseClient
+          .from('profiles')
+          .upsert({
+            id: currentUser.id,
+            username: newUsername,
+            bio: newBio,
+            avatar_url: finalAvatarUrl,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+
+        if (dbError) throw dbError;
+
+        currentAvatarUrl = finalAvatarUrl;
+        await loadUserProfile();
+        closeModal('edit-profile-modal');
+        alert('Profile updated!');
+
+      } catch (err) {
+        alert('Update failed: ' + err.message);
+      } finally {
+        btn.innerText = 'Save & Sync to App';
+        btn.disabled = false;
+      }
+    }
+
+    function switchTab(viewId, btn) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(viewId).classList.add('active');
+      if (btn) btn.classList.add('active');
+
+      const topHeader = document.getElementById('top-header');
+      topHeader.style.display = (viewId === 'feed-view') ? 'flex' : 'none';
+    }
+
+    function switchFeedMode(mode) {
+      currentFeedMode = mode;
+      document.getElementById('tab-foryou').classList.toggle('active', mode === 'foryou');
+      document.getElementById('tab-following').classList.toggle('active', mode === 'following');
+      renderFeed();
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    async function handleUpload() {
+      const fileInput = document.getElementById('video-file');
+      const caption = document.getElementById('video-caption').value;
+      const audioTitle = document.getElementById('video-audio').value || 'Original Sound';
+
+      if (!fileInput.files.length) return alert('Select a video file first!');
+      const file = fileInput.files[0];
+
+      const btn = document.getElementById('upload-btn');
+      btn.innerText = 'Publishing...';
+      btn.disabled = true;
+
+      const filePath = `${currentUser.id}/${Date.now()}_${file.name}`;
+
+      const { error: storageError } = await supabaseClient.storage.from('videos').upload(filePath, file);
+
+      if (storageError) {
+        alert('Upload Error: ' + storageError.message);
+        btn.innerText = 'Publish'; btn.disabled = false; return;
+      }
+
+      const { data: urlData } = supabaseClient.storage.from('videos').getPublicUrl(filePath);
+
+      const { error: dbError } = await supabaseClient.from('videos').insert([{
+        user_id: currentUser.id,
+        video_url: urlData.publicUrl,
+        caption: caption,
+        audio_title: audioTitle
+      }]);
+
+      btn.innerText = 'Publish'; btn.disabled = false;
+
+      if (dbError) alert('DB Error: ' + dbError.message);
+      else {
+        alert('Video uploaded live!');
+        closeModal('upload-modal');
+        switchTab('feed-view', document.querySelectorAll('.nav-btn')[0]);
+        renderFeed();
+      }
+    }
+
+    async function toggleLike(videoId) {
+      if (!currentUser) return alert('Log in to like videos!');
+
+      const countEl = document.getElementById(`like-count-${videoId}`);
+      const iconEl = document.getElementById(`like-icon-${videoId}`);
+
+      const { data: existingLike } = await supabaseClient
+        .from('likes')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('video_id', videoId)
+        .maybeSingle();
+
+      let currentCount = parseInt(countEl.innerText) || 0;
+
+      if (existingLike) {
+        await supabaseClient.from('likes').delete().eq('id', existingLike.id);
+        iconEl.classList.remove('liked');
+        countEl.innerText = Math.max(0, currentCount - 1);
+      } else {
+        await supabaseClient.from('likes').insert([{ user_id: currentUser.id, video_id: videoId }]);
+        iconEl.classList.add('liked');
+        countEl.innerText = currentCount + 1;
+      }
+      loadMyStats();
+    }
+
+    async function openComments(videoId) {
+      activeCommentVideoId = videoId;
+      openModal('comments-modal');
+      loadComments(videoId);
+    }
+
+    async function loadComments(videoId) {
+      const container = document.getElementById('comments-list');
+      container.innerHTML = '<div style="color:#888; text-align:center; padding:20px;">Loading comments...</div>';
+
+      const { data: comments, count } = await supabaseClient
+        .from('comments')
+        .select('id, comment_text, created_at, profiles ( username, avatar_url, is_crowned )', { count: 'exact' })
+        .eq('video_id', videoId)
+        .order('created_at', { ascending: true });
+
+      document.getElementById('comments-count-title').innerText = `${count || 0} Comments`;
+
+      const feedCommentCountEl = document.getElementById(`comment-count-${videoId}`);
+      if (feedCommentCountEl) feedCommentCountEl.innerText = count || 0;
+
+      if (!comments || comments.length === 0) {
+        container.innerHTML = '<div style="color:#888; text-align:center; padding:20px;">No comments yet. Be the first!</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      comments.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'comment-item';
+        
+        const username = c.profiles?.username || 'user';
+        const isCrowned = c.profiles?.is_crowned || false;
+
+        const isMod = currentUserProfile && (currentUserProfile.username.toLowerCase() === 'sprinkles' || currentUserProfile.is_admin === true);
+        const deleteBtn = isMod ? `<span onclick="modDeleteCommentDirect('${c.id}')" style="color:#e50914; cursor:pointer; font-size:0.75rem; margin-left:8px;">[Delete]</span>` : '';
+
+        div.innerHTML = `
+          <div class="avatar-wrapper">
+            <img src="${c.profiles?.avatar_url || 'https://picsum.photos/200/200'}" class="comment-avatar">
+            ${isCrowned ? '<div class="crown-badge" style="width:16px; height:16px; font-size:0.5rem; top:-2px; right:-2px;">👑</div>' : ''}
+          </div>
+          <div style="flex: 1;">
+            <div style="font-weight:bold; font-size:0.8rem; color:#aaa;">@${username} ${deleteBtn}</div>
+            <div style="margin-top:2px;">${c.comment_text || ''}</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function modDeleteCommentDirect(commentId) {
+      if (!confirm('Delete this comment?')) return;
+      const { error } = await supabaseClient.from('comments').delete().eq('id', commentId);
+      if (error) alert('Error: ' + error.message);
+      else if (activeCommentVideoId) loadComments(activeCommentVideoId);
+    }
+
+    async function handlePostComment() {
+      if (!currentUser) return alert('Log in to comment!');
+      const input = document.getElementById('comment-input');
+      const textVal = input.value.trim();
+      if (!textVal || !activeCommentVideoId) return;
+
+      input.value = '';
+
+      const { error } = await supabaseClient.from('comments').insert([{
+        user_id: currentUser.id,
+        video_id: activeCommentVideoId,
+        comment_text: textVal
+      }]);
+
+      if (error) alert('Error commenting: ' + error.message);
+      else loadComments(activeCommentVideoId);
+    }
+
+    async function renderFeed() {
+      const container = document.getElementById('feed');
+      container.innerHTML = '';
+
+      let query = supabaseClient
+        .from('videos')
+        .select(`id, user_id, video_url, caption, audio_title, profiles ( id, username, avatar_url, is_crowned )`)
+        .order('created_at', { ascending: false });
+
+      if (currentFeedMode === 'following') {
+        if (!currentUser) return;
+        
+        const { data: following, error: followError } = await supabaseClient
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', currentUser.id);
+
+        if (followError || !following || following.length === 0) {
+          container.innerHTML = '<div style="padding-top: 150px; text-align: center; color: #888;">You aren\'t following anyone yet or they haven\'t posted!</div>';
+          return;
+        }
+
+        const followingIds = following.map(f => f.following_id);
+        query = query.in('user_id', followingIds);
+      }
+
+      const { data: videos, error } = await query;
+
+      if (error) {
+        container.innerHTML = `<div style="padding-top: 100px; text-align: center; color: #ff0050;">Error loading videos: ${error.message}</div>`;
+        return;
+      }
+
+      if (!videos || videos.length === 0) {
+        container.innerHTML = '<div style="padding-top: 150px; text-align: center; color: #888;">No videos found.<br>Tap + to post one!</div>';
+        return;
+      }
+
+      for (const v of videos) {
+        const authorId = v.profiles?.id || v.user_id;
+        const authorUsername = v.profiles?.username || 'user';
+        const authorAvatar = v.profiles?.avatar_url || 'https://picsum.photos/200/200';
+        const isCrowned = v.profiles?.is_crowned || false;
+
+        const { count: likesCount } = await supabaseClient
+          .from('likes')
+          .select('id', { count: 'exact', head: true })
+          .eq('video_id', v.id);
+
+        let isLiked = false;
+        if (currentUser) {
+          const { data: userLike } = await supabaseClient
+            .from('likes')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('video_id', v.id)
+            .maybeSingle();
+          if (userLike) isLiked = true;
+        }
+
+        const { count: commentsCount } = await supabaseClient
+          .from('comments')
+          .select('id', { count: 'exact', head: true })
+          .eq('video_id', v.id);
+
+        const card = document.createElement('div');
+        card.className = 'video-card';
+        card.innerHTML = `
+          <video src="${v.video_url}" loop playsinline onclick="this.paused ? this.play() : this.pause()"></video>
+          
+          <div class="video-overlay">
+            <div class="video-author" onclick="openUserProfile('${authorId}')">@${authorUsername}</div>
+            <div class="video-caption">${v.caption || ''}</div>
+            <div class="video-audio">♫ ${v.audio_title || 'Original Sound'}</div>
+          </div>
+
+          <div class="side-actions">
+            <div class="action-item" onclick="openUserProfile('${authorId}')">
+              <div class="avatar-wrapper">
+                <img src="${authorAvatar}" style="width:42px; height:42px; border-radius:50%; border:2px solid #00f2fe; object-fit:cover; display:block; cursor:pointer;">
+                ${isCrowned ? '<div class="crown-badge">👑</div>' : ''}
+              </div>
+            </div>
+            <div class="action-item" onclick="toggleLike('${v.id}')">
+              <div class="action-icon ${isLiked ? 'liked' : ''}" id="like-icon-${v.id}">💛</div>
+              <span id="like-count-${v.id}">${likesCount || 0}</span>
+            </div>
+            <div class="action-item" onclick="openComments('${v.id}')">
+              <div class="action-icon">💬</div>
+              <span id="comment-count-${v.id}">${commentsCount || 0}</span>
+            </div>
+            <div class="action-item"><div class="action-icon">↗️</div>Share</div>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', checkUserSession);
+  </script>
+</body>
+</html>
