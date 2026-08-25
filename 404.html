@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>404 - Lost at Sea</title>
+
+    <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
+    <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
+
+    <style>
+        :root {
+            --bg-top: #65a2a2;
+            --bg-bottom: #050d12;
+            --text-primary: #0a1820;
+            --text-secondary: rgba(10, 24, 32, 0.7);
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(10, 24, 32, 0.15);
+            --accent-color: #0b1d28;
+            --pill-bg: #0a1820;
+            --pill-text: #65a2a2;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.18);
+        }
+
+        [data-theme="dark"] {
+            --bg-top: #0d222e;
+            --bg-bottom: #020608;
+            --text-primary: #b2e0e0;
+            --text-secondary: rgba(178, 224, 224, 0.65);
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(178, 224, 224, 0.2);
+            --accent-color: #5ce1e6;
+            --pill-bg: #5ce1e6;
+            --pill-text: #050d12;
+            --card-bg: rgba(0, 0, 0, 0.25);
+            --card-border: rgba(178, 224, 224, 0.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            [data-theme="system"] {
+                --bg-top: #0d222e;
+                --bg-bottom: #020608;
+                --text-primary: #b2e0e0;
+                --text-secondary: rgba(178, 224, 224, 0.65);
+                --glass-bg: rgba(0, 0, 0, 0.2);
+                --glass-border: rgba(178, 224, 224, 0.2);
+                --accent-color: #5ce1e6;
+                --pill-bg: #5ce1e6;
+                --pill-text: #050d12;
+                --card-bg: rgba(0, 0, 0, 0.25);
+                --card-border: rgba(178, 224, 224, 0.15);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Rotated Vertical Ocean Quote Side Text */
+        .vertical-text {
+            position: fixed;
+            left: 12px;
+            top: 25%;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            opacity: 0.45;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            text-transform: uppercase;
+        }
+
+        /* ASCII Sea-Life Ambient Animations */
+        .ascii-art {
+            position: absolute;
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            opacity: 0.35;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+
+        .ascii-kraken { top: 15%; right: 10%; }
+        .ascii-diver { bottom: 20%; left: 8%; }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        /* Depth Radar Top Header */
+        .depth-radar-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            opacity: 0.85;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+        }
+
+        .radar-warning {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4757;
+            box-shadow: 0 0 10px #ff4757;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; stroke-width: 2; }
+            100% { opacity: 0.3; }
+        }
+
+        .error-code {
+            font-size: 7rem;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 0.85;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-family: var(--mono-font);
+        }
+
+        .error-title {
+            font-style: italic;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            opacity: 0.9;
+            margin-bottom: 24px;
+        }
+
+        .error-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+
+        .error-description {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--pill-bg);
+            color: var(--pill-text);
+            text-decoration: none;
+            font-weight: 700;
+            font-family: var(--mono-font);
+            font-size: 0.85rem;
+            border-radius: 9999px;
+            border: 1px solid var(--glass-border);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .action-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .ocean-bottom-info {
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.75;
+            margin-top: 10px;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        @media (max-width: 480px) {
+            .error-code { font-size: 5.5rem; }
+            .vertical-text { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Vertical Decorative Text -->
+    <div class="vertical-text">
+        Diver Lost &middot; Signal Dropped &middot; Return to surface
+    </div>
+
+    <!-- ASCII Ambient Accents -->
+    <div class="ascii-art ascii-kraken">
+        &nbsp;&nbsp;&nbsp;&nbsp;/\_/\<br>
+        &nbsp;&nbsp;(&nbsp;o.o&nbsp;)<br>
+        &nbsp;~(&nbsp;&quot;&nbsp;)~<br>
+        /&nbsp;\&nbsp;/&nbsp;\&nbsp;/&nbsp;\
+    </div>
+    <div class="ascii-art ascii-diver">
+        &nbsp;o /<br>
+        &nbsp;/|&nbsp;~ ~ ~<br>
+        &nbsp;/ \
+    </div>
+
+    <div class="container">
+
+        <!-- Warning Depth Header -->
+        <div class="depth-radar-header">
+            <div class="radar-warning"></div>
+            <span>CRITICAL &middot; ABYSSAL ZONE &middot; 9999m</span>
+        </div>
+
+        <div class="error-code">404</div>
+        <div class="error-title">You’ve drifted too far down.</div>
+
+        <div class="error-card">
+            <p class="error-description">
+                The coordinates you followed lead into uncharted waters. This page has dissolved or never existed.
+            </p>
+
+            <a class="action-btn" href="/">
+                <svg viewBox="0 0 24 24">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                Ascend to Surface
+            </a>
+        </div>
+
+        <div class="ocean-bottom-info">
+            pressure high &middot; zero visibility
+        </div>
+
+        <footer>
+            <div>ReallySprinkles / 2026</div>
+        </footer>
+
+    </div>
+
+    <script>
+        // Sync saved theme automatically from index.html preferences
+        (function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</body>
+</html>
