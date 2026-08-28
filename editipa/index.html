@@ -258,22 +258,39 @@
       return readObject(0);
     }
 
+    function valueToXml(val, indent = '  ') {
+      if (val === undefined || val === null) return '';
+      if (typeof val === 'boolean') return `${indent}<${val}/>\n`;
+      if (typeof val === 'number') {
+        return Number.isInteger(val) ? `${indent}<integer>${val}</integer>\n` : `${indent}<real>${val}</real>\n`;
+      }
+      if (Array.isArray(val)) {
+        let res = `${indent}<array>\n`;
+        for (const item of val) res += valueToXml(item, indent + '  ');
+        res += `${indent}</array>\n`;
+        return res;
+      }
+      if (typeof val === 'object') {
+        let res = `${indent}<dict>\n`;
+        for (const [k, v] of Object.entries(val)) {
+          res += `${indent}  <key>${k}</key>\n`;
+          res += valueToXml(v, indent + '  ');
+        }
+        res += `${indent}</dict>\n`;
+        return res;
+      }
+      const safeStr = String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `${indent}<string>${safeStr}</string>\n`;
+    }
+
     function objectToXmlPlist(obj) {
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-      xml += '<!DOCTYPE plist PUBLIC "-//Apple//DOCTYPE PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n';
+      xml += '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n';
       xml += '<plist version="1.0">\n<dict>\n';
 
       for (const [key, val] of Object.entries(obj)) {
-        if (val === undefined || val === null) continue;
         xml += `  <key>${key}</key>\n`;
-        if (typeof val === 'boolean') {
-          xml += `  <${val}/>\n`;
-        } else if (typeof val === 'number') {
-          xml += Number.isInteger(val) ? `  <integer>${val}</integer>\n` : `  <real>${val}</real>\n`;
-        } else {
-          const safeStr = String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          xml += `  <string>${safeStr}</string>\n`;
-        }
+        xml += valueToXml(val, '  ');
       }
       xml += '</dict>\n</plist>';
       return xml;
@@ -307,18 +324,28 @@
         if (isBinary) {
           parsedPlist = parseBinaryPlist(buffer) || {};
         } else {
+          parsedPlist = {};
           const textDecoder = new TextDecoder("utf-8");
           const xmlText = textDecoder.decode(buffer);
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(xmlText, "text/xml");
           
-          parsedPlist = {};
-          const keys = xmlDoc.getElementsByTagName("key");
-          for (let i = 0; i < keys.length; i++) {
-            const keyName = keys[i].textContent;
-            const nextElem = keys[i].nextElementSibling;
-            if (nextElem) parsedPlist[keyName] = nextElem.textContent;
+          function xmlToJs(node) {
+            if (node.tagName === "dict") {
+              const res = {};
+              const children = Array.from(node.children);
+              for (let i = 0; i < children.length; i += 2) {
+                if (children[i] && children[i+1]) res[children[i].textContent] = xmlToJs(children[i+1]);
+              }
+              return res;
+            } else if (node.tagName === "array") {
+              return Array.from(node.children).map(xmlToJs);
+            } else {
+              return node.textContent;
+            }
           }
+          const rootDict = xmlDoc.getElementsByTagName("dict")[0];
+          if (rootDict) parsedPlist = xmlToJs(rootDict);
         }
 
         document.getElementById('CFBundleDisplayName').value = parsedPlist.CFBundleDisplayName || parsedPlist.CFBundleName || '';
@@ -350,11 +377,9 @@
       }
 
       if (foundIconPaths.length > 0) {
-        // Pick largest resolution matching icon
         const iconPath = foundIconPaths[foundIconPaths.length - 1];
         const iconBlob = await zipData.files[iconPath].async("blob");
         
-        // Draw icon onto canvas to resolve CgBI iOS PNG format issues
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
@@ -390,24 +415,47 @@
       parsedPlist.CFBundleShortVersionString = document.getElementById('CFBundleShortVersionString').value;
       parsedPlist.MinimumOSVersion = document.getElementById('MinimumOSVersion').value;
 
-      // Ensure primary AppIcon key exists in plist
-      if (!parsedPlist.CFBundleIconFiles) {
-        parsedPlist.CFBundleIconFiles = ["AppIcon60x60"];
-      }
+      // Ensure standard iOS icon structure in Info.plist
+      const defaultIconNames = [
+        "AppIcon60x60", "AppIcon76x76", "AppIcon20x20", 
+        "AppIcon29x29", "AppIcon40x40", "AppIcon"
+      ];
 
-      // Replace existing app icon files if user uploaded a new one
+      parsedPlist.CFBundleIcons = {
+        CFBundlePrimaryIcon: {
+          CFBundleIconFiles: defaultIconNames,
+          CFBundleIconName: "AppIcon"
+        }
+      };
+
+      parsedPlist.CFBundleIcons~ipad = {
+        CFBundlePrimaryIcon: {
+          CFBundleIconFiles: defaultIconNames,
+          CFBundleIconName: "AppIcon"
+        }
+      };
+
+      parsedPlist.CFBundleIconFiles = defaultIconNames;
+
+      // Replace or insert icon PNG files in zip
       if (newIconBlob) {
         const iconArrayBuffer = await newIconBlob.arrayBuffer();
 
-        if (foundIconPaths.length > 0) {
-          foundIconPaths.forEach(path => {
-            zipInstance.file(path, iconArrayBuffer);
-          });
-        } else {
-          // Standard fallback paths if no icon existed originally
-          zipInstance.file(appFolderPath + "AppIcon60x60@2x.png", iconArrayBuffer);
-          zipInstance.file(appFolderPath + "AppIcon60x60@3x.png", iconArrayBuffer);
-        }
+        // Standard PNG names iOS looks for
+        const iconFileVariants = [
+          "AppIcon60x60@2x.png", "AppIcon60x60@3x.png",
+          "AppIcon76x76@2x.png", "AppIcon20x20@2x.png",
+          "AppIcon29x29@2x.png", "AppIcon40x40@2x.png",
+          "AppIcon.png", "Icon.png", "Icon@2x.png"
+        ];
+
+        // Replace all matching existing icons
+        foundIconPaths.forEach(path => zipInstance.file(path, iconArrayBuffer));
+
+        // Inject standard loose icon files into app folder
+        iconFileVariants.forEach(name => {
+          zipInstance.file(appFolderPath + name, iconArrayBuffer);
+        });
       }
 
       const updatedPlistXml = objectToXmlPlist(parsedPlist);
