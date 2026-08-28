@@ -174,12 +174,28 @@
     let foundIconPaths = [];
     let newIconBlob = null;
 
-    function parseBinaryPlist(buffer) {
+    // --- FULL BINARY PLIST PARSER ENGINE ---
+    function parsePlistBuffer(buffer) {
+      const header = String.fromCharCode.apply(null, new Uint8Array(buffer.slice(0, 8)));
+      if (header.startsWith("bplist")) {
+        return parseBinaryPlistBuffer(buffer);
+      } else {
+        const textDecoder = new TextDecoder("utf-8");
+        const xmlText = textDecoder.decode(buffer);
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        const rootDict = xmlDoc.querySelector("plist > dict");
+        return rootDict ? parseXmlNode(rootDict) : {};
+      }
+    }
+
+    function parseBinaryPlistBuffer(buffer) {
       const view = new DataView(buffer);
       const trailerOffset = buffer.byteLength - 32;
       const offsetIntSize = view.getUint8(trailerOffset + 6);
       const objectRefSize = view.getUint8(trailerOffset + 7);
       const numObjects = Number(view.getBigUint64(trailerOffset + 8));
+      const topObject = Number(view.getBigUint64(trailerOffset + 16));
       const offsetTableOffset = Number(view.getBigUint64(trailerOffset + 24));
 
       const offsets = [];
@@ -191,6 +207,7 @@
       }
 
       function readObject(objRef) {
+        if (objRef >= offsets.length) return null;
         const off = offsets[objRef];
         const byte = view.getUint8(off);
         const type = (byte & 0xF0) >> 4;
@@ -207,24 +224,28 @@
         }
 
         switch (type) {
-          case 0: return count === 8 ? false : count === 9 ? true : null;
-          case 1: {
+          case 0: // Simple types
+            return count === 8 ? false : count === 9 ? true : null;
+          case 1: { // Integer
             const len = 1 << count;
             let val = 0;
-            for (let i = 0; i < len; i++) val = (val << 8) | view.getUint8(ptr + i);
+            for (let i = 0; i < len; i++) val = (val * 256) + view.getUint8(ptr + i);
             return val;
           }
-          case 5: {
+          case 2: { // Real (Float)
+            return count === 2 ? view.getFloat32(ptr) : view.getFloat64(ptr);
+          }
+          case 5: { // ASCII String
             let str = "";
             for (let i = 0; i < count; i++) str += String.fromCharCode(view.getUint8(ptr + i));
             return str;
           }
-          case 6: {
+          case 6: { // UTF-16 String
             let str = "";
             for (let i = 0; i < count; i++) str += String.fromCharCode(view.getUint16(ptr + i * 2));
             return str;
           }
-          case 10: case 12: {
+          case 10: case 12: { // Array / Set
             const arr = [];
             for (let i = 0; i < count; i++) {
               let ref = 0;
@@ -233,7 +254,7 @@
             }
             return arr;
           }
-          case 13: {
+          case 13: { // Dictionary
             const dict = {};
             const keyRefs = [];
             const valRefs = [];
@@ -251,13 +272,41 @@
             for (let i = 0; i < count; i++) dict[readObject(keyRefs[i])] = readObject(valRefs[i]);
             return dict;
           }
-          default: return null;
+          default:
+            return null;
         }
       }
 
-      return readObject(0);
+      return readObject(topObject);
     }
 
+    function parseXmlNode(node) {
+      const tag = node.tagName.toLowerCase();
+      if (tag === 'dict') {
+        const obj = {};
+        const children = Array.from(node.children);
+        for (let i = 0; i < children.length; i += 2) {
+          const keyNode = children[i];
+          const valNode = children[i + 1];
+          if (keyNode && valNode && keyNode.tagName.toLowerCase() === 'key') {
+            obj[keyNode.textContent.trim()] = parseXmlNode(valNode);
+          }
+        }
+        return obj;
+      } else if (tag === 'array') {
+        return Array.from(node.children).map(parseXmlNode);
+      } else if (tag === 'true') {
+        return true;
+      } else if (tag === 'false') {
+        return false;
+      } else if (tag === 'integer' || tag === 'real') {
+        return Number(node.textContent.trim());
+      } else {
+        return node.textContent.trim();
+      }
+    }
+
+    // --- XML EXPORT GENERATOR ---
     function valueToXml(val, indent = '  ') {
       if (val === undefined || val === null) return '';
       if (typeof val === 'boolean') return `${indent}<${val}/>\n`;
@@ -296,68 +345,33 @@
       return xml;
     }
 
-    function parseXmlNode(node) {
-      const tag = node.tagName.toLowerCase();
-      if (tag === 'dict') {
-        const obj = {};
-        const children = Array.from(node.children);
-        for (let i = 0; i < children.length; i += 2) {
-          const keyNode = children[i];
-          const valNode = children[i + 1];
-          if (keyNode && valNode && keyNode.tagName.toLowerCase() === 'key') {
-            obj[keyNode.textContent.trim()] = parseXmlNode(valNode);
-          }
-        }
-        return obj;
-      } else if (tag === 'array') {
-        return Array.from(node.children).map(parseXmlNode);
-      } else if (tag === 'true') {
-        return true;
-      } else if (tag === 'false') {
-        return false;
-      } else if (tag === 'integer' || tag === 'real') {
-        return Number(node.textContent.trim());
-      } else {
-        return node.textContent.trim();
-      }
-    }
-
+    // --- MAIN LOGIC ---
     async function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
 
-      originalFileName = file.name.replace('.ipa', '') + '_edited.ipa';
+      originalFileName = file.name.replace(/\.ipa$/i, '') + '_edited.ipa';
       zipInstance = new JSZip();
 
       try {
         const zipData = await zipInstance.loadAsync(file);
 
+        // Locate Payload/*.app/Info.plist
         plistPath = Object.keys(zipData.files).find(path => 
           path.match(/^Payload\/[^\/]+\.app\/Info\.plist$/i)
         );
 
         if (!plistPath) {
-          alert("Invalid IPA: Info.plist not found inside Payload.");
+          alert("Invalid IPA: Info.plist not found inside Payload folder.");
           return;
         }
 
         appFolderPath = plistPath.substring(0, plistPath.lastIndexOf('/') + 1);
 
         const buffer = await zipData.files[plistPath].async("arraybuffer");
-        const header = new Uint8Array(buffer.slice(0, 8));
-        const isBinary = String.fromCharCode.apply(null, header).startsWith("bplist");
+        parsedPlist = parsePlistBuffer(buffer) || {};
 
-        if (isBinary) {
-          parsedPlist = parseBinaryPlist(buffer) || {};
-        } else {
-          const textDecoder = new TextDecoder("utf-8");
-          const xmlText = textDecoder.decode(buffer);
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-          const rootDict = xmlDoc.querySelector("plist > dict");
-          parsedPlist = rootDict ? parseXmlNode(rootDict) : {};
-        }
-
+        // Populate fields
         document.getElementById('CFBundleDisplayName').value = parsedPlist.CFBundleDisplayName || parsedPlist.CFBundleName || '';
         document.getElementById('CFBundleIdentifier').value = parsedPlist.CFBundleIdentifier || '';
         document.getElementById('CFBundleName').value = parsedPlist.CFBundleName || '';
@@ -367,11 +381,12 @@
 
         await extractAndDisplayIcon(zipData);
 
+        // Display Editor Form
         document.getElementById('editor').style.display = 'block';
 
       } catch (err) {
         console.error(err);
-        alert("Failed to parse Info.plist: " + err.message);
+        alert("Failed to process IPA file: " + err.message);
       }
     }
 
@@ -384,19 +399,19 @@
         const iconPath = foundIconPaths[foundIconPaths.length - 1];
         try {
           const iconBlob = await zipData.files[iconPath].async("blob");
+          const url = URL.createObjectURL(iconBlob);
+          
+          // Test if image loads properly (standard PNG vs CgBI iOS PNG)
           const img = new Image();
           img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            document.getElementById('icon-preview').src = canvas.toDataURL('image/png');
+            document.getElementById('icon-preview').src = url;
           };
-          img.onerror = () => {};
-          img.src = URL.createObjectURL(iconBlob);
+          img.onerror = () => {
+            console.warn("Icon file format is optimized CgBI PNG; cannot preview natively in browser.");
+          };
+          img.src = url;
         } catch (e) {
-          console.warn("Could not preview icon", e);
+          console.warn("Failed reading icon blob", e);
         }
       }
     }
@@ -416,6 +431,7 @@
     async function exportIPA() {
       if (!zipInstance || !plistPath) return;
 
+      // Update keys in parsed dictionary
       parsedPlist.CFBundleDisplayName = document.getElementById('CFBundleDisplayName').value;
       parsedPlist.CFBundleIdentifier = document.getElementById('CFBundleIdentifier').value;
       parsedPlist.CFBundleName = document.getElementById('CFBundleName').value;
@@ -440,7 +456,7 @@
           };
         }
 
-        if (!parsedPlist.CFBundleIcons~ipad) {
+        if (!parsedPlist['CFBundleIcons~ipad']) {
           parsedPlist['CFBundleIcons~ipad'] = {
             CFBundlePrimaryIcon: {
               CFBundleIconFiles: defaultIconNames,
@@ -453,8 +469,10 @@
           parsedPlist.CFBundleIconFiles = defaultIconNames;
         }
 
+        // Replace all previously identified PNG files
         foundIconPaths.forEach(path => zipInstance.file(path, iconArrayBuffer));
 
+        // Inject standardized standard-resolution icon names
         const iconFileVariants = [
           "AppIcon60x60@2x.png", "AppIcon60x60@3x.png",
           "AppIcon76x76@2x.png", "AppIcon20x20@2x.png",
@@ -467,9 +485,11 @@
         });
       }
 
+      // Convert updated plist structure back into valid XML representation
       const updatedPlistXml = objectToXmlPlist(parsedPlist);
       zipInstance.file(plistPath, updatedPlistXml);
 
+      // Package and trigger download
       const blob = await zipInstance.generateAsync({ type: "blob" });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
