@@ -296,6 +296,32 @@
       return xml;
     }
 
+    function parseXmlNode(node) {
+      const tag = node.tagName.toLowerCase();
+      if (tag === 'dict') {
+        const obj = {};
+        const children = Array.from(node.children);
+        for (let i = 0; i < children.length; i += 2) {
+          const keyNode = children[i];
+          const valNode = children[i + 1];
+          if (keyNode && valNode && keyNode.tagName.toLowerCase() === 'key') {
+            obj[keyNode.textContent.trim()] = parseXmlNode(valNode);
+          }
+        }
+        return obj;
+      } else if (tag === 'array') {
+        return Array.from(node.children).map(parseXmlNode);
+      } else if (tag === 'true') {
+        return true;
+      } else if (tag === 'false') {
+        return false;
+      } else if (tag === 'integer' || tag === 'real') {
+        return Number(node.textContent.trim());
+      } else {
+        return node.textContent.trim();
+      }
+    }
+
     async function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -324,28 +350,12 @@
         if (isBinary) {
           parsedPlist = parseBinaryPlist(buffer) || {};
         } else {
-          parsedPlist = {};
           const textDecoder = new TextDecoder("utf-8");
           const xmlText = textDecoder.decode(buffer);
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-          
-          function xmlToJs(node) {
-            if (node.tagName === "dict") {
-              const res = {};
-              const children = Array.from(node.children);
-              for (let i = 0; i < children.length; i += 2) {
-                if (children[i] && children[i+1]) res[children[i].textContent] = xmlToJs(children[i+1]);
-              }
-              return res;
-            } else if (node.tagName === "array") {
-              return Array.from(node.children).map(xmlToJs);
-            } else {
-              return node.textContent;
-            }
-          }
-          const rootDict = xmlDoc.getElementsByTagName("dict")[0];
-          if (rootDict) parsedPlist = xmlToJs(rootDict);
+          const rootDict = xmlDoc.querySelector("plist > dict");
+          parsedPlist = rootDict ? parseXmlNode(rootDict) : {};
         }
 
         document.getElementById('CFBundleDisplayName').value = parsedPlist.CFBundleDisplayName || parsedPlist.CFBundleName || '';
@@ -367,29 +377,27 @@
 
     async function extractAndDisplayIcon(zipData) {
       foundIconPaths = Object.keys(zipData.files).filter(path => 
-        path.startsWith(appFolderPath) && path.match(/AppIcon.*\.png$/i)
+        path.startsWith(appFolderPath) && path.match(/(AppIcon|icon).*\.png$/i)
       );
-
-      if (foundIconPaths.length === 0) {
-        foundIconPaths = Object.keys(zipData.files).filter(path => 
-          path.startsWith(appFolderPath) && path.match(/icon.*\.png$/i)
-        );
-      }
 
       if (foundIconPaths.length > 0) {
         const iconPath = foundIconPaths[foundIconPaths.length - 1];
-        const iconBlob = await zipData.files[iconPath].async("blob");
-        
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-          document.getElementById('icon-preview').src = canvas.toDataURL('image/png');
-        };
-        img.src = URL.createObjectURL(iconBlob);
+        try {
+          const iconBlob = await zipData.files[iconPath].async("blob");
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            document.getElementById('icon-preview').src = canvas.toDataURL('image/png');
+          };
+          img.onerror = () => {};
+          img.src = URL.createObjectURL(iconBlob);
+        } catch (e) {
+          console.warn("Could not preview icon", e);
+        }
       }
     }
 
@@ -415,33 +423,38 @@
       parsedPlist.CFBundleShortVersionString = document.getElementById('CFBundleShortVersionString').value;
       parsedPlist.MinimumOSVersion = document.getElementById('MinimumOSVersion').value;
 
-      // Ensure standard iOS icon structure in Info.plist
-      const defaultIconNames = [
-        "AppIcon60x60", "AppIcon76x76", "AppIcon20x20", 
-        "AppIcon29x29", "AppIcon40x40", "AppIcon"
-      ];
-
-      parsedPlist.CFBundleIcons = {
-        CFBundlePrimaryIcon: {
-          CFBundleIconFiles: defaultIconNames,
-          CFBundleIconName: "AppIcon"
-        }
-      };
-
-      parsedPlist.CFBundleIcons~ipad = {
-        CFBundlePrimaryIcon: {
-          CFBundleIconFiles: defaultIconNames,
-          CFBundleIconName: "AppIcon"
-        }
-      };
-
-      parsedPlist.CFBundleIconFiles = defaultIconNames;
-
-      // Replace or insert icon PNG files in zip
       if (newIconBlob) {
         const iconArrayBuffer = await newIconBlob.arrayBuffer();
 
-        // Standard PNG names iOS looks for
+        const defaultIconNames = [
+          "AppIcon60x60", "AppIcon76x76", "AppIcon20x20", 
+          "AppIcon29x29", "AppIcon40x40", "AppIcon"
+        ];
+
+        if (!parsedPlist.CFBundleIcons) {
+          parsedPlist.CFBundleIcons = {
+            CFBundlePrimaryIcon: {
+              CFBundleIconFiles: defaultIconNames,
+              CFBundleIconName: "AppIcon"
+            }
+          };
+        }
+
+        if (!parsedPlist.CFBundleIcons~ipad) {
+          parsedPlist['CFBundleIcons~ipad'] = {
+            CFBundlePrimaryIcon: {
+              CFBundleIconFiles: defaultIconNames,
+              CFBundleIconName: "AppIcon"
+            }
+          };
+        }
+
+        if (!parsedPlist.CFBundleIconFiles) {
+          parsedPlist.CFBundleIconFiles = defaultIconNames;
+        }
+
+        foundIconPaths.forEach(path => zipInstance.file(path, iconArrayBuffer));
+
         const iconFileVariants = [
           "AppIcon60x60@2x.png", "AppIcon60x60@3x.png",
           "AppIcon76x76@2x.png", "AppIcon20x20@2x.png",
@@ -449,10 +462,6 @@
           "AppIcon.png", "Icon.png", "Icon@2x.png"
         ];
 
-        // Replace all matching existing icons
-        foundIconPaths.forEach(path => zipInstance.file(path, iconArrayBuffer));
-
-        // Inject standard loose icon files into app folder
         iconFileVariants.forEach(name => {
           zipInstance.file(appFolderPath + name, iconArrayBuffer);
         });
