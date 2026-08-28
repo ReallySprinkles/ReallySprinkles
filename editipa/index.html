@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditIPA - Web IPA Editor</title>
-  <!-- JSZip is the only required CDN library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     :root {
@@ -49,7 +48,7 @@
       margin-top: 12px;
     }
 
-    #file-input { display: none; }
+    #file-input, #icon-input { display: none; }
 
     .editor-card {
       display: none;
@@ -63,6 +62,30 @@
     }
 
     .editor-title { text-align: center; font-size: 1.5rem; margin-bottom: 16px; }
+
+    .icon-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 18px;
+      background: #333;
+      object-fit: cover;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
+    }
+
+    .icon-hint {
+      color: var(--text-sub);
+      font-size: 0.75rem;
+      margin-top: 6px;
+    }
 
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; color: var(--text-sub); font-size: 0.85rem; margin-bottom: 6px; }
@@ -95,13 +118,19 @@
 
   <div class="header">
     <h1>EditIPA</h1>
-    <p>A simple tool to edit IPAs directly in browser.<br>Edit name, version, identifier, etc., or any other key.<br>Just upload your IPA and start editing.</p>
+    <p>A simple tool to edit IPAs directly in browser.<br>Edit name, version, identifier, icon, or any other key.<br>Just upload your IPA and start editing.</p>
     <button class="upload-btn" onclick="document.getElementById('file-input').click()">Upload IPA</button>
     <input type="file" id="file-input" accept=".ipa" onchange="handleFileSelect(event)" />
   </div>
 
   <div class="editor-card" id="editor">
     <div class="editor-title">Editor</div>
+
+    <div class="icon-container" onclick="document.getElementById('icon-input').click()">
+      <img id="icon-preview" class="app-icon" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%23333'/></svg>" alt="App Icon"/>
+      <span class="icon-hint">Click icon to replace</span>
+      <input type="file" id="icon-input" accept="image/png" onchange="handleIconChange(event)" />
+    </div>
 
     <div class="form-group">
       <label>Display Name (CFBundleDisplayName)</label>
@@ -139,26 +168,25 @@
   <script>
     let zipInstance = null;
     let plistPath = "";
+    let appFolderPath = "";
     let parsedPlist = {};
     let originalFileName = "edited_app.ipa";
+    let foundIconPaths = [];
+    let newIconBlob = null;
 
-    // Native pure JS binary plist decoder
     function parseBinaryPlist(buffer) {
       const view = new DataView(buffer);
       const trailerOffset = buffer.byteLength - 32;
       const offsetIntSize = view.getUint8(trailerOffset + 6);
       const objectRefSize = view.getUint8(trailerOffset + 7);
       const numObjects = Number(view.getBigUint64(trailerOffset + 8));
-      const topObjectOffset = Number(view.getBigUint64(trailerOffset + 16));
       const offsetTableOffset = Number(view.getBigUint64(trailerOffset + 24));
 
       const offsets = [];
       for (let i = 0; i < numObjects; i++) {
         let off = 0;
         const pos = offsetTableOffset + i * offsetIntSize;
-        for (let j = 0; j < offsetIntSize; j++) {
-          off = (off << 8) | view.getUint8(pos + j);
-        }
+        for (let j = 0; j < offsetIntSize; j++) off = (off << 8) | view.getUint8(pos + j);
         offsets.push(off);
       }
 
@@ -171,7 +199,6 @@
 
         if (count === 0x0F) {
           const countByte = view.getUint8(ptr);
-          const countType = (countByte & 0xF0) >> 4;
           const countLen = 1 << (countByte & 0x0F);
           ptr++;
           count = 0;
@@ -180,27 +207,24 @@
         }
 
         switch (type) {
-          case 0: // Simple (null, bool)
-            return count === 8 ? false : count === 9 ? true : null;
-          case 1: { // Integer
+          case 0: return count === 8 ? false : count === 9 ? true : null;
+          case 1: {
             const len = 1 << count;
             let val = 0;
             for (let i = 0; i < len; i++) val = (val << 8) | view.getUint8(ptr + i);
             return val;
           }
-          case 5: { // ASCII String
+          case 5: {
             let str = "";
             for (let i = 0; i < count; i++) str += String.fromCharCode(view.getUint8(ptr + i));
             return str;
           }
-          case 6: { // UTF-16 String
+          case 6: {
             let str = "";
-            for (let i = 0; i < count; i++) {
-              str += String.fromCharCode(view.getUint16(ptr + i * 2));
-            }
+            for (let i = 0; i < count; i++) str += String.fromCharCode(view.getUint16(ptr + i * 2));
             return str;
           }
-          case 10: case 12: { // Array / Set
+          case 10: case 12: {
             const arr = [];
             for (let i = 0; i < count; i++) {
               let ref = 0;
@@ -209,7 +233,7 @@
             }
             return arr;
           }
-          case 13: { // Dictionary
+          case 13: {
             const dict = {};
             const keyRefs = [];
             const valRefs = [];
@@ -224,23 +248,19 @@
               for (let j = 0; j < objectRefSize; j++) ref = (ref << 8) | view.getUint8(valPtr + i * objectRefSize + j);
               valRefs.push(ref);
             }
-            for (let i = 0; i < count; i++) {
-              dict[readObject(keyRefs[i])] = readObject(valRefs[i]);
-            }
+            for (let i = 0; i < count; i++) dict[readObject(keyRefs[i])] = readObject(valRefs[i]);
             return dict;
           }
-          default:
-            return null;
+          default: return null;
         }
       }
 
       return readObject(0);
     }
 
-    // Helper: Convert JS Object back to XML Plist string
     function objectToXmlPlist(obj) {
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
-      xml += '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n';
+      xml += '<!DOCTYPE plist PUBLIC "-//Apple//DOCTYPE PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n';
       xml += '<plist version="1.0">\n<dict>\n';
 
       for (const [key, val] of Object.entries(obj)) {
@@ -251,14 +271,10 @@
         } else if (typeof val === 'number') {
           xml += Number.isInteger(val) ? `  <integer>${val}</integer>\n` : `  <real>${val}</real>\n`;
         } else {
-          const safeStr = String(val)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
+          const safeStr = String(val).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           xml += `  <string>${safeStr}</string>\n`;
         }
       }
-
       xml += '</dict>\n</plist>';
       return xml;
     }
@@ -273,7 +289,6 @@
       try {
         const zipData = await zipInstance.loadAsync(file);
 
-        // Find Payload/*.app/Info.plist
         plistPath = Object.keys(zipData.files).find(path => 
           path.match(/^Payload\/[^\/]+\.app\/Info\.plist$/i)
         );
@@ -282,6 +297,8 @@
           alert("Invalid IPA: Info.plist not found inside Payload.");
           return;
         }
+
+        appFolderPath = plistPath.substring(0, plistPath.lastIndexOf('/') + 1);
 
         const buffer = await zipData.files[plistPath].async("arraybuffer");
         const header = new Uint8Array(buffer.slice(0, 8));
@@ -304,7 +321,6 @@
           }
         }
 
-        // Fill form fields
         document.getElementById('CFBundleDisplayName').value = parsedPlist.CFBundleDisplayName || parsedPlist.CFBundleName || '';
         document.getElementById('CFBundleIdentifier').value = parsedPlist.CFBundleIdentifier || '';
         document.getElementById('CFBundleName').value = parsedPlist.CFBundleName || '';
@@ -312,12 +328,56 @@
         document.getElementById('CFBundleShortVersionString').value = parsedPlist.CFBundleShortVersionString || '';
         document.getElementById('MinimumOSVersion').value = parsedPlist.MinimumOSVersion || '';
 
+        await extractAndDisplayIcon(zipData);
+
         document.getElementById('editor').style.display = 'block';
 
       } catch (err) {
         console.error(err);
         alert("Failed to parse Info.plist: " + err.message);
       }
+    }
+
+    async function extractAndDisplayIcon(zipData) {
+      foundIconPaths = Object.keys(zipData.files).filter(path => 
+        path.startsWith(appFolderPath) && path.match(/AppIcon.*\.png$/i)
+      );
+
+      if (foundIconPaths.length === 0) {
+        foundIconPaths = Object.keys(zipData.files).filter(path => 
+          path.startsWith(appFolderPath) && path.match(/icon.*\.png$/i)
+        );
+      }
+
+      if (foundIconPaths.length > 0) {
+        // Pick largest resolution matching icon
+        const iconPath = foundIconPaths[foundIconPaths.length - 1];
+        const iconBlob = await zipData.files[iconPath].async("blob");
+        
+        // Draw icon onto canvas to resolve CgBI iOS PNG format issues
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+          document.getElementById('icon-preview').src = canvas.toDataURL('image/png');
+        };
+        img.src = URL.createObjectURL(iconBlob);
+      }
+    }
+
+    function handleIconChange(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      newIconBlob = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('icon-preview').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
     async function exportIPA() {
@@ -329,6 +389,26 @@
       parsedPlist.CFBundleVersion = document.getElementById('CFBundleVersion').value;
       parsedPlist.CFBundleShortVersionString = document.getElementById('CFBundleShortVersionString').value;
       parsedPlist.MinimumOSVersion = document.getElementById('MinimumOSVersion').value;
+
+      // Ensure primary AppIcon key exists in plist
+      if (!parsedPlist.CFBundleIconFiles) {
+        parsedPlist.CFBundleIconFiles = ["AppIcon60x60"];
+      }
+
+      // Replace existing app icon files if user uploaded a new one
+      if (newIconBlob) {
+        const iconArrayBuffer = await newIconBlob.arrayBuffer();
+
+        if (foundIconPaths.length > 0) {
+          foundIconPaths.forEach(path => {
+            zipInstance.file(path, iconArrayBuffer);
+          });
+        } else {
+          // Standard fallback paths if no icon existed originally
+          zipInstance.file(appFolderPath + "AppIcon60x60@2x.png", iconArrayBuffer);
+          zipInstance.file(appFolderPath + "AppIcon60x60@3x.png", iconArrayBuffer);
+        }
+      }
 
       const updatedPlistXml = objectToXmlPlist(parsedPlist);
       zipInstance.file(plistPath, updatedPlistXml);
