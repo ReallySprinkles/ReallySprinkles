@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EditIPA - Web IPA Editor</title>
+  <!-- JSZip for processing zip/ipa files -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <!-- plist.js for reading and writing Info.plist -->
+  <script src="https://cdn.jsdelivr.net/npm/plist@3.1.0/plist.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --input-bg: #121212;
+      --text-main: #ffffff;
+      --text-sub: #aaaaaa;
+      --accent-color: #ffffff;
+      --border-color: #333333;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      max-width: 480px;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--text-sub);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .upload-btn {
+      background-color: var(--accent-color);
+      color: #000;
+      border: none;
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    .editor-card {
+      display: none;
+      background-color: var(--card-bg);
+      border-radius: 20px;
+      padding: 24px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      box-sizing: border-box;
+    }
+
+    .editor-title {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 16px;
+    }
+
+    .app-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 18px;
+      background: #333;
+      margin: 0 auto 20px auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      color: var(--text-sub);
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      background-color: var(--input-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
+      color: #fff;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+
+    .download-btn {
+      width: 100%;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>EditIPA</h1>
+    <p>A simple tool to edit IPAs directly in browser.<br>Edit name, version, identifier, etc., or any other key.<br>Just upload your IPA and start editing.</p>
+    <button class="upload-btn" onclick="document.getElementById('file-input').click()">Upload IPA</button>
+    <input type="file" id="file-input" accept=".ipa" onchange="handleFileSelect(event)" />
+  </div>
+
+  <div class="editor-card" id="editor">
+    <div class="editor-title">Editor</div>
+    <img id="icon-preview" class="app-icon" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%23333'/></svg>" alt="App Icon"/>
+
+    <div class="form-group">
+      <label>Display Name (CFBundleDisplayName)</label>
+      <input type="text" id="CFBundleDisplayName" />
+    </div>
+
+    <div class="form-group">
+      <label>Bundle Identifier (CFBundleIdentifier)</label>
+      <input type="text" id="CFBundleIdentifier" />
+    </div>
+
+    <div class="form-group">
+      <label>Bundle Name (CFBundleName)</label>
+      <input type="text" id="CFBundleName" />
+    </div>
+
+    <div class="form-group">
+      <label>Bundle Version (CFBundleVersion)</label>
+      <input type="text" id="CFBundleVersion" />
+    </div>
+
+    <div class="form-group">
+      <label>Short Version String (CFBundleShortVersionString)</label>
+      <input type="text" id="CFBundleShortVersionString" />
+    </div>
+
+    <div class="form-group">
+      <label>Minimum iOS Version (MinimumOSVersion)</label>
+      <input type="text" id="MinimumOSVersion" />
+    </div>
+
+    <button class="download-btn" onclick="exportIPA()">Export Edited IPA</button>
+  </div>
+
+  <script>
+    let zipInstance = null;
+    let plistPath = "";
+    let parsedPlist = {};
+    let originalFileName = "edited_app.ipa";
+
+    async function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      originalFileName = file.name.replace('.ipa', '') + '_edited.ipa';
+      
+      // Initialize JSZip
+      zipInstance = new JSZip();
+      const zipData = await zipInstance.loadAsync(file);
+
+      // Locate Info.plist inside Payload/*.app/
+      plistPath = Object.keys(zipData.files).find(path => path.match(/^Payload\/[^\/]+\.app\/Info\.plist$/i));
+
+      if (!plistPath) {
+        alert("Invalid IPA: Info.plist not found inside Payload.");
+        return;
+      }
+
+      // Read Info.plist content
+      const plistContent = await zipData.files[plistPath].async("string");
+      
+      try {
+        parsedPlist = plist.parse(plistContent);
+      } catch (e) {
+        alert("Unable to parse Info.plist. Ensure it is in XML format or converted to text.");
+        return;
+      }
+
+      // Populate form fields
+      document.getElementById('CFBundleDisplayName').value = parsedPlist.CFBundleDisplayName || parsedPlist.CFBundleName || '';
+      document.getElementById('CFBundleIdentifier').value = parsedPlist.CFBundleIdentifier || '';
+      document.getElementById('CFBundleName').value = parsedPlist.CFBundleName || '';
+      document.getElementById('CFBundleVersion').value = parsedPlist.CFBundleVersion || '';
+      document.getElementById('CFBundleShortVersionString').value = parsedPlist.CFBundleShortVersionString || '';
+      document.getElementById('MinimumOSVersion').value = parsedPlist.MinimumOSVersion || '';
+
+      // Display the Editor block
+      document.getElementById('editor').style.display = 'block';
+    }
+
+    async function exportIPA() {
+      if (!zipInstance || !plistPath) return;
+
+      // Update Plist Object with Form Values
+      parsedPlist.CFBundleDisplayName = document.getElementById('CFBundleDisplayName').value;
+      parsedPlist.CFBundleIdentifier = document.getElementById('CFBundleIdentifier').value;
+      parsedPlist.CFBundleName = document.getElementById('CFBundleName').value;
+      parsedPlist.CFBundleVersion = document.getElementById('CFBundleVersion').value;
+      parsedPlist.CFBundleShortVersionString = document.getElementById('CFBundleShortVersionString').value;
+      parsedPlist.MinimumOSVersion = document.getElementById('MinimumOSVersion').value;
+
+      // Re-encode object back to XML Plist string
+      const updatedPlistString = plist.build(parsedPlist);
+
+      // Overwrite Info.plist in JSZip
+      zipInstance.file(plistPath, updatedPlistString);
+
+      // Generate downloadable .ipa blob
+      const blob = await zipInstance.generateAsync({ type: "blob" });
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = originalFileName;
+      link.click();
+    }
+  </script>
+</body>
+</html>
