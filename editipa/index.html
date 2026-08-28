@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditIPA - Web IPA Editor</title>
-  <!-- JSZip for handling IPA archives -->
+  <!-- JSZip -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- Binary & XML Plist Parser -->
-  <script src="https://cdn.jsdelivr.net/npm/@atalkingfish/plist@1.0.2/dist/plist.min.js"></script>
+  <!-- Binary Plist Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/bplist-parser@0.3.2/bplistParser.min.js"></script>
   <style>
     :root {
       --bg-color: #121212;
@@ -144,6 +144,32 @@
     let parsedPlist = {};
     let originalFileName = "edited_app.ipa";
 
+    // Helper: Convert JS Object back to Apple XML Plist string format
+    function objectToXmlPlist(obj) {
+      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      xml += '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n';
+      xml += '<plist version="1.0">\n<dict>\n';
+
+      for (const [key, val] of Object.entries(obj)) {
+        xml += `  <key>${key}</key>\n`;
+        if (typeof val === 'boolean') {
+          xml += `  <${val}/>\n`;
+        } else if (typeof val === 'number') {
+          xml += Number.isInteger(val) ? `  <integer>${val}</integer>\n` : `  <real>${val}</real>\n`;
+        } else {
+          // Default escape string
+          const safeStr = String(val)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          xml += `  <string>${safeStr}</string>\n`;
+        }
+      }
+
+      xml += '</dict>\n</plist>';
+      return xml;
+    }
+
     async function handleFileSelect(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -160,17 +186,40 @@
         );
 
         if (!plistPath) {
-          alert("Invalid IPA: Info.plist missing from Payload.");
+          alert("Invalid IPA: Info.plist not found inside Payload.");
           return;
         }
 
-        // Read binary plist as an ArrayBuffer
+        // Get file data as ArrayBuffer
         const buffer = await zipData.files[plistPath].async("arraybuffer");
         
-        // Parse Binary Plist (or fallback to XML) using plist library
-        parsedPlist = window.plist.parse(buffer);
+        // Check header bytes: "bplist00" indicates binary plist
+        const header = new Uint8Array(buffer.slice(0, 8));
+        const isBinary = String.fromCharCode.apply(null, header).startsWith("bplist");
 
-        // Fill Form Inputs
+        if (isBinary) {
+          // Parse using bplistParser
+          const result = bplistParser.parseBuffer(buffer);
+          parsedPlist = result[0] || {};
+        } else {
+          // Fallback parsing for text XML plists
+          const textDecoder = new TextDecoder("utf-8");
+          const xmlText = textDecoder.decode(buffer);
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+          
+          parsedPlist = {};
+          const keys = xmlDoc.getElementsByTagName("key");
+          for (let i = 0; i < keys.length; i++) {
+            const keyName = keys[i].textContent;
+            const nextElem = keys[i].nextElementSibling;
+            if (nextElem) {
+              parsedPlist[keyName] = nextElem.textContent;
+            }
+          }
+        }
+
+        // Fill Input Fields
         document.getElementById('CFBundleDisplayName').value = parsedPlist.CFBundleDisplayName || parsedPlist.CFBundleName || '';
         document.getElementById('CFBundleIdentifier').value = parsedPlist.CFBundleIdentifier || '';
         document.getElementById('CFBundleName').value = parsedPlist.CFBundleName || '';
@@ -189,7 +238,7 @@
     async function exportIPA() {
       if (!zipInstance || !plistPath) return;
 
-      // Update values from input fields
+      // Update Object properties
       parsedPlist.CFBundleDisplayName = document.getElementById('CFBundleDisplayName').value;
       parsedPlist.CFBundleIdentifier = document.getElementById('CFBundleIdentifier').value;
       parsedPlist.CFBundleName = document.getElementById('CFBundleName').value;
@@ -197,13 +246,13 @@
       parsedPlist.CFBundleShortVersionString = document.getElementById('CFBundleShortVersionString').value;
       parsedPlist.MinimumOSVersion = document.getElementById('MinimumOSVersion').value;
 
-      // Re-build plist as XML string (iOS accepts XML plists fine)
-      const updatedPlistXml = window.plist.build(parsedPlist);
+      // Convert updated object to XML Plist string
+      const updatedPlistXml = objectToXmlPlist(parsedPlist);
 
-      // Overwrite Info.plist in Zip archive
+      // Replace Info.plist in Zip archive
       zipInstance.file(plistPath, updatedPlistXml);
 
-      // Export modified IPA
+      // Export file
       const blob = await zipInstance.generateAsync({ type: "blob" });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
