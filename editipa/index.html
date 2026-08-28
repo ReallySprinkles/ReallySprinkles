@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EditIPA - Web IPA Editor</title>
-  <!-- JSZip -->
+  <!-- JSZip is the only required CDN library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- Binary Plist Parser -->
-  <script src="https://cdn.jsdelivr.net/npm/bplist-parser@0.3.2/bplistParser.min.js"></script>
   <style>
     :root {
       --bg-color: #121212;
@@ -144,20 +142,115 @@
     let parsedPlist = {};
     let originalFileName = "edited_app.ipa";
 
-    // Helper: Convert JS Object back to Apple XML Plist string format
+    // Native pure JS binary plist decoder
+    function parseBinaryPlist(buffer) {
+      const view = new DataView(buffer);
+      const trailerOffset = buffer.byteLength - 32;
+      const offsetIntSize = view.getUint8(trailerOffset + 6);
+      const objectRefSize = view.getUint8(trailerOffset + 7);
+      const numObjects = Number(view.getBigUint64(trailerOffset + 8));
+      const topObjectOffset = Number(view.getBigUint64(trailerOffset + 16));
+      const offsetTableOffset = Number(view.getBigUint64(trailerOffset + 24));
+
+      const offsets = [];
+      for (let i = 0; i < numObjects; i++) {
+        let off = 0;
+        const pos = offsetTableOffset + i * offsetIntSize;
+        for (let j = 0; j < offsetIntSize; j++) {
+          off = (off << 8) | view.getUint8(pos + j);
+        }
+        offsets.push(off);
+      }
+
+      function readObject(objRef) {
+        const off = offsets[objRef];
+        const byte = view.getUint8(off);
+        const type = (byte & 0xF0) >> 4;
+        let count = byte & 0x0F;
+        let ptr = off + 1;
+
+        if (count === 0x0F) {
+          const countByte = view.getUint8(ptr);
+          const countType = (countByte & 0xF0) >> 4;
+          const countLen = 1 << (countByte & 0x0F);
+          ptr++;
+          count = 0;
+          for (let i = 0; i < countLen; i++) count = (count << 8) | view.getUint8(ptr + i);
+          ptr += countLen;
+        }
+
+        switch (type) {
+          case 0: // Simple (null, bool)
+            return count === 8 ? false : count === 9 ? true : null;
+          case 1: { // Integer
+            const len = 1 << count;
+            let val = 0;
+            for (let i = 0; i < len; i++) val = (val << 8) | view.getUint8(ptr + i);
+            return val;
+          }
+          case 5: { // ASCII String
+            let str = "";
+            for (let i = 0; i < count; i++) str += String.fromCharCode(view.getUint8(ptr + i));
+            return str;
+          }
+          case 6: { // UTF-16 String
+            let str = "";
+            for (let i = 0; i < count; i++) {
+              str += String.fromCharCode(view.getUint16(ptr + i * 2));
+            }
+            return str;
+          }
+          case 10: case 12: { // Array / Set
+            const arr = [];
+            for (let i = 0; i < count; i++) {
+              let ref = 0;
+              for (let j = 0; j < objectRefSize; j++) ref = (ref << 8) | view.getUint8(ptr + i * objectRefSize + j);
+              arr.push(readObject(ref));
+            }
+            return arr;
+          }
+          case 13: { // Dictionary
+            const dict = {};
+            const keyRefs = [];
+            const valRefs = [];
+            for (let i = 0; i < count; i++) {
+              let ref = 0;
+              for (let j = 0; j < objectRefSize; j++) ref = (ref << 8) | view.getUint8(ptr + i * objectRefSize + j);
+              keyRefs.push(ref);
+            }
+            const valPtr = ptr + count * objectRefSize;
+            for (let i = 0; i < count; i++) {
+              let ref = 0;
+              for (let j = 0; j < objectRefSize; j++) ref = (ref << 8) | view.getUint8(valPtr + i * objectRefSize + j);
+              valRefs.push(ref);
+            }
+            for (let i = 0; i < count; i++) {
+              dict[readObject(keyRefs[i])] = readObject(valRefs[i]);
+            }
+            return dict;
+          }
+          default:
+            return null;
+        }
+      }
+
+      return readObject(0);
+    }
+
+    // Helper: Convert JS Object back to XML Plist string
     function objectToXmlPlist(obj) {
       let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
       xml += '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n';
       xml += '<plist version="1.0">\n<dict>\n';
 
       for (const [key, val] of Object.entries(obj)) {
+        if (val === undefined || val === null) continue;
         xml += `  <key>${key}</key>\n`;
         if (typeof val === 'boolean') {
           xml += `  <${val}/>\n`;
         } else if (typeof val === 'number') {
           xml += Number.isInteger(val) ? `  <integer>${val}</integer>\n` : `  <real>${val}</real>\n`;
         } else {
-          // Default escape string
           const safeStr = String(val)
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -190,19 +283,13 @@
           return;
         }
 
-        // Get file data as ArrayBuffer
         const buffer = await zipData.files[plistPath].async("arraybuffer");
-        
-        // Check header bytes: "bplist00" indicates binary plist
         const header = new Uint8Array(buffer.slice(0, 8));
         const isBinary = String.fromCharCode.apply(null, header).startsWith("bplist");
 
         if (isBinary) {
-          // Parse using bplistParser
-          const result = bplistParser.parseBuffer(buffer);
-          parsedPlist = result[0] || {};
+          parsedPlist = parseBinaryPlist(buffer) || {};
         } else {
-          // Fallback parsing for text XML plists
           const textDecoder = new TextDecoder("utf-8");
           const xmlText = textDecoder.decode(buffer);
           const parser = new DOMParser();
@@ -213,13 +300,11 @@
           for (let i = 0; i < keys.length; i++) {
             const keyName = keys[i].textContent;
             const nextElem = keys[i].nextElementSibling;
-            if (nextElem) {
-              parsedPlist[keyName] = nextElem.textContent;
-            }
+            if (nextElem) parsedPlist[keyName] = nextElem.textContent;
           }
         }
 
-        // Fill Input Fields
+        // Fill form fields
         document.getElementById('CFBundleDisplayName').value = parsedPlist.CFBundleDisplayName || parsedPlist.CFBundleName || '';
         document.getElementById('CFBundleIdentifier').value = parsedPlist.CFBundleIdentifier || '';
         document.getElementById('CFBundleName').value = parsedPlist.CFBundleName || '';
@@ -238,7 +323,6 @@
     async function exportIPA() {
       if (!zipInstance || !plistPath) return;
 
-      // Update Object properties
       parsedPlist.CFBundleDisplayName = document.getElementById('CFBundleDisplayName').value;
       parsedPlist.CFBundleIdentifier = document.getElementById('CFBundleIdentifier').value;
       parsedPlist.CFBundleName = document.getElementById('CFBundleName').value;
@@ -246,13 +330,9 @@
       parsedPlist.CFBundleShortVersionString = document.getElementById('CFBundleShortVersionString').value;
       parsedPlist.MinimumOSVersion = document.getElementById('MinimumOSVersion').value;
 
-      // Convert updated object to XML Plist string
       const updatedPlistXml = objectToXmlPlist(parsedPlist);
-
-      // Replace Info.plist in Zip archive
       zipInstance.file(plistPath, updatedPlistXml);
 
-      // Export file
       const blob = await zipInstance.generateAsync({ type: "blob" });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
