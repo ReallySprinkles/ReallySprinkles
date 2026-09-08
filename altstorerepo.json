@@ -1,14 +1,14 @@
 {
-  "name": "ReallySprinkles's Repo",
-  "subtitle": "ReallySprinkles's Repo",
-  "description": "ReallySprinkles's Repo",
+  "name": "gloop's Repo",
+  "subtitle": "gloop's Repo",
+  "description": "gloop's Repo",
   "iconURL": "https://reallysprinkles.com/icons/finn_the_human_pfp_.jpeg",
   "website": "https://reallysprinkles.com",
   "apps": [
     {
       "name": "TikTok",
       "bundleIdentifier": "com.zhiliaoapp.musically",
-      "developerName": "ReallySprinkles",
+      "developerName": "gloop",
       "localizedDescription": "TikTok v8.3.1 from 2018",
       "iconURL": "https://raw.githubusercontent.com/ReallySprinkles/altstorerepobyreallysprinkles/refs/heads/main/IMG_2999.png",
       "size": 86000000,
@@ -25,7 +25,7 @@
     {
       "name": "iDOS 2",
       "bundleIdentifier": "com.litchie.idosgames",
-      "developerName": "ReallySprinkles",
+      "developerName": "gloop",
       "localizedDescription": "iDOS 2 v2.1",
       "iconURL": "https://raw.githubusercontent.com/ReallySprinkles/altstorerepobyreallysprinkles/refs/heads/main/IMG_3005.png",
       "size": 8900000,
@@ -42,7 +42,7 @@
     {
       "name": "TrollInstallerX",
       "bundleIdentifier": "com.Alfie.TrollInstallerX",
-      "developerName": "ReallySprinkles",
+      "developerName": "gloop",
       "localizedDescription": "TrollInstallerX",
       "iconURL": "https://raw.githubusercontent.com/ReallySprinkles/altstorerepobyreallyreallysprinkles/refs/heads/main/IMG_3008.png",
       "size": 6889185,
@@ -59,7 +59,7 @@
     {
       "name": "StikDebug",
       "bundleIdentifier": "com.stik.stikdebug",
-      "developerName": "ReallySprinkles",
+      "developerName": "gloop",
       "subtitle": "On-device JIT enabler and device toolbox.",
       "localizedDescription": "An on-device debugger and developer toolbox for iOS versions 17.4+ powered by idevice.  Note: Requires LocalDevVPN, cannot be natively used inside LiveContainer to enable JIT for the same LiveContainer.",
       "iconURL": "https://github.com/StephenDev0/StikDebug/blob/main/assets/StikDebug.png?raw=true",
@@ -124,7 +124,7 @@
     {
       "name": "Unc0ver",
       "bundleIdentifier": "science.xnu.undecimus",
-      "developerName": "ReallySprinkles",
+      "developerName": "gloop",
       "localizedDescription": "The most advanced jailbreak tool for iOS 11.0 to iOS 14.3\n\nStable: Utilizing proper and deterministic techniques, jail​break stability is guaranteed.\nSecure: Utilizing native system sandbox exceptions, security remains intact while enabling access to jailbreak files.\nExtensively Tested: Unc0ver has been extensively tested to ensure it's a seamless experience on all devices.",
       "iconURL": "https://github.com/pwn20wndstuff/Undecimus/raw/master/Undecimus/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60%403x.png",
       "tintColor": "#000000",
@@ -451,7 +451,7 @@
     {
       "name": "musical.ly",
       "bundleIdentifier": "com.zhiliaoapppp.musically",
-      "developerName": "ReallySprinkles",
+      "developerName": "gloop",
       "localizedDescription": "musical.ly v7.6.0",
       "iconURL": "https://raw.githubusercontent.com/ReallySprinkles/altstorerepobyreallysprinkles/refs/heads/main/IMG_3020.png",
       "size": 95944704,
@@ -591,7 +591,7 @@
     {
       "caption": "The repo was down for a bit but it has been fixed now.",
       "date": "2026-07-18",
-      "identifier": "reallysprinkles-down",
+      "identifier": "gloop-down",
       "notify": true,
       "tintColor": "#3B878D",
       "title": "Repo is back"
@@ -599,7 +599,7 @@
     {
       "caption": "The repo is now public",
       "date": "2026-07-19",
-      "identifier": "reallysprinkles-public",
+      "identifier": "gloop-public",
       "notify": true,
       "tintColor": "#3B878D",
       "title": "Repo is public now!"
@@ -607,7 +607,7 @@
     {
       "caption": "To download IPAs manually, click “Open Link” and you will be redirected to the releases page of the iPAs",
       "date": "2026-07-19",
-      "identifier": "reallysprinkles-manually",
+      "identifier": "gloop-manually",
       "notify": true,
       "tintColor": "#5865f2",
       "imageURL": "https://miro.medium.com/v2/resize:fit:1200/1*SSRjtoQ0H2X3SBPOiJ5rZw.jpeg",
