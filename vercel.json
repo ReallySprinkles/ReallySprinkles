@@ -4,11 +4,6 @@
       "source": "/api/v4/NotificationSettings",
       "destination": "https://api.reallysprinkles.com/api/v4/NotificationSettings",
       "permanent": true
-    },
-    {
-      "source": "/api/v4/users_search",
-      "destination": "https://api.reallysprinkles.com/api/v4/users_search",
-      "permanent": true
     }
   ]
 }
