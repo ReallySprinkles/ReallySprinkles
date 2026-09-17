@@ -4,6 +4,11 @@
       "source": "/api/v4/NotificationSettings",
       "destination": "https://api.reallysprinkles.com/api/v4/NotificationSettings",
       "permanent": true
+    },
+    {
+      "source": "/api/v4/register_token",
+      "destination": "https://api.reallysprinkles.com/api/v4/register_token",
+      "permanent": true
     }
   ]
 }
