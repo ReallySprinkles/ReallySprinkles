@@ -1,7 +1,7 @@
 {
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/api/v4/NotificationSettings",
       "destination": "https://api.reallysprinkles.com/api/v4/NotificationSettings",
       "permanent": true
     }
