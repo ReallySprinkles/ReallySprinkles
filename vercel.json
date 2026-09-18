@@ -9,6 +9,11 @@
       "source": "/api/v4/register_token",
       "destination": "https://api.reallysprinkles.com/api/v4/register_token",
       "permanent": true
+    },
+    {
+      "source": "/api/v4/update_user",
+      "destination": "https://api.reallysprinkles.com/api/v4/update_user",
+      "permanent": true
     }
   ]
 }
