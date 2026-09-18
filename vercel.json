@@ -19,6 +19,11 @@
       "source": "/api/v4/enable_tfa",
       "destination": "https://api.reallysprinkles.com/api/v4/enable_tfa",
       "permanent": true
+    },
+    {
+      "source": "/api/v4/upload_avatar",
+      "destination": "https://api.reallysprinkles.com/api/v4/upload_avatar",
+      "permanent": true
     }
   ]
 }
