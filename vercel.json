@@ -14,6 +14,11 @@
       "source": "/api/v4/update_user",
       "destination": "https://api.reallysprinkles.com/api/v4/update_user",
       "permanent": true
+    },
+    {
+      "source": "/api/v4/enable_tfa",
+      "destination": "https://api.reallysprinkles.com/api/v4/enable_tfa",
+      "permanent": true
     }
   ]
 }
