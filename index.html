@@ -854,47 +854,25 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
-        // Live TikTok Follower Count Fetcher
+        // Reliable Live TikTok Follower Count Fetcher using Countik API (CORS friendly)
         async function fetchTikTokFollowers() {
             const username = 'user90481726354';
             const countElem = document.getElementById('tiktokFollowers');
             
             try {
-                // TokCount API requires a POST request
-                const res = await fetch('https://api.tokcount.com/post/stats', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username: username })
-                });
-                
-                if (!res.ok) throw new Error('TokCount request failed');
+                const res = await fetch(`https://countik.com/api/user/exist/${username}`);
+                if (!res.ok) throw new Error('API request failed');
                 
                 const data = await res.json();
                 
-                if (data && data.followerCount !== undefined) {
+                if (data && data.status === 'success' && data.followerCount !== undefined) {
                     countElem.innerText = Number(data.followerCount).toLocaleString();
-                    return;
+                } else if (countElem.innerText === '--') {
+                    countElem.innerText = '--';
                 }
-                throw new Error('Invalid data format');
             } catch (err) {
-                // Fallback CORS Proxy (allorigins) for public web scraping
-                try {
-                    const tiktokPage = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://www.tiktok.com/@' + username)}`);
-                    const pageData = await tiktokPage.json();
-                    
-                    // Extract follower count from JSON state inside HTML response
-                    const match = pageData.contents.match(/"followerCount":(\d+)/);
-                    if (match && match[1]) {
-                        countElem.innerText = Number(match[1]).toLocaleString();
-                    } else if (countElem.innerText === '--') {
-                        countElem.innerText = 'Live';
-                    }
-                } catch (fallbackErr) {
-                    if (countElem.innerText === '--') {
-                        countElem.innerText = 'Live';
-                    }
+                if (countElem.innerText === '--') {
+                    countElem.innerText = '--';
                 }
             }
         }
