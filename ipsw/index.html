@@ -247,12 +247,12 @@
             opacity: 0.8;
         }
 
-        .select-wrapper {
+        .input-wrapper {
             position: relative;
             margin-bottom: 12px;
         }
 
-        .custom-select {
+        .custom-input {
             width: 100%;
             padding: 12px 14px;
             font-size: 0.95rem;
@@ -265,14 +265,11 @@
             outline: none;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            appearance: none;
-            -webkit-appearance: none;
-            cursor: pointer;
         }
 
-        .custom-select option {
-            background: #0d222e;
-            color: #b2e0e0;
+        .custom-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
         }
 
         .action-btn {
@@ -454,7 +451,7 @@
                 <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop avatar" onerror="this.style.display='none'">
                 <span class="user-name">gloop</span>
             </div>
-            <a href="./index.html" class="back-link">&larr; BACK TO BOX</a>
+            <a href="./index.html" class="back-link">&larr; ASCEND TO SURFACE</a>
         </header>
 
         <!-- Main Title -->
@@ -462,21 +459,20 @@
             <span class="section-tag">// FRESH STATUS / LIVE CHECK</span>
             <h1>FIRMWARE SIGNING CHECK</h1>
             <p class="description">
-                Choose an Apple device and see the firmware versions Apple is currently signing for it in real-time. Direct downloads are provided directly from Apple servers.
+                Enter your device name or identifier to query IPSW servers directly and see which firmwares Apple is currently signing in real-time.
             </p>
         </div>
 
         <!-- Main Interactive Tool Card -->
         <div class="tool-card">
-            <label class="card-label" for="deviceSelect">YOUR APPLE DEVICE</label>
-            <div class="select-wrapper">
-                <select id="deviceSelect" class="custom-select">
-                    <option value="" disabled selected>Loading devices list...</option>
-                </select>
+            <label class="card-label" for="deviceInput">ENTER PHONE / DEVICE NAME</label>
+            <div class="input-wrapper">
+                <input type="text" id="deviceInput" class="custom-input" placeholder="e.g. iPhone 13, iPhone 15 Pro, A2649..." autocomplete="off" list="deviceDatalist">
+                <datalist id="deviceDatalist"></datalist>
             </div>
             <button class="action-btn" onclick="checkSigningStatus()">CHECK SIGNING STATUS</button>
 
-            <div class="status-info" id="statusMsg">Select a device to query live status.</div>
+            <div class="status-info" id="statusMsg">Enter a device name to query IPSW servers.</div>
 
             <!-- Dynamic Results Area -->
             <div class="results-box" id="resultsBox">
@@ -500,59 +496,77 @@
     </div>
 
     <script>
-        const IPSW_GROUPS_API = 'https://api.ipsw.me/v4/group/devices';
+        const IPSW_DEVICES_API = 'https://api.ipsw.me/v4/devices';
         const IPSW_DEVICE_API = 'https://api.ipsw.me/v4/device/';
+        
+        let allDevices = [];
 
-        // Fetch device list on load
-        async function loadDevices() {
-            const selectEl = document.getElementById('deviceSelect');
+        // Pre-fetch device catalog for autocomplete and match lookup
+        async function fetchDeviceList() {
             try {
-                const res = await fetch(IPSW_GROUPS_API);
-                const groups = await res.json();
+                const res = await fetch(IPSW_DEVICES_API);
+                allDevices = await res.json();
                 
-                selectEl.innerHTML = '';
-                groups.forEach(group => {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = group.name || 'Devices';
-                    
-                    group.devices.forEach(dev => {
-                        const opt = document.createElement('option');
-                        opt.value = dev.identifier;
-                        opt.textContent = dev.name;
-                        optgroup.appendChild(opt);
-                    });
-                    selectEl.appendChild(optgroup);
+                const datalist = document.getElementById('deviceDatalist');
+                datalist.innerHTML = '';
+                allDevices.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.name;
+                    datalist.appendChild(opt);
                 });
             } catch (err) {
-                selectEl.innerHTML = '<option value="">Error loading device list</option>';
+                console.warn('Could not pre-fetch device catalog:', err);
             }
         }
 
-        // Fetch signed firmwares for the chosen device
+        // Search device across IPSW servers
         async function checkSigningStatus() {
-            const selectEl = document.getElementById('deviceSelect');
-            const deviceId = selectEl.value;
-            const deviceName = selectEl.options[selectEl.selectedIndex]?.text || deviceId;
-
+            const inputVal = document.getElementById('deviceInput').value.trim();
             const statusMsg = document.getElementById('statusMsg');
             const resultsBox = document.getElementById('resultsBox');
             const resultsDeviceName = document.getElementById('resultsDeviceName');
             const signedBadge = document.getElementById('signedBadge');
             const firmwareList = document.getElementById('firmwareList');
 
-            if (!deviceId) return;
+            if (!inputVal) {
+                statusMsg.innerText = 'Please enter a device name or model.';
+                return;
+            }
 
-            statusMsg.innerText = 'Fetching live signing status from IPSW.me...';
+            statusMsg.innerText = 'Searching IPSW servers...';
             resultsBox.style.display = 'none';
 
+            let targetIdentifier = inputVal;
+            let targetName = inputVal;
+
+            // Resolve friendly name to IPSW identifier if needed
+            if (allDevices.length > 0) {
+                const query = inputVal.toLowerCase();
+                const matched = allDevices.find(d => 
+                    d.name.toLowerCase() === query ||
+                    d.identifier.toLowerCase() === query
+                ) || allDevices.find(d => 
+                    d.name.toLowerCase().includes(query)
+                );
+
+                if (matched) {
+                    targetIdentifier = matched.identifier;
+                    targetName = matched.name;
+                }
+            }
+
             try {
-                const res = await fetch(`${IPSW_DEVICE_API}${deviceId}`);
+                const res = await fetch(`${IPSW_DEVICE_API}${targetIdentifier}`);
+                
+                if (!res.ok) {
+                    throw new Error('Device not found on IPSW servers');
+                }
+
                 const data = await res.json();
+                const signedFirmwares = (data.firmwares || []).filter(fw => fw.signed === true);
 
-                const signedFirmwares = data.firmwares.filter(fw => fw.signed === true);
-
-                statusMsg.innerText = `Current signing status loaded for ${deviceName}.`;
-                resultsDeviceName.innerText = deviceName;
+                statusMsg.innerText = `Signing status retrieved for ${data.name || targetName}.`;
+                resultsDeviceName.innerText = data.name || targetName;
                 signedBadge.innerText = `${signedFirmwares.length} SIGNED`;
 
                 firmwareList.innerHTML = '';
@@ -587,9 +601,16 @@
                 resultsBox.style.display = 'block';
 
             } catch (err) {
-                statusMsg.innerText = 'Failed to fetch status from IPSW.me. Please try again.';
+                statusMsg.innerText = `Device "${inputVal}" not found. Try entering a specific model (e.g. "iPhone 13").`;
             }
         }
+
+        // Allow pressing Enter key in input field
+        document.getElementById('deviceInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkSigningStatus();
+            }
+        });
 
         function updateTime() {
             const now = new Date();
@@ -601,7 +622,7 @@
         (function init() {
             updateTime();
             setInterval(updateTime, 10000);
-            loadDevices();
+            fetchDeviceList();
         })();
     </script>
 </body>
