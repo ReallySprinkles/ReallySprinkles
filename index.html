@@ -304,6 +304,62 @@
             line-height: 1.45;
         }
 
+        /* TikTok Live Count Styling */
+        .tiktok-stats-container {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tiktok-follower-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tiktok-follower-number {
+            font-family: var(--mono-font);
+            font-size: 1.6rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        .tiktok-follower-label {
+            font-family: var(--mono-font);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
+        }
+
+        .live-dot-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono-font);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.85;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #f87171;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #f87171;
+            animation: pulse-animation 1.5s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(248, 113, 113, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+        }
+
         .repo-container {
             margin-top: 14px;
             display: flex;
@@ -584,6 +640,45 @@
             <span class="section-tag">// PROJECTS</span>
 
             <main class="projects">
+                <!-- TikTok Live Stats Project Card -->
+                <a class="project-card" href="https://tiktok.com/@user90481726354" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>TikTok Profile</span>
+                            <span class="badge">LIVE STATS</span>
+                        </div>
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </div>
+                    <p class="project-description">
+                        @user90481726354 on TikTok
+                    </p>
+
+                    <div class="tiktok-stats-container">
+                        <div class="tiktok-follower-box">
+                            <span class="tiktok-follower-number" id="tiktokFollowers">--</span>
+                            <span class="tiktok-follower-label">Followers</span>
+                        </div>
+                        <div class="live-dot-container">
+                            <div class="pulse-dot"></div>
+                            <span>UPDATES LIVE</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- IPSW Checker Project Card -->
+                <a class="project-card" href="https://reallysprinkles.com/ipsw" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>Firmware Signing Check</span>
+                            <span class="badge">TOOL</span>
+                        </div>
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </div>
+                    <p class="project-description">
+                        Check real-time Apple iOS, iPadOS, and device firmware signing status powered by IPSW API.
+                    </p>
+                </a>
+
                 <a class="project-card" href="https://reallysprinkles.github.io/respring" target="_blank" rel="noopener noreferrer">
                     <div class="project-header">
                         <div class="project-title">
@@ -756,11 +851,48 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
+        // Live TikTok Follower Count Fetcher
+        async function fetchTikTokFollowers() {
+            const username = 'user90481726354';
+            const countElem = document.getElementById('tiktokFollowers');
+            
+            try {
+                // Primary CORS proxy fetch via TikTok Web API
+                const targetUrl = `https://www.tiktok.com/api/user/detail/?uniqueId=${username}`;
+                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+                const data = await res.json();
+
+                if (data && data.userInfo && data.userInfo.stats) {
+                    const followers = data.userInfo.stats.followerCount;
+                    countElem.innerText = Number(followers).toLocaleString();
+                } else {
+                    throw new Error('Fallback required');
+                }
+            } catch (err) {
+                // Secondary fallback endpoint
+                try {
+                    const fallbackRes = await fetch(`https://api.tokcount.com/post/stats?username=${username}`);
+                    const fallbackData = await fallbackRes.json();
+                    if (fallbackData && fallbackData.followerCount !== undefined) {
+                        countElem.innerText = Number(fallbackData.followerCount).toLocaleString();
+                    }
+                } catch (fallbackErr) {
+                    if (countElem.innerText === '--') {
+                        countElem.innerText = 'Live';
+                    }
+                }
+            }
+        }
+
         (function init() {
             const savedTheme = localStorage.getItem('theme') || 'system';
             setTheme(savedTheme);
             updateTime();
             setInterval(updateTime, 10000);
+
+            // TikTok Live Count initialization and interval polling
+            fetchTikTokFollowers();
+            setInterval(fetchTikTokFollowers, 10000);
         })();
     </script>
 
