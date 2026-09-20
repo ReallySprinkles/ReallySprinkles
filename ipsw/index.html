@@ -370,6 +370,14 @@
             box-shadow: 0 0 8px #4ade80;
         }
 
+        .unsigned-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #f87171;
+            box-shadow: 0 0 8px #f87171;
+        }
+
         .firmware-meta {
             font-family: var(--mono-font);
             font-size: 0.75rem;
@@ -399,6 +407,45 @@
 
         .dl-btn:hover {
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Unsigned Section Controls */
+        .toggle-unsigned-btn {
+            margin-top: 16px;
+            width: 100%;
+            padding: 10px;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .toggle-unsigned-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .unsigned-box {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .unsigned-header {
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            opacity: 0.8;
         }
 
         .ocean-bottom-info {
@@ -480,7 +527,20 @@
                     <span class="results-title" id="resultsDeviceName">-</span>
                     <span class="badge" id="signedBadge">0 SIGNED</span>
                 </div>
+
+                <!-- Signed Firmwares -->
                 <div class="firmware-results" id="firmwareList"></div>
+
+                <!-- Toggle Unsigned Button -->
+                <button class="toggle-unsigned-btn" id="toggleUnsignedBtn" onclick="toggleUnsigned()" style="display: none;">
+                    SHOW UNSIGNED FIRMWARES (0)
+                </button>
+
+                <!-- Unsigned Firmwares Container -->
+                <div class="unsigned-box" id="unsignedBox">
+                    <div class="unsigned-header">// UNSIGNED FIRMWARES</div>
+                    <div class="firmware-results" id="unsignedFirmwareList"></div>
+                </div>
             </div>
         </div>
 
@@ -500,6 +560,7 @@
         const IPSW_DEVICE_API = 'https://api.ipsw.me/v4/device/';
         
         let allDevices = [];
+        let unsignedCount = 0;
 
         // Pre-fetch device catalog for autocomplete and match lookup
         async function fetchDeviceList() {
@@ -527,6 +588,9 @@
             const resultsDeviceName = document.getElementById('resultsDeviceName');
             const signedBadge = document.getElementById('signedBadge');
             const firmwareList = document.getElementById('firmwareList');
+            const unsignedFirmwareList = document.getElementById('unsignedFirmwareList');
+            const toggleBtn = document.getElementById('toggleUnsignedBtn');
+            const unsignedBox = document.getElementById('unsignedBox');
 
             if (!inputVal) {
                 statusMsg.innerText = 'Please enter a device name or model.';
@@ -535,6 +599,7 @@
 
             statusMsg.innerText = 'Searching IPSW servers...';
             resultsBox.style.display = 'none';
+            unsignedBox.style.display = 'none';
 
             let targetIdentifier = inputVal;
             let targetName = inputVal;
@@ -563,45 +628,80 @@
                 }
 
                 const data = await res.json();
-                const signedFirmwares = (data.firmwares || []).filter(fw => fw.signed === true);
+                const firmwares = data.firmwares || [];
+                const signedFirmwares = firmwares.filter(fw => fw.signed === true);
+                const unsignedFirmwares = firmwares.filter(fw => fw.signed === false);
 
                 statusMsg.innerText = `Signing status retrieved for ${data.name || targetName}.`;
                 resultsDeviceName.innerText = data.name || targetName;
                 signedBadge.innerText = `${signedFirmwares.length} SIGNED`;
 
+                // Render Signed Firmwares
                 firmwareList.innerHTML = '';
-
                 if (signedFirmwares.length === 0) {
                     firmwareList.innerHTML = '<div class="firmware-meta">No signed firmware versions currently available for this device.</div>';
                 } else {
                     signedFirmwares.forEach(fw => {
-                        const relDate = fw.releasedate 
-                            ? new Date(fw.releasedate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                            : 'Unknown';
-
-                        const card = document.createElement('div');
-                        card.className = 'firmware-card';
-                        card.innerHTML = `
-                            <div class="firmware-version">
-                                <span class="signed-indicator"></span>
-                                Version ${fw.version}
-                            </div>
-                            <div class="firmware-meta">
-                                build ${fw.buildid}<br>
-                                Released ${relDate}
-                            </div>
-                            <a class="dl-btn" href="${fw.url}" target="_blank" rel="noopener noreferrer">
-                                APPLE FIRMWARE &#8599;
-                            </a>
-                        `;
-                        firmwareList.appendChild(card);
+                        firmwareList.appendChild(createFirmwareCard(fw, true));
                     });
+                }
+
+                // Render Unsigned Firmwares
+                unsignedFirmwareList.innerHTML = '';
+                unsignedCount = unsignedFirmwares.length;
+
+                if (unsignedCount > 0) {
+                    unsignedFirmwares.forEach(fw => {
+                        unsignedFirmwareList.appendChild(createFirmwareCard(fw, false));
+                    });
+                    toggleBtn.innerText = `SHOW UNSIGNED FIRMWARES (${unsignedCount})`;
+                    toggleBtn.style.display = 'block';
+                } else {
+                    toggleBtn.style.display = 'none';
                 }
 
                 resultsBox.style.display = 'block';
 
             } catch (err) {
                 statusMsg.innerText = `Device "${inputVal}" not found. Try entering a specific model (e.g. "iPhone 13").`;
+            }
+        }
+
+        // Helper function to build a card element
+        function createFirmwareCard(fw, isSigned) {
+            const relDate = fw.releasedate 
+                ? new Date(fw.releasedate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : 'Unknown';
+
+            const card = document.createElement('div');
+            card.className = 'firmware-card';
+            card.innerHTML = `
+                <div class="firmware-version">
+                    <span class="${isSigned ? 'signed-indicator' : 'unsigned-indicator'}"></span>
+                    Version ${fw.version}
+                </div>
+                <div class="firmware-meta">
+                    build ${fw.buildid}<br>
+                    Released ${relDate}
+                </div>
+                <a class="dl-btn" href="${fw.url}" target="_blank" rel="noopener noreferrer">
+                    APPLE FIRMWARE &#8599;
+                </a>
+            `;
+            return card;
+        }
+
+        // Toggle Unsigned Firmware visibility
+        function toggleUnsigned() {
+            const unsignedBox = document.getElementById('unsignedBox');
+            const toggleBtn = document.getElementById('toggleUnsignedBtn');
+
+            if (unsignedBox.style.display === 'block') {
+                unsignedBox.style.display = 'none';
+                toggleBtn.innerText = `SHOW UNSIGNED FIRMWARES (${unsignedCount})`;
+            } else {
+                unsignedBox.style.display = 'block';
+                toggleBtn.innerText = `HIDE UNSIGNED FIRMWARES (${unsignedCount})`;
             }
         }
 
