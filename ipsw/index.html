@@ -604,19 +604,31 @@
             let targetIdentifier = inputVal;
             let targetName = inputVal;
 
-            // Resolve friendly name to IPSW identifier if needed
+            // Strict Device Match
             if (allDevices.length > 0) {
                 const query = inputVal.toLowerCase();
-                const matched = allDevices.find(d => 
+                
+                // 1. Try Exact match first (Name or Identifier)
+                let matched = allDevices.find(d => 
                     d.name.toLowerCase() === query ||
                     d.identifier.toLowerCase() === query
-                ) || allDevices.find(d => 
-                    d.name.toLowerCase().includes(query)
                 );
+
+                // 2. If no exact match, search using strict word boundaries to avoid false positives (e.g., "iPhone 1" matching "iPhone 11")
+                if (!matched) {
+                    const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`\\b${escapeRegExp(query)}\\b`, 'i');
+                    
+                    matched = allDevices.find(d => regex.test(d.name) || regex.test(d.identifier));
+                }
 
                 if (matched) {
                     targetIdentifier = matched.identifier;
                     targetName = matched.name;
+                } else {
+                    // Show error directly if device isn't in catalog
+                    statusMsg.innerText = `Device "${inputVal}" not found. Try entering a specific model (e.g. "iPhone 13").`;
+                    return;
                 }
             }
 
