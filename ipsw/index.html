@@ -562,6 +562,9 @@
         let allDevices = [];
         let unsignedCount = 0;
 
+        // Generic category terms that are too broad on their own
+        const BROAD_TERMS = ['iphone', 'ipad', 'ipod', 'ipod touch', 'apple tv', 'appletv', 'mac', 'macbook', 'watch', 'apple watch'];
+
         // Pre-fetch device catalog for autocomplete and match lookup
         async function fetchDeviceList() {
             try {
@@ -597,6 +600,15 @@
                 return;
             }
 
+            const query = inputVal.toLowerCase();
+
+            // Prevent broad queries like "iPhone" or "iPad"
+            if (BROAD_TERMS.includes(query)) {
+                statusMsg.innerText = `Please enter a specific model (e.g. "${inputVal} 13", "${inputVal} 15 Pro").`;
+                resultsBox.style.display = 'none';
+                return;
+            }
+
             statusMsg.innerText = 'Searching IPSW servers...';
             resultsBox.style.display = 'none';
             unsignedBox.style.display = 'none';
@@ -604,29 +616,34 @@
             let targetIdentifier = inputVal;
             let targetName = inputVal;
 
-            // Strict Device Match
+            // Strict Device Match logic
             if (allDevices.length > 0) {
-                const query = inputVal.toLowerCase();
-                
-                // 1. Try Exact match first (Name or Identifier)
+                // 1. Exact match (Name or Identifier)
                 let matched = allDevices.find(d => 
                     d.name.toLowerCase() === query ||
                     d.identifier.toLowerCase() === query
                 );
 
-                // 2. If no exact match, search using strict word boundaries to avoid false positives (e.g., "iPhone 1" matching "iPhone 11")
+                // 2. If no exact match, filter devices that contain the query
                 if (!matched) {
-                    const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(`\\b${escapeRegExp(query)}\\b`, 'i');
-                    
-                    matched = allDevices.find(d => regex.test(d.name) || regex.test(d.identifier));
+                    const matches = allDevices.filter(d => 
+                        d.name.toLowerCase().includes(query) || 
+                        d.identifier.toLowerCase().includes(query)
+                    );
+
+                    // Only select match if it points to a single clear result
+                    if (matches.length === 1) {
+                        matched = matches[0];
+                    } else if (matches.length > 1) {
+                        statusMsg.innerText = `Multiple models found for "${inputVal}". Please specify a model (e.g. "${matches[0].name}").`;
+                        return;
+                    }
                 }
 
                 if (matched) {
                     targetIdentifier = matched.identifier;
                     targetName = matched.name;
                 } else {
-                    // Show error directly if device isn't in catalog
                     statusMsg.innerText = `Device "${inputVal}" not found. Try entering a specific model (e.g. "iPhone 13").`;
                     return;
                 }
