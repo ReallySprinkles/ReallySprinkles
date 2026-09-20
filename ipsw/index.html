@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Firmware Signing Check — gloop</title>
+
+    <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
+    <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
+
+    <style>
+        :root {
+            --bg-top: #65a2a2;
+            --bg-bottom: #123040;
+            --text-primary: #0a1820;
+            --text-secondary: rgba(10, 24, 32, 0.7);
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(10, 24, 32, 0.15);
+            --accent-color: #0b1d28;
+            --pill-bg: #0a1820;
+            --pill-text: #65a2a2;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.18);
+        }
+
+        [data-theme="dark"] {
+            --bg-top: #0d222e;
+            --bg-bottom: #050d12;
+            --text-primary: #b2e0e0;
+            --text-secondary: rgba(178, 224, 224, 0.65);
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(178, 224, 224, 0.2);
+            --accent-color: #5ce1e6;
+            --pill-bg: #5ce1e6;
+            --pill-text: #050d12;
+            --card-bg: rgba(0, 0, 0, 0.25);
+            --card-border: rgba(178, 224, 224, 0.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            [data-theme="system"] {
+                --bg-top: #0d222e;
+                --bg-bottom: #050d12;
+                --text-primary: #b2e0e0;
+                --text-secondary: rgba(178, 224, 224, 0.65);
+                --glass-bg: rgba(0, 0, 0, 0.2);
+                --glass-border: rgba(178, 224, 224, 0.2);
+                --accent-color: #5ce1e6;
+                --pill-bg: #5ce1e6;
+                --pill-text: #050d12;
+                --card-bg: rgba(0, 0, 0, 0.25);
+                --card-border: rgba(178, 224, 224, 0.15);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 20px 120px 20px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .vertical-text {
+            position: fixed;
+            left: 12px;
+            top: 25%;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            opacity: 0.45;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            text-transform: uppercase;
+        }
+
+        .ascii-art {
+            position: absolute;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.35;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+        .ascii-1 { top: 18%; right: 12%; }
+        .ascii-2 { top: 38%; right: 8%; }
+        .ascii-3 { top: 62%; left: 8%; }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .depth-radar-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .radar-circle {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .radar-circle::after {
+            content: '';
+            width: 5px;
+            height: 5px;
+            background: currentColor;
+            border-radius: 50%;
+        }
+
+        .profile-header {
+            margin-bottom: 24px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-name {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            text-transform: lowercase;
+        }
+
+        .back-link {
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.8;
+            padding: 6px 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 9999px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .page-title-box {
+            margin-bottom: 24px;
+        }
+
+        .section-tag {
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: inline-block;
+            opacity: 0.75;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .description {
+            font-size: 0.92rem;
+            opacity: 0.82;
+            line-height: 1.45;
+        }
+
+        .tool-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 24px;
+        }
+
+        .card-label {
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.8;
+        }
+
+        .select-wrapper {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .custom-select {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            outline: none;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .custom-select option {
+            background: #0d222e;
+            color: #b2e0e0;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--pill-bg);
+            color: var(--pill-text);
+            border: none;
+            border-radius: 12px;
+            font-family: var(--mono-font);
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .action-btn:active {
+            transform: scale(0.99);
+        }
+
+        .status-info {
+            font-family: var(--mono-font);
+            font-size: 0.78rem;
+            opacity: 0.85;
+            margin-top: 14px;
+            min-height: 18px;
+        }
+
+        /* Results Box */
+        .results-box {
+            display: none;
+            margin-top: 20px;
+            border-top: 1px dashed var(--glass-border);
+            padding-top: 20px;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .results-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            font-family: var(--mono-font);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: var(--pill-bg);
+            color: var(--pill-text);
+        }
+
+        .firmware-results {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .firmware-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .firmware-version {
+            font-size: 1.1rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .signed-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4ade80;
+            box-shadow: 0 0 8px #4ade80;
+        }
+
+        .firmware-meta {
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.75;
+            line-height: 1.4;
+        }
+
+        .dl-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            font-weight: 700;
+            width: fit-content;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: background 0.2s ease;
+        }
+
+        .dl-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .ocean-bottom-info {
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.75;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            text-align: center;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 2.1rem; }
+            .vertical-text { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="vertical-text">
+        The river keeps flowing, just like the sea
+    </div>
+
+    <div class="ascii-art ascii-1">~ . (&deg;)))&gt;. ~</div>
+    <div class="ascii-art ascii-2">&gt;&middot;)))&gt;&middot;</div>
+    <div class="ascii-art ascii-3">&gt;(((&deg;)</div>
+
+    <div class="container">
+
+        <!-- Top Header Bar -->
+        <div class="depth-radar-header">
+            <div class="radar-circle"></div>
+            <span>LIVE SIGNING CHECKER &middot; IPSW.ME API</span>
+        </div>
+
+        <!-- Profile Bar -->
+        <header class="profile-header">
+            <div class="user-brand">
+                <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop avatar" onerror="this.style.display='none'">
+                <span class="user-name">gloop</span>
+            </div>
+            <a href="./index.html" class="back-link">&larr; BACK TO BOX</a>
+        </header>
+
+        <!-- Main Title -->
+        <div class="page-title-box">
+            <span class="section-tag">// FRESH STATUS / LIVE CHECK</span>
+            <h1>FIRMWARE SIGNING CHECK</h1>
+            <p class="description">
+                Choose an Apple device and see the firmware versions Apple is currently signing for it in real-time. Direct downloads are provided directly from Apple servers.
+            </p>
+        </div>
+
+        <!-- Main Interactive Tool Card -->
+        <div class="tool-card">
+            <label class="card-label" for="deviceSelect">YOUR APPLE DEVICE</label>
+            <div class="select-wrapper">
+                <select id="deviceSelect" class="custom-select">
+                    <option value="" disabled selected>Loading devices list...</option>
+                </select>
+            </div>
+            <button class="action-btn" onclick="checkSigningStatus()">CHECK SIGNING STATUS</button>
+
+            <div class="status-info" id="statusMsg">Select a device to query live status.</div>
+
+            <!-- Dynamic Results Area -->
+            <div class="results-box" id="resultsBox">
+                <div class="results-header">
+                    <span class="results-title" id="resultsDeviceName">-</span>
+                    <span class="badge" id="signedBadge">0 SIGNED</span>
+                </div>
+                <div class="firmware-results" id="firmwareList"></div>
+            </div>
+        </div>
+
+        <div class="ocean-bottom-info">
+            somewhere at sea &middot; calm &middot; <span id="current-time">00:00 AM</span>
+        </div>
+
+        <footer>
+            <div>And that’s all.</div>
+            <div>gloop / 2026</div>
+        </footer>
+
+    </div>
+
+    <script>
+        const IPSW_GROUPS_API = 'https://api.ipsw.me/v4/group/devices';
+        const IPSW_DEVICE_API = 'https://api.ipsw.me/v4/device/';
+
+        // Fetch device list on load
+        async function loadDevices() {
+            const selectEl = document.getElementById('deviceSelect');
+            try {
+                const res = await fetch(IPSW_GROUPS_API);
+                const groups = await res.json();
+                
+                selectEl.innerHTML = '';
+                groups.forEach(group => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = group.name || 'Devices';
+                    
+                    group.devices.forEach(dev => {
+                        const opt = document.createElement('option');
+                        opt.value = dev.identifier;
+                        opt.textContent = dev.name;
+                        optgroup.appendChild(opt);
+                    });
+                    selectEl.appendChild(optgroup);
+                });
+            } catch (err) {
+                selectEl.innerHTML = '<option value="">Error loading device list</option>';
+            }
+        }
+
+        // Fetch signed firmwares for the chosen device
+        async function checkSigningStatus() {
+            const selectEl = document.getElementById('deviceSelect');
+            const deviceId = selectEl.value;
+            const deviceName = selectEl.options[selectEl.selectedIndex]?.text || deviceId;
+
+            const statusMsg = document.getElementById('statusMsg');
+            const resultsBox = document.getElementById('resultsBox');
+            const resultsDeviceName = document.getElementById('resultsDeviceName');
+            const signedBadge = document.getElementById('signedBadge');
+            const firmwareList = document.getElementById('firmwareList');
+
+            if (!deviceId) return;
+
+            statusMsg.innerText = 'Fetching live signing status from IPSW.me...';
+            resultsBox.style.display = 'none';
+
+            try {
+                const res = await fetch(`${IPSW_DEVICE_API}${deviceId}`);
+                const data = await res.json();
+
+                const signedFirmwares = data.firmwares.filter(fw => fw.signed === true);
+
+                statusMsg.innerText = `Current signing status loaded for ${deviceName}.`;
+                resultsDeviceName.innerText = deviceName;
+                signedBadge.innerText = `${signedFirmwares.length} SIGNED`;
+
+                firmwareList.innerHTML = '';
+
+                if (signedFirmwares.length === 0) {
+                    firmwareList.innerHTML = '<div class="firmware-meta">No signed firmware versions currently available for this device.</div>';
+                } else {
+                    signedFirmwares.forEach(fw => {
+                        const relDate = fw.releasedate 
+                            ? new Date(fw.releasedate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                            : 'Unknown';
+
+                        const card = document.createElement('div');
+                        card.className = 'firmware-card';
+                        card.innerHTML = `
+                            <div class="firmware-version">
+                                <span class="signed-indicator"></span>
+                                Version ${fw.version}
+                            </div>
+                            <div class="firmware-meta">
+                                build ${fw.buildid}<br>
+                                Released ${relDate}
+                            </div>
+                            <a class="dl-btn" href="${fw.url}" target="_blank" rel="noopener noreferrer">
+                                APPLE FIRMWARE &#8599;
+                            </a>
+                        `;
+                        firmwareList.appendChild(card);
+                    });
+                }
+
+                resultsBox.style.display = 'block';
+
+            } catch (err) {
+                statusMsg.innerText = 'Failed to fetch status from IPSW.me. Please try again.';
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = timeStr;
+        }
+
+        (function init() {
+            updateTime();
+            setInterval(updateTime, 10000);
+            loadDevices();
+        })();
+    </script>
+</body>
+</html>
