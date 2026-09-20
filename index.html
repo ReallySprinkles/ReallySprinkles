@@ -860,24 +860,36 @@
             const countElem = document.getElementById('tiktokFollowers');
             
             try {
-                // Primary CORS proxy fetch via TikTok Web API
-                const targetUrl = `https://www.tiktok.com/api/user/detail/?uniqueId=${username}`;
-                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+                // TokCount API requires a POST request
+                const res = await fetch('https://api.tokcount.com/post/stats', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+                
+                if (!res.ok) throw new Error('TokCount request failed');
+                
                 const data = await res.json();
-
-                if (data && data.userInfo && data.userInfo.stats) {
-                    const followers = data.userInfo.stats.followerCount;
-                    countElem.innerText = Number(followers).toLocaleString();
-                } else {
-                    throw new Error('Fallback required');
+                
+                if (data && data.followerCount !== undefined) {
+                    countElem.innerText = Number(data.followerCount).toLocaleString();
+                    return;
                 }
+                throw new Error('Invalid data format');
             } catch (err) {
-                // Secondary fallback endpoint
+                // Fallback CORS Proxy (allorigins) for public web scraping
                 try {
-                    const fallbackRes = await fetch(`https://api.tokcount.com/post/stats?username=${username}`);
-                    const fallbackData = await fallbackRes.json();
-                    if (fallbackData && fallbackData.followerCount !== undefined) {
-                        countElem.innerText = Number(fallbackData.followerCount).toLocaleString();
+                    const tiktokPage = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://www.tiktok.com/@' + username)}`);
+                    const pageData = await tiktokPage.json();
+                    
+                    // Extract follower count from JSON state inside HTML response
+                    const match = pageData.contents.match(/"followerCount":(\d+)/);
+                    if (match && match[1]) {
+                        countElem.innerText = Number(match[1]).toLocaleString();
+                    } else if (countElem.innerText === '--') {
+                        countElem.innerText = 'Live';
                     }
                 } catch (fallbackErr) {
                     if (countElem.innerText === '--') {
