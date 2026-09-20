@@ -208,7 +208,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 40px;
+            margin-bottom: 24px;
         }
 
         .social-link {
@@ -259,9 +259,13 @@
             transition: transform 0.25s ease, border-color 0.25s ease;
         }
 
-        .project-card:hover {
+        a.project-card:hover {
             transform: translateY(-3px);
             border-color: var(--text-primary);
+        }
+
+        .standalone-card {
+            margin-bottom: 32px;
         }
 
         .project-header {
@@ -637,34 +641,33 @@
                 </a>
             </nav>
 
+            <!-- TikTok Live Stats Standalone Card (Non-clickable, above Projects) -->
+            <div class="project-card standalone-card">
+                <div class="project-header">
+                    <div class="project-title">
+                        <span>TikTok Profile</span>
+                        <span class="badge">LIVE STATS</span>
+                    </div>
+                </div>
+                <p class="project-description">
+                    @user90481726354 on TikTok
+                </p>
+
+                <div class="tiktok-stats-container">
+                    <div class="tiktok-follower-box">
+                        <span class="tiktok-follower-number" id="tiktokFollowers">--</span>
+                        <span class="tiktok-follower-label">Followers</span>
+                    </div>
+                    <div class="live-dot-container">
+                        <div class="pulse-dot"></div>
+                        <span>UPDATES LIVE</span>
+                    </div>
+                </div>
+            </div>
+
             <span class="section-tag">// PROJECTS</span>
 
             <main class="projects">
-                <!-- TikTok Live Stats Project Card -->
-                <a class="project-card" href="https://tiktok.com/@user90481726354" target="_blank" rel="noopener noreferrer">
-                    <div class="project-header">
-                        <div class="project-title">
-                            <span>TikTok Profile</span>
-                            <span class="badge">LIVE STATS</span>
-                        </div>
-                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
-                    </div>
-                    <p class="project-description">
-                        @user90481726354 on TikTok
-                    </p>
-
-                    <div class="tiktok-stats-container">
-                        <div class="tiktok-follower-box">
-                            <span class="tiktok-follower-number" id="tiktokFollowers">--</span>
-                            <span class="tiktok-follower-label">Followers</span>
-                        </div>
-                        <div class="live-dot-container">
-                            <div class="pulse-dot"></div>
-                            <span>UPDATES LIVE</span>
-                        </div>
-                    </div>
-                </a>
-
                 <!-- IPSW Checker Project Card -->
                 <a class="project-card" href="https://reallysprinkles.com/ipsw" target="_blank" rel="noopener noreferrer">
                     <div class="project-header">
