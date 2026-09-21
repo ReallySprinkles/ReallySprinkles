@@ -369,6 +369,40 @@
             transform: scale(0.99);
         }
 
+        .secondary-btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .sub-btn {
+            padding: 10px;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            font-family: var(--mono-font);
+            font-weight: 700;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .sub-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--text-primary);
+        }
+
+        .sub-btn:active {
+            transform: scale(0.98);
+        }
+
         .status-info {
             font-family: var(--mono-font);
             font-size: 0.78rem;
@@ -464,6 +498,81 @@
             opacity: 0.7;
             margin-top: 4px;
             white-space: nowrap;
+        }
+
+        /* List display panel styling */
+        .list-container {
+            display: none;
+            width: 100%;
+            margin-top: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 14px;
+            max-height: 250px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .list-title {
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            opacity: 0.8;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 6px;
+        }
+
+        .list-item-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .list-item-user:last-child {
+            border-bottom: none;
+        }
+
+        .list-item-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .list-item-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .list-item-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            line-height: 1.1;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .list-item-handle {
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            opacity: 0.6;
+        }
+
+        .list-message {
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 12px 0;
+            opacity: 0.85;
+            line-height: 1.4;
         }
 
         .ocean-bottom-info {
@@ -570,6 +679,16 @@
                         <span class="stat-label">Account Created</span>
                     </div>
                 </div>
+
+                <div class="secondary-btn-group">
+                    <button class="sub-btn" onclick="fetchFollowersList()">SHOW FOLLOWERS</button>
+                    <button class="sub-btn" onclick="fetchFollowingList()">SHOW FOLLOWING</button>
+                </div>
+
+                <div id="listDisplay" class="list-container">
+                    <div id="listTitle" class="list-title">LIST DETAILS</div>
+                    <div id="listContent"></div>
+                </div>
             </div>
         </div>
 
@@ -586,6 +705,7 @@
 
     <script>
         const RECENT_KEY = 'tiktok_recent_searches';
+        let currentLoadedUsername = '';
 
         function getRecentSearches() {
             try {
@@ -645,6 +765,7 @@
             const input = document.getElementById('usernameInput').value.trim();
             const statusMsg = document.getElementById('statusMsg');
             const card = document.getElementById('profileCard');
+            const listDisplay = document.getElementById('listDisplay');
 
             document.getElementById('historyDropdown').classList.remove('active');
 
@@ -655,6 +776,7 @@
 
             statusMsg.innerText = 'Fetching profile data...';
             card.style.display = 'none';
+            listDisplay.style.display = 'none';
 
             try {
                 const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer?username=${encodeURIComponent(input)}`);
@@ -665,7 +787,8 @@
                     return;
                 }
 
-                saveRecentSearch(data.username || input);
+                currentLoadedUsername = data.username || input;
+                saveRecentSearch(currentLoadedUsername);
 
                 document.getElementById('pfp').src = data.avatar || './icons/finn_the_human_pfp_.jpeg';
                 document.getElementById('name').innerText = data.nickname || data.username;
@@ -684,6 +807,73 @@
                 statusMsg.innerText = 'Failed to fetch user data.';
                 console.error(err);
             }
+        }
+
+        async function fetchFollowingList() {
+            if (!currentLoadedUsername) return;
+
+            const listDisplay = document.getElementById('listDisplay');
+            const listTitle = document.getElementById('listTitle');
+            const listContent = document.getElementById('listContent');
+
+            listTitle.innerText = `FOLLOWING LIST (@${currentLoadedUsername})`;
+            listContent.innerHTML = '<div class="list-message">Fetching following list...</div>';
+            listDisplay.style.display = 'block';
+
+            try {
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer/followinglist?username=${encodeURIComponent(currentLoadedUsername)}`);
+                const data = await res.json();
+
+                if (!res.ok || data.isPrivate || data.error || !data.list || data.list.length === 0) {
+                    listContent.innerHTML = '<div class="list-message">This user’s following list is private or unavailable.</div>';
+                    return;
+                }
+
+                renderUserList(data.list);
+            } catch (err) {
+                console.error(err);
+                listContent.innerHTML = '<div class="list-message">This user’s following list is private or unavailable.</div>';
+            }
+        }
+
+        async function fetchFollowersList() {
+            if (!currentLoadedUsername) return;
+
+            const listDisplay = document.getElementById('listDisplay');
+            const listTitle = document.getElementById('listTitle');
+            const listContent = document.getElementById('listContent');
+
+            listTitle.innerText = `FOLLOWERS LIST (@${currentLoadedUsername})`;
+            listContent.innerHTML = '<div class="list-message">Fetching followers list...</div>';
+            listDisplay.style.display = 'block';
+
+            try {
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer/followerlist?username=${encodeURIComponent(currentLoadedUsername)}`);
+                const data = await res.json();
+
+                if (!res.ok || data.error || !data.list || data.list.length === 0) {
+                    listContent.innerHTML = '<div class="list-message">This user’s followers list is private or unavailable.</div>';
+                    return;
+                }
+
+                renderUserList(data.list);
+            } catch (err) {
+                console.error(err);
+                listContent.innerHTML = '<div class="list-message">This user’s followers list is private or unavailable.</div>';
+            }
+        }
+
+        function renderUserList(users) {
+            const listContent = document.getElementById('listContent');
+            listContent.innerHTML = users.map(u => `
+                <div class="list-item-user">
+                    <img class="list-item-avatar" src="${u.avatar || './icons/finn_the_human_pfp_.jpeg'}" alt="Avatar" onerror="this.src='./icons/finn_the_human_pfp_.jpeg'">
+                    <div class="list-item-info">
+                        <span class="list-item-name">${u.nickname || u.username}</span>
+                        <span class="list-item-handle">@${u.username}</span>
+                    </div>
+                </div>
+            `).join('');
         }
 
         document.getElementById('historyBtn').addEventListener('click', function(e) {
