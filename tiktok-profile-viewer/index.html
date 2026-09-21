@@ -247,6 +247,7 @@
             opacity: 0.8;
         }
 
+        /* Input Container & Recent Search Button/Dropdown Styling */
         .input-wrapper {
             position: relative;
             margin-bottom: 12px;
@@ -254,7 +255,7 @@
 
         .custom-input {
             width: 100%;
-            padding: 12px 14px;
+            padding: 12px 42px 12px 14px;
             font-size: 0.95rem;
             font-weight: 600;
             font-family: inherit;
@@ -270,6 +271,79 @@
         .custom-input::placeholder {
             color: var(--text-secondary);
             opacity: 0.6;
+        }
+
+        .history-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            opacity: 0.65;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s ease, background-color 0.2s ease;
+        }
+
+        .history-btn:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .history-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--bg-bottom);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+            z-index: 100;
+            max-height: 200px;
+            overflow-y: auto;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .history-dropdown.active {
+            display: block;
+        }
+
+        .history-item {
+            padding: 10px 14px;
+            font-family: var(--mono-font);
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.15s ease;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .history-empty {
+            padding: 12px;
+            font-family: var(--mono-font);
+            font-size: 0.78rem;
+            opacity: 0.6;
+            text-align: center;
         }
 
         .action-btn {
@@ -370,7 +444,6 @@
             overflow: hidden;
         }
 
-        /* Prevents full digit counts from clipping or truncating */
         .stat-value {
             font-family: var(--mono-font);
             font-size: clamp(0.95rem, 4vw, 1.3rem);
@@ -459,6 +532,13 @@
             <label class="card-label" for="usernameInput">ENTER TIKTOK USERNAME</label>
             <div class="input-wrapper">
                 <input type="text" id="usernameInput" class="custom-input" placeholder="e.g. user90481726354..." autocomplete="off">
+                <button type="button" class="history-btn" id="historyBtn" title="Recent searches">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </button>
+                <div class="history-dropdown" id="historyDropdown"></div>
             </div>
             <button class="action-btn" onclick="lookupUser()">FETCH PROFILE</button>
 
@@ -504,10 +584,58 @@
     </div>
 
     <script>
+        const RECENT_KEY = 'tiktok_recent_searches';
+
+        function getRecentSearches() {
+            try {
+                return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveRecentSearch(username) {
+            let searches = getRecentSearches();
+            searches = searches.filter(user => user.toLowerCase() !== username.toLowerCase());
+            searches.unshift(username);
+            if (searches.length > 8) searches.pop();
+            localStorage.setItem(RECENT_KEY, JSON.stringify(searches));
+        }
+
+        function renderRecentSearches() {
+            const dropdown = document.getElementById('historyDropdown');
+            const searches = getRecentSearches();
+
+            if (searches.length === 0) {
+                dropdown.innerHTML = '<div class="history-empty">No recent searches</div>';
+                return;
+            }
+
+            dropdown.innerHTML = searches.map(user => `
+                <div class="history-item" onclick="selectRecentUser('${user}')">
+                    <span>@${user}</span>
+                    <span style="opacity: 0.5;">&rarr;</span>
+                </div>
+            `).join('');
+        }
+
+        function selectRecentUser(username) {
+            document.getElementById('usernameInput').value = username;
+            document.getElementById('historyDropdown').classList.remove('active');
+            lookupUser();
+        }
+
+        function toggleHistoryMenu() {
+            renderRecentSearches();
+            document.getElementById('historyDropdown').classList.toggle('active');
+        }
+
         async function lookupUser() {
             const input = document.getElementById('usernameInput').value.trim();
             const statusMsg = document.getElementById('statusMsg');
             const card = document.getElementById('profileCard');
+
+            document.getElementById('historyDropdown').classList.remove('active');
 
             if (!input) {
                 statusMsg.innerText = 'Please enter a valid TikTok username.';
@@ -526,6 +654,8 @@
                     return;
                 }
 
+                saveRecentSearch(data.username || input);
+
                 document.getElementById('pfp').src = data.avatar || './icons/finn_the_human_pfp_.jpeg';
                 document.getElementById('name').innerText = data.nickname || data.username;
                 document.getElementById('handle').innerText = `@${data.username}`;
@@ -543,6 +673,18 @@
                 console.error(err);
             }
         }
+
+        document.getElementById('historyBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleHistoryMenu();
+        });
+
+        document.addEventListener('click', function(e) {
+            const wrapper = document.querySelector('.input-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('historyDropdown').classList.remove('active');
+            }
+        });
 
         document.getElementById('usernameInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
