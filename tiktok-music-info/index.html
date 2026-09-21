@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TikTok Music Viewer — gloop</title>
+
+    <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
+    <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
+
+    <style>
+        :root {
+            --bg-top: #65a2a2;
+            --bg-bottom: #123040;
+            --text-primary: #0a1820;
+            --text-secondary: rgba(10, 24, 32, 0.7);
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(10, 24, 32, 0.15);
+            --accent-color: #0b1d28;
+            --pill-bg: #0a1820;
+            --pill-text: #65a2a2;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.18);
+        }
+
+        [data-theme="dark"] {
+            --bg-top: #0d222e;
+            --bg-bottom: #050d12;
+            --text-primary: #b2e0e0;
+            --text-secondary: rgba(178, 224, 224, 0.65);
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(178, 224, 224, 0.2);
+            --accent-color: #5ce1e6;
+            --pill-bg: #5ce1e6;
+            --pill-text: #050d12;
+            --card-bg: rgba(0, 0, 0, 0.25);
+            --card-border: rgba(178, 224, 224, 0.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            [data-theme="system"] {
+                --bg-top: #0d222e;
+                --bg-bottom: #050d12;
+                --text-primary: #b2e0e0;
+                --text-secondary: rgba(178, 224, 224, 0.65);
+                --glass-bg: rgba(0, 0, 0, 0.2);
+                --glass-border: rgba(178, 224, 224, 0.2);
+                --accent-color: #5ce1e6;
+                --pill-bg: #5ce1e6;
+                --pill-text: #050d12;
+                --card-bg: rgba(0, 0, 0, 0.25);
+                --card-border: rgba(178, 224, 224, 0.15);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 20px 120px 20px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .vertical-text {
+            position: fixed;
+            left: 12px;
+            top: 25%;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            opacity: 0.45;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            text-transform: uppercase;
+        }
+
+        .ascii-art {
+            position: absolute;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.35;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+        .ascii-1 { top: 18%; right: 12%; }
+        .ascii-2 { top: 38%; right: 8%; }
+        .ascii-3 { top: 62%; left: 8%; }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .depth-radar-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .radar-circle {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .radar-circle::after {
+            content: '';
+            width: 5px;
+            height: 5px;
+            background: currentColor;
+            border-radius: 50%;
+        }
+
+        .profile-header {
+            margin-bottom: 24px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-name {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            text-transform: lowercase;
+        }
+
+        .nav-link {
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.8;
+            padding: 6px 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 9999px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .page-title-box {
+            margin-bottom: 24px;
+        }
+
+        .section-tag {
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: inline-block;
+            opacity: 0.75;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .description {
+            font-size: 0.92rem;
+            opacity: 0.82;
+            line-height: 1.45;
+        }
+
+        .tool-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 24px;
+        }
+
+        .card-label {
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.8;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 12px 42px 12px 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            outline: none;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .custom-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--pill-bg);
+            color: var(--pill-text);
+            border: none;
+            border-radius: 12px;
+            font-family: var(--mono-font);
+            font-weight: 800;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .action-btn:active {
+            transform: scale(0.99);
+        }
+
+        .status-info {
+            font-family: var(--mono-font);
+            font-size: 0.78rem;
+            opacity: 0.85;
+            margin-top: 14px;
+            min-height: 18px;
+            text-align: center;
+        }
+
+        .music-card {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px dashed var(--glass-border);
+            padding-top: 20px;
+        }
+
+        .music-cover {
+            width: 120px;
+            height: 120px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 2px solid var(--text-primary);
+            margin-bottom: 14px;
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+        }
+
+        .music-title {
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .music-author {
+            font-family: var(--mono-font);
+            font-size: 0.85rem;
+            opacity: 0.75;
+            margin-bottom: 16px;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-bottom: 20px;
+            border-radius: 30px;
+            outline: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 12px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .stat-box.full-width {
+            grid-column: span 2;
+        }
+
+        .stat-value {
+            font-family: var(--mono-font);
+            font-size: clamp(0.95rem, 4vw, 1.2rem);
+            font-weight: 900;
+            line-height: 1.2;
+            white-space: nowrap;
+            max-width: 100%;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stat-label {
+            font-family: var(--mono-font);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.7;
+            margin-top: 4px;
+            white-space: nowrap;
+        }
+
+        .ocean-bottom-info {
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.75;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 2.1rem; }
+            .vertical-text { display: none; }
+            .nav-actions { flex-direction: column; align-items: flex-end; gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="vertical-text">
+        The river keeps flowing, just like the sea
+    </div>
+
+    <div class="ascii-art ascii-1">~ . (&deg;)))&gt;. ~</div>
+    <div class="ascii-art ascii-2">&gt;&middot;)))&gt;&middot;</div>
+    <div class="ascii-art ascii-3">&gt;(((&deg;)</div>
+
+    <div class="container">
+
+        <div class="depth-radar-header">
+            <div class="radar-circle"></div>
+            <span>LIVE MUSIC CHECKER &middot; TIKTOK API</span>
+        </div>
+
+        <header class="profile-header">
+            <div class="user-brand">
+                <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop avatar" onerror="this.style.display='none'">
+                <span class="user-name">gloop</span>
+            </div>
+            <div class="nav-actions">
+                <a href="./profile.html" class="nav-link">PROFILE VIEWER</a>
+                <a href="./index.html" class="nav-link">&larr; ASCEND TO SURFACE</a>
+            </div>
+        </header>
+
+        <div class="page-title-box">
+            <span class="section-tag">// TRACK DATA / METRICS</span>
+            <h1>TIKTOK MUSIC VIEWER</h1>
+            <p class="description">
+                Enter any TikTok Music ID below to retrieve track audio, author info, play count, and total video usages.
+            </p>
+        </div>
+
+        <div class="tool-card">
+            <label class="card-label" for="musicIdInput">ENTER TIKTOK MUSIC ID</label>
+            <div class="input-wrapper">
+                <input type="text" id="musicIdInput" class="custom-input" placeholder="e.g. 6747377620087819014..." autocomplete="off">
+            </div>
+            <button class="action-btn" onclick="lookupMusic()">FETCH MUSIC INFO</button>
+
+            <div class="status-info" id="statusMsg">Enter a Music ID to lookup track details.</div>
+
+            <div id="musicCard" class="music-card">
+                <img id="cover" class="music-cover" src="" alt="Album Cover">
+                <div id="title" class="music-title"></div>
+                <div id="author" class="music-author"></div>
+
+                <audio id="audioPlayer" class="audio-player" controls src=""></audio>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span id="videoCount" class="stat-value">--</span>
+                        <span class="stat-label">Videos Used</span>
+                    </div>
+                    <div class="stat-box">
+                        <span id="duration" class="stat-value">--</span>
+                        <span class="stat-label">Duration</span>
+                    </div>
+                    <div class="stat-box">
+                        <span id="original" class="stat-value">--</span>
+                        <span class="stat-label">Original Sound</span>
+                    </div>
+                    <div class="stat-box">
+                        <span id="album" class="stat-value">--</span>
+                        <span class="stat-label">Album</span>
+                    </div>
+                    <div class="stat-box full-width">
+                        <span id="musicId" class="stat-value">--</span>
+                        <span class="stat-label">Music ID</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ocean-bottom-info">
+            somewhere at sea &middot; calm &middot; <span id="current-time">00:00 AM</span>
+        </div>
+
+        <footer>
+            <div>And that’s all.</div>
+            <div>gloop / 2026</div>
+        </footer>
+
+    </div>
+
+    <script>
+        async function lookupMusic() {
+            const input = document.getElementById('musicIdInput').value.trim();
+            const statusMsg = document.getElementById('statusMsg');
+            const card = document.getElementById('musicCard');
+            const audioPlayer = document.getElementById('audioPlayer');
+
+            if (!input) {
+                statusMsg.innerText = 'Please enter a valid TikTok Music ID.';
+                return;
+            }
+
+            statusMsg.innerText = 'Fetching music details...';
+            card.style.display = 'none';
+
+            try {
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-music-info?music_id=${encodeURIComponent(input)}`);
+                const data = await res.json();
+
+                if (!res.ok || data.error) {
+                    statusMsg.innerText = data.error || 'Music track not found.';
+                    return;
+                }
+
+                document.getElementById('cover').src = data.cover || './icons/finn_the_human_pfp_.jpeg';
+                document.getElementById('title').innerText = data.title || 'Untitled Track';
+                document.getElementById('author').innerText = data.author ? `by @${data.author}` : 'Unknown Author';
+                
+                audioPlayer.src = data.play || '';
+
+                document.getElementById('videoCount').innerText = Number(data.video_count || 0).toLocaleString();
+                document.getElementById('duration').innerText = data.duration ? `${data.duration}s` : 'Unknown';
+                document.getElementById('original').innerText = data.original ? 'Yes' : 'No';
+                document.getElementById('album').innerText = data.album || 'N/A';
+                document.getElementById('musicId').innerText = data.id || input;
+
+                statusMsg.innerText = `Successfully loaded music info.`;
+                card.style.display = 'flex';
+            } catch (err) {
+                statusMsg.innerText = 'Failed to fetch music info.';
+                console.error(err);
+            }
+        }
+
+        document.getElementById('musicIdInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                lookupMusic();
+            }
+        });
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = timeStr;
+        }
+
+        (function init() {
+            updateTime();
+            setInterval(updateTime, 10000);
+        })();
+    </script>
+</body>
+</html>
