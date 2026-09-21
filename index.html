@@ -853,26 +853,36 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
-        // Updated TikTok Follower Count Fetcher
+        // TikTok Follower Count Fetcher
         async function fetchTikTokFollowers() {
             const countElem = document.getElementById('tiktokFollowers');
             const username = 'user90481726354';
             
             try {
-                // Using TikWM API which allows CORS and bypasses Cloudflare checks
-                const res = await fetch(`https://www.tikwm.com/api/user/info?unique_id=${username}`);
+                const res = await fetch(`https://countik.com/api/user/exist/${username}`);
                 if (!res.ok) throw new Error('Network error');
                 
-                const json = await res.json();
-                if (json && json.data && json.data.stats && json.data.stats.followerCount !== undefined) {
-                    countElem.innerText = Number(json.data.stats.followerCount).toLocaleString();
-                } else if (countElem.innerText === '--') {
-                    countElem.innerText = '--';
+                const data = await res.json();
+                if (data && data.status === 'success' && data.id) {
+                    const statsRes = await fetch(`https://countik.com/api/user/data/${data.id}`);
+                    const statsData = await statsRes.json();
+                    if (statsData && statsData.followerCount !== undefined) {
+                        countElem.innerText = Number(statsData.followerCount).toLocaleString();
+                        return;
+                    }
                 }
             } catch (err) {
-                console.error('Failed to fetch TikTok followers:', err);
-                if (countElem.innerText === '--') {
-                    countElem.innerText = '--';
+                console.error('Primary fetch failed, trying fallback proxy:', err);
+                try {
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.tikwm.com/api/user/info?unique_id=${username}`)}`;
+                    const fallbackRes = await fetch(proxyUrl);
+                    const fallbackData = await fallbackRes.json();
+                    const json = JSON.parse(fallbackData.contents);
+                    if (json && json.data && json.data.stats && json.data.stats.followerCount !== undefined) {
+                        countElem.innerText = Number(json.data.stats.followerCount).toLocaleString();
+                    }
+                } catch (fallbackErr) {
+                    console.error('TikTok follower fetch completely failed:', fallbackErr);
                 }
             }
         }
@@ -883,7 +893,6 @@
             updateTime();
             setInterval(updateTime, 10000);
 
-            // Fetch live count instantly and poll every 15 seconds
             fetchTikTokFollowers();
             setInterval(fetchTikTokFollowers, 15000);
         })();
