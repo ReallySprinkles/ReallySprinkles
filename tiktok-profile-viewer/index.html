@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TikTok Profile Viewer | gloop</title>
+    <title>TikTok Profile Viewer — gloop</title>
+
     <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
+    <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
 
     <style>
         :root {
@@ -15,6 +17,7 @@
             --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             --glass-bg: rgba(255, 255, 255, 0.08);
             --glass-border: rgba(10, 24, 32, 0.15);
+            --accent-color: #0b1d28;
             --pill-bg: #0a1820;
             --pill-text: #65a2a2;
             --card-bg: rgba(255, 255, 255, 0.05);
@@ -28,10 +31,27 @@
             --text-secondary: rgba(178, 224, 224, 0.65);
             --glass-bg: rgba(0, 0, 0, 0.2);
             --glass-border: rgba(178, 224, 224, 0.2);
+            --accent-color: #5ce1e6;
             --pill-bg: #5ce1e6;
             --pill-text: #050d12;
             --card-bg: rgba(0, 0, 0, 0.25);
             --card-border: rgba(178, 224, 224, 0.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            [data-theme="system"] {
+                --bg-top: #0d222e;
+                --bg-bottom: #050d12;
+                --text-primary: #b2e0e0;
+                --text-secondary: rgba(178, 224, 224, 0.65);
+                --glass-bg: rgba(0, 0, 0, 0.2);
+                --glass-border: rgba(178, 224, 224, 0.2);
+                --accent-color: #5ce1e6;
+                --pill-bg: #5ce1e6;
+                --pill-text: #050d12;
+                --card-bg: rgba(0, 0, 0, 0.25);
+                --card-border: rgba(178, 224, 224, 0.15);
+            }
         }
 
         * {
@@ -50,180 +70,437 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 20px 20px 120px 20px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
         }
+
+        .vertical-text {
+            position: fixed;
+            left: 12px;
+            top: 25%;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            opacity: 0.45;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            text-transform: uppercase;
+        }
+
+        .ascii-art {
+            position: absolute;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.35;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+        .ascii-1 { top: 18%; right: 12%; }
+        .ascii-2 { top: 38%; right: 8%; }
+        .ascii-3 { top: 62%; left: 8%; }
 
         .container {
             width: 100%;
             max-width: 520px;
-            margin-top: 20px;
+            position: relative;
+            z-index: 1;
         }
 
-        .header-title {
-            font-size: 2.2rem;
+        .depth-radar-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        .radar-circle {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .radar-circle::after {
+            content: '';
+            width: 5px;
+            height: 5px;
+            background: currentColor;
+            border-radius: 50%;
+        }
+
+        .profile-header {
+            margin-bottom: 24px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--text-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-name {
+            font-size: 1.5rem;
             font-weight: 900;
             letter-spacing: -0.03em;
-            margin-bottom: 20px;
-            text-align: center;
+            text-transform: lowercase;
         }
 
-        .search-box {
-            display: flex;
-            gap: 8px;
+        .back-link {
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.8;
+            padding: 6px 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 9999px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .page-title-box {
             margin-bottom: 24px;
         }
 
-        .search-input {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            background: var(--card-bg);
-            color: var(--text-primary);
+        .section-tag {
             font-family: var(--mono-font);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: inline-block;
+            opacity: 0.75;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .description {
+            font-size: 0.92rem;
+            opacity: 0.82;
+            line-height: 1.45;
+        }
+
+        .tool-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 24px;
+        }
+
+        .card-label {
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: block;
+            opacity: 0.8;
+        }
+
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 12px 14px;
             font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
             outline: none;
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
-        .search-input::placeholder {
+        .custom-input::placeholder {
             color: var(--text-secondary);
+            opacity: 0.6;
         }
 
-        .search-btn {
-            padding: 12px 20px;
+        .action-btn {
+            width: 100%;
+            padding: 12px;
             background: var(--pill-bg);
             color: var(--pill-text);
             border: none;
             border-radius: 12px;
             font-family: var(--mono-font);
             font-weight: 800;
-            cursor: pointer;
+            font-size: 0.8rem;
             text-transform: uppercase;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.1s ease;
         }
 
+        .action-btn:hover {
+            opacity: 0.9;
+        }
+
+        .action-btn:active {
+            transform: scale(0.99);
+        }
+
+        .status-info {
+            font-family: var(--mono-font);
+            font-size: 0.78rem;
+            opacity: 0.85;
+            margin-top: 14px;
+            min-height: 18px;
+            text-align: center;
+        }
+
+        /* Results Display Card */
         .profile-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: 24px;
             display: none;
             flex-direction: column;
             align-items: center;
             text-align: center;
+            margin-top: 20px;
+            border-top: 1px dashed var(--glass-border);
+            padding-top: 20px;
         }
 
         .profile-avatar {
-            width: 100px;
-            height: 100px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--text-primary);
-            margin-bottom: 14px;
-            background: #111;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .profile-name {
-            font-size: 1.6rem;
-            font-weight: 800;
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
             margin-bottom: 2px;
         }
 
         .profile-username {
             font-family: var(--mono-font);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             opacity: 0.75;
             margin-bottom: 12px;
         }
 
         .profile-bio {
-            font-size: 0.92rem;
-            opacity: 0.9;
+            font-size: 0.9rem;
+            opacity: 0.85;
             margin-bottom: 20px;
             max-width: 90%;
             word-break: break-word;
+            white-space: pre-wrap;
+            line-height: 1.4;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 10px;
             width: 100%;
-            margin-top: 8px;
         }
 
         .stat-box {
             background: rgba(0, 0, 0, 0.2);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 12px;
+            border-radius: 14px;
+            padding: 12px 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
+        /* Prevents full digit counts from clipping or truncating */
         .stat-value {
             font-family: var(--mono-font);
-            font-size: 1.4rem;
+            font-size: clamp(0.95rem, 4vw, 1.3rem);
             font-weight: 900;
+            line-height: 1.2;
+            white-space: nowrap;
+            max-width: 100%;
+            font-variant-numeric: tabular-nums;
         }
 
         .stat-label {
             font-family: var(--mono-font);
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             opacity: 0.7;
-            margin-top: 2px;
+            margin-top: 4px;
+            white-space: nowrap;
         }
 
-        .status-msg {
+        .ocean-bottom-info {
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.75;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        footer {
             text-align: center;
             font-family: var(--mono-font);
-            font-size: 0.85rem;
-            margin-top: 10px;
-            opacity: 0.8;
+            font-size: 0.75rem;
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 2.1rem; }
+            .vertical-text { display: none; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1 class="header-title">TikTok Profile Viewer</h1>
+    <div class="vertical-text">
+        The river keeps flowing, just like the sea
+    </div>
 
-        <div class="search-box">
-            <input type="text" id="usernameInput" class="search-input" placeholder="Type username (e.g. user90481726354)">
-            <button onclick="lookupUser()" class="search-btn">Search</button>
+    <div class="ascii-art ascii-1">~ . (&deg;)))&gt;. ~</div>
+    <div class="ascii-art ascii-2">&gt;&middot;)))&gt;&middot;</div>
+    <div class="ascii-art ascii-3">&gt;(((&deg;)</div>
+
+    <div class="container">
+
+        <!-- Top Header Bar -->
+        <div class="depth-radar-header">
+            <div class="radar-circle"></div>
+            <span>LIVE PROFILE CHECKER &middot; TIKTOK API</span>
         </div>
 
-        <div id="statusMsg" class="status-msg">Enter a TikTok username to view details.</div>
+        <!-- Profile Bar -->
+        <header class="profile-header">
+            <div class="user-brand">
+                <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop avatar" onerror="this.style.display='none'">
+                <span class="user-name">gloop</span>
+            </div>
+            <a href="./index.html" class="back-link">&larr; ASCEND TO SURFACE</a>
+        </header>
 
-        <div id="profileCard" class="profile-card">
-            <img id="pfp" class="profile-avatar" src="" alt="Profile Picture">
-            <div id="name" class="profile-name"></div>
-            <div id="handle" class="profile-username"></div>
-            <p id="bio" class="profile-bio"></p>
+        <!-- Main Title -->
+        <div class="page-title-box">
+            <span class="section-tag">// FRESH DATA / LIVE METRICS</span>
+            <h1>TIKTOK PROFILE VIEWER</h1>
+            <p class="description">
+                Enter any TikTok username below to look up profile pictures, bio details, live follower/following counts, and post statistics.
+            </p>
+        </div>
 
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <span id="followers" class="stat-value">--</span>
-                    <span class="stat-label">Followers</span>
-                </div>
-                <div class="stat-box">
-                    <span id="following" class="stat-value">--</span>
-                    <span class="stat-label">Following</span>
-                </div>
-                <div class="stat-box">
-                    <span id="likes" class="stat-value">--</span>
-                    <span class="stat-label">Total Likes</span>
-                </div>
-                <div class="stat-box">
-                    <span id="videos" class="stat-value">--</span>
-                    <span class="stat-label">Posted Videos</span>
+        <!-- Tool Card -->
+        <div class="tool-card">
+            <label class="card-label" for="usernameInput">ENTER TIKTOK USERNAME</label>
+            <div class="input-wrapper">
+                <input type="text" id="usernameInput" class="custom-input" placeholder="e.g. user90481726354..." autocomplete="off">
+            </div>
+            <button class="action-btn" onclick="lookupUser()">FETCH PROFILE</button>
+
+            <div class="status-info" id="statusMsg">Enter a username to lookup profile statistics.</div>
+
+            <!-- Profile Output Card -->
+            <div id="profileCard" class="profile-card">
+                <img id="pfp" class="profile-avatar" src="" alt="Profile Picture">
+                <div id="name" class="profile-name"></div>
+                <div id="handle" class="profile-username"></div>
+                <p id="bio" class="profile-bio"></p>
+
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span id="followers" class="stat-value">--</span>
+                        <span class="stat-label">Followers</span>
+                    </div>
+                    <div class="stat-box">
+                        <span id="following" class="stat-value">--</span>
+                        <span class="stat-label">Following</span>
+                    </div>
+                    <div class="stat-box">
+                        <span id="likes" class="stat-value">--</span>
+                        <span class="stat-label">Total Likes</span>
+                    </div>
+                    <div class="stat-box">
+                        <span id="videos" class="stat-value">--</span>
+                        <span class="stat-label">Posted Videos</span>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <div class="ocean-bottom-info">
+            somewhere at sea &middot; calm &middot; <span id="current-time">00:00 AM</span>
+        </div>
+
+        <footer>
+            <div>And that’s all.</div>
+            <div>gloop / 2026</div>
+        </footer>
+
     </div>
 
     <script>
@@ -232,7 +509,10 @@
             const statusMsg = document.getElementById('statusMsg');
             const card = document.getElementById('profileCard');
 
-            if (!input) return;
+            if (!input) {
+                statusMsg.innerText = 'Please enter a valid TikTok username.';
+                return;
+            }
 
             statusMsg.innerText = 'Fetching profile data...';
             card.style.display = 'none';
@@ -256,13 +536,31 @@
                 document.getElementById('likes').innerText = Number(data.likes).toLocaleString();
                 document.getElementById('videos').innerText = Number(data.videos).toLocaleString();
 
-                statusMsg.innerText = '';
+                statusMsg.innerText = `Successfully loaded @${data.username}.`;
                 card.style.display = 'flex';
             } catch (err) {
                 statusMsg.innerText = 'Failed to fetch user data.';
                 console.error(err);
             }
         }
+
+        document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                lookupUser();
+            }
+        });
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = timeStr;
+        }
+
+        (function init() {
+            updateTime();
+            setInterval(updateTime, 10000);
+        })();
     </script>
 </body>
 </html>
