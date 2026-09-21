@@ -260,7 +260,7 @@
 
         .custom-input {
             width: 100%;
-            padding: 12px 42px 12px 14px;
+            padding: 12px 14px;
             font-size: 0.95rem;
             font-weight: 600;
             font-family: inherit;
@@ -449,7 +449,7 @@
                 <span class="user-name">gloop</span>
             </div>
             <div class="nav-actions">
-                <a href="./profile.html" class="nav-link">PROFILE VIEWER</a>
+                <a href="https://reallysprinkles.com/tiktok-profile-viewer" class="nav-link">PROFILE VIEWER</a>
                 <a href="./index.html" class="nav-link">&larr; ASCEND TO SURFACE</a>
             </div>
         </header>
@@ -458,18 +458,18 @@
             <span class="section-tag">// TRACK DATA / METRICS</span>
             <h1>TIKTOK MUSIC VIEWER</h1>
             <p class="description">
-                Enter any TikTok Music ID below to retrieve track audio, author info, play count, and total video usages.
+                Enter any TikTok Music ID or Music URL below to retrieve track audio, author info, play count, and total video usages.
             </p>
         </div>
 
         <div class="tool-card">
-            <label class="card-label" for="musicIdInput">ENTER TIKTOK MUSIC ID</label>
+            <label class="card-label" for="musicInput">ENTER TIKTOK MUSIC ID OR URL</label>
             <div class="input-wrapper">
-                <input type="text" id="musicIdInput" class="custom-input" placeholder="e.g. 6747377620087819014..." autocomplete="off">
+                <input type="text" id="musicInput" class="custom-input" placeholder="e.g. 6747377620087819014 or https://www.tiktok.com/music/..." autocomplete="off">
             </div>
             <button class="action-btn" onclick="lookupMusic()">FETCH MUSIC INFO</button>
 
-            <div class="status-info" id="statusMsg">Enter a Music ID to lookup track details.</div>
+            <div class="status-info" id="statusMsg">Enter a Music ID or URL to lookup track details.</div>
 
             <div id="musicCard" class="music-card">
                 <img id="cover" class="music-cover" src="" alt="Album Cover">
@@ -515,22 +515,37 @@
     </div>
 
     <script>
+        function extractMusicId(input) {
+            const urlPattern = /music\/[^-\s]+-(\d+)/i;
+            const match = input.match(urlPattern);
+            if (match && match[1]) {
+                return match[1];
+            }
+            const digitsOnly = input.match(/\d{15,}/);
+            if (digitsOnly) {
+                return digitsOnly[0];
+            }
+            return input;
+        }
+
         async function lookupMusic() {
-            const input = document.getElementById('musicIdInput').value.trim();
+            const rawInput = document.getElementById('musicInput').value.trim();
             const statusMsg = document.getElementById('statusMsg');
             const card = document.getElementById('musicCard');
             const audioPlayer = document.getElementById('audioPlayer');
 
-            if (!input) {
-                statusMsg.innerText = 'Please enter a valid TikTok Music ID.';
+            if (!rawInput) {
+                statusMsg.innerText = 'Please enter a valid TikTok Music ID or URL.';
                 return;
             }
+
+            const musicId = extractMusicId(rawInput);
 
             statusMsg.innerText = 'Fetching music details...';
             card.style.display = 'none';
 
             try {
-                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-music-info?music_id=${encodeURIComponent(input)}`);
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-music-info?music_id=${encodeURIComponent(musicId)}`);
                 const data = await res.json();
 
                 if (!res.ok || data.error) {
@@ -548,7 +563,7 @@
                 document.getElementById('duration').innerText = data.duration ? `${data.duration}s` : 'Unknown';
                 document.getElementById('original').innerText = data.original ? 'Yes' : 'No';
                 document.getElementById('album').innerText = data.album || 'N/A';
-                document.getElementById('musicId').innerText = data.id || input;
+                document.getElementById('musicId').innerText = data.id || musicId;
 
                 statusMsg.innerText = `Successfully loaded music info.`;
                 card.style.display = 'flex';
@@ -558,7 +573,7 @@
             }
         }
 
-        document.getElementById('musicIdInput').addEventListener('keypress', function(e) {
+        document.getElementById('musicInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 lookupMusic();
             }
