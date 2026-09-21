@@ -853,37 +853,46 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
-        // TikTok Follower Count Fetcher
+        // TikTok Follower Count Fetcher with CORS Proxy fallbacks
         async function fetchTikTokFollowers() {
             const countElem = document.getElementById('tiktokFollowers');
             const username = 'user90481726354';
-            
+
+            // Endpoint 1: corsproxy.io with Countik API
             try {
-                const res = await fetch(`https://countik.com/api/user/exist/${username}`);
-                if (!res.ok) throw new Error('Network error');
-                
-                const data = await res.json();
-                if (data && data.status === 'success' && data.id) {
-                    const statsRes = await fetch(`https://countik.com/api/user/data/${data.id}`);
-                    const statsData = await statsRes.json();
-                    if (statsData && statsData.followerCount !== undefined) {
-                        countElem.innerText = Number(statsData.followerCount).toLocaleString();
-                        return;
+                const targetUrl = `https://countik.com/api/user/exist/${username}`;
+                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.status === 'success' && data.id) {
+                        const statsUrl = `https://countik.com/api/user/data/${data.id}`;
+                        const statsRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(statsUrl)}`);
+                        const statsData = await statsRes.json();
+                        if (statsData && statsData.followerCount !== undefined) {
+                            countElem.innerText = Number(statsData.followerCount).toLocaleString();
+                            return;
+                        }
                     }
                 }
-            } catch (err) {
-                console.error('Primary fetch failed, trying fallback proxy:', err);
-                try {
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.tikwm.com/api/user/info?unique_id=${username}`)}`;
-                    const fallbackRes = await fetch(proxyUrl);
+            } catch (e) {
+                console.warn('Corsproxy + Countik failed, trying next provider...');
+            }
+
+            // Endpoint 2: TikWM via AllOrigins proxy
+            try {
+                const targetUrl = `https://www.tikwm.com/api/user/info?unique_id=${username}`;
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                const fallbackRes = await fetch(proxyUrl);
+                if (fallbackRes.ok) {
                     const fallbackData = await fallbackRes.json();
                     const json = JSON.parse(fallbackData.contents);
                     if (json && json.data && json.data.stats && json.data.stats.followerCount !== undefined) {
                         countElem.innerText = Number(json.data.stats.followerCount).toLocaleString();
+                        return;
                     }
-                } catch (fallbackErr) {
-                    console.error('TikTok follower fetch completely failed:', fallbackErr);
                 }
+            } catch (e) {
+                console.warn('AllOrigins + TikWM failed.');
             }
         }
 
@@ -894,7 +903,7 @@
             setInterval(updateTime, 10000);
 
             fetchTikTokFollowers();
-            setInterval(fetchTikTokFollowers, 15000);
+            setInterval(fetchTikTokFollowers, 30000);
         })();
     </script>
 
