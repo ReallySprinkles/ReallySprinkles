@@ -651,7 +651,6 @@
                 <div class="project-header">
                     <div class="project-title">
                         <span>TikTok Profile</span>
-                        <span class="badge broken">CURRENTLY BROKEN</span>
                     </div>
                 </div>
                 <p class="project-description">
@@ -859,13 +858,12 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
-        // Reliable Live TikTok Follower Count Fetcher using Countik API (CORS friendly)
+        // Live TikTok Follower Count Fetcher using Countik API
         async function fetchTikTokFollowers() {
-            const username = 'user90481726354';
             const countElem = document.getElementById('tiktokFollowers');
             
             try {
-                const res = await fetch(`https://countik.com/api/user/exist/${username}`);
+                const res = await fetch(`https://countik.com/api/exist/user90481726354`);
                 if (!res.ok) throw new Error('API request failed');
                 
                 const data = await res.json();
