@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TikTok Profile Viewer | gloop</title>
+    <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
+
+    <style>
+        :root {
+            --bg-top: #65a2a2;
+            --bg-bottom: #123040;
+            --text-primary: #0a1820;
+            --text-secondary: rgba(10, 24, 32, 0.7);
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(10, 24, 32, 0.15);
+            --pill-bg: #0a1820;
+            --pill-text: #65a2a2;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.18);
+        }
+
+        [data-theme="dark"] {
+            --bg-top: #0d222e;
+            --bg-bottom: #050d12;
+            --text-primary: #b2e0e0;
+            --text-secondary: rgba(178, 224, 224, 0.65);
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(178, 224, 224, 0.2);
+            --pill-bg: #5ce1e6;
+            --pill-text: #050d12;
+            --card-bg: rgba(0, 0, 0, 0.25);
+            --card-border: rgba(178, 224, 224, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            margin-top: 20px;
+        }
+
+        .header-title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--card-bg);
+            color: var(--text-primary);
+            font-family: var(--mono-font);
+            font-size: 0.95rem;
+            outline: none;
+            backdrop-filter: blur(12px);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-btn {
+            padding: 12px 20px;
+            background: var(--pill-bg);
+            color: var(--pill-text);
+            border: none;
+            border-radius: 12px;
+            font-family: var(--mono-font);
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .profile-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--text-primary);
+            margin-bottom: 14px;
+            background: #111;
+        }
+
+        .profile-name {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .profile-username {
+            font-family: var(--mono-font);
+            font-size: 0.85rem;
+            opacity: 0.75;
+            margin-bottom: 12px;
+        }
+
+        .profile-bio {
+            font-size: 0.92rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+            max-width: 90%;
+            word-break: break-word;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-family: var(--mono-font);
+            font-size: 1.4rem;
+            font-weight: 900;
+        }
+
+        .stat-label {
+            font-family: var(--mono-font);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        .status-msg {
+            text-align: center;
+            font-family: var(--mono-font);
+            font-size: 0.85rem;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="header-title">TikTok Profile Viewer</h1>
+
+        <div class="search-box">
+            <input type="text" id="usernameInput" class="search-input" placeholder="Type username (e.g. user90481726354)">
+            <button onclick="lookupUser()" class="search-btn">Search</button>
+        </div>
+
+        <div id="statusMsg" class="status-msg">Enter a TikTok username to view details.</div>
+
+        <div id="profileCard" class="profile-card">
+            <img id="pfp" class="profile-avatar" src="" alt="Profile Picture">
+            <div id="name" class="profile-name"></div>
+            <div id="handle" class="profile-username"></div>
+            <p id="bio" class="profile-bio"></p>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span id="followers" class="stat-value">--</span>
+                    <span class="stat-label">Followers</span>
+                </div>
+                <div class="stat-box">
+                    <span id="following" class="stat-value">--</span>
+                    <span class="stat-label">Following</span>
+                </div>
+                <div class="stat-box">
+                    <span id="likes" class="stat-value">--</span>
+                    <span class="stat-label">Total Likes</span>
+                </div>
+                <div class="stat-box">
+                    <span id="videos" class="stat-value">--</span>
+                    <span class="stat-label">Posted Videos</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function lookupUser() {
+            const input = document.getElementById('usernameInput').value.trim();
+            const statusMsg = document.getElementById('statusMsg');
+            const card = document.getElementById('profileCard');
+
+            if (!input) return;
+
+            statusMsg.innerText = 'Fetching profile data...';
+            card.style.display = 'none';
+
+            try {
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer?username=${encodeURIComponent(input)}`);
+                const data = await res.json();
+
+                if (!res.ok || data.error) {
+                    statusMsg.innerText = data.error || 'User not found.';
+                    return;
+                }
+
+                document.getElementById('pfp').src = data.avatar || './icons/finn_the_human_pfp_.jpeg';
+                document.getElementById('name').innerText = data.nickname || data.username;
+                document.getElementById('handle').innerText = `@${data.username}`;
+                document.getElementById('bio').innerText = data.bio || 'No bio available.';
+
+                document.getElementById('followers').innerText = Number(data.followers).toLocaleString();
+                document.getElementById('following').innerText = Number(data.following).toLocaleString();
+                document.getElementById('likes').innerText = Number(data.likes).toLocaleString();
+                document.getElementById('videos').innerText = Number(data.videos).toLocaleString();
+
+                statusMsg.innerText = '';
+                card.style.display = 'flex';
+            } catch (err) {
+                statusMsg.innerText = 'Failed to fetch user data.';
+                console.error(err);
+            }
+        }
+    </script>
+</body>
+</html>
