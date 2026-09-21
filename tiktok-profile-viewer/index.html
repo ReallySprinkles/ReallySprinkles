@@ -247,7 +247,6 @@
             opacity: 0.8;
         }
 
-        /* Input Container & Recent Search Button/Dropdown Styling */
         .input-wrapper {
             position: relative;
             margin-bottom: 12px;
@@ -379,7 +378,6 @@
             text-align: center;
         }
 
-        /* Results Display Card */
         .profile-card {
             display: none;
             flex-direction: column;
@@ -444,6 +442,10 @@
             overflow: hidden;
         }
 
+        .stat-box.full-width {
+            grid-column: span 2;
+        }
+
         .stat-value {
             font-family: var(--mono-font);
             font-size: clamp(0.95rem, 4vw, 1.3rem);
@@ -503,13 +505,11 @@
 
     <div class="container">
 
-        <!-- Top Header Bar -->
         <div class="depth-radar-header">
             <div class="radar-circle"></div>
             <span>LIVE PROFILE CHECKER &middot; TIKTOK API</span>
         </div>
 
-        <!-- Profile Bar -->
         <header class="profile-header">
             <div class="user-brand">
                 <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop avatar" onerror="this.style.display='none'">
@@ -518,16 +518,14 @@
             <a href="./index.html" class="back-link">&larr; ASCEND TO SURFACE</a>
         </header>
 
-        <!-- Main Title -->
         <div class="page-title-box">
             <span class="section-tag">// FRESH DATA / LIVE METRICS</span>
             <h1>TIKTOK PROFILE VIEWER</h1>
             <p class="description">
-                Enter any TikTok username below to look up profile pictures, bio details, live follower/following counts, and post statistics.
+                Enter any TikTok username below to look up profile pictures, bio details, creation date, follower counts, and post statistics.
             </p>
         </div>
 
-        <!-- Tool Card -->
         <div class="tool-card">
             <label class="card-label" for="usernameInput">ENTER TIKTOK USERNAME</label>
             <div class="input-wrapper">
@@ -544,7 +542,6 @@
 
             <div class="status-info" id="statusMsg">Enter a username to lookup profile statistics.</div>
 
-            <!-- Profile Output Card -->
             <div id="profileCard" class="profile-card">
                 <img id="pfp" class="profile-avatar" src="" alt="Profile Picture">
                 <div id="name" class="profile-name"></div>
@@ -567,6 +564,10 @@
                     <div class="stat-box">
                         <span id="videos" class="stat-value">--</span>
                         <span class="stat-label">Posted Videos</span>
+                    </div>
+                    <div class="stat-box full-width">
+                        <span id="createdAt" class="stat-value">--</span>
+                        <span class="stat-label">Account Created</span>
                     </div>
                 </div>
             </div>
@@ -630,6 +631,16 @@
             document.getElementById('historyDropdown').classList.toggle('active');
         }
 
+        function formatDate(isoString) {
+            if (!isoString) return 'Unknown';
+            const date = new Date(isoString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
         async function lookupUser() {
             const input = document.getElementById('usernameInput').value.trim();
             const statusMsg = document.getElementById('statusMsg');
@@ -665,6 +676,7 @@
                 document.getElementById('following').innerText = Number(data.following).toLocaleString();
                 document.getElementById('likes').innerText = Number(data.likes).toLocaleString();
                 document.getElementById('videos').innerText = Number(data.videos).toLocaleString();
+                document.getElementById('createdAt').innerText = formatDate(data.createdAt);
 
                 statusMsg.innerText = `Successfully loaded @${data.username}.`;
                 card.style.display = 'flex';
