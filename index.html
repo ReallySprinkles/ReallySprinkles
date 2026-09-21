@@ -853,46 +853,19 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
-        // TikTok Follower Count Fetcher with CORS Proxy fallbacks
+        // Direct TikTok Follower Fetcher via custom endpoint
         async function fetchTikTokFollowers() {
             const countElem = document.getElementById('tiktokFollowers');
-            const username = 'user90481726354';
-
-            // Endpoint 1: corsproxy.io with Countik API
             try {
-                const targetUrl = `https://countik.com/api/user/exist/${username}`;
-                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(targetUrl)}`);
+                const res = await fetch('https://api.reallysprinkles.com/api/tiktok-followers', { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.status === 'success' && data.id) {
-                        const statsUrl = `https://countik.com/api/user/data/${data.id}`;
-                        const statsRes = await fetch(`https://corsproxy.io/?${encodeURIComponent(statsUrl)}`);
-                        const statsData = await statsRes.json();
-                        if (statsData && statsData.followerCount !== undefined) {
-                            countElem.innerText = Number(statsData.followerCount).toLocaleString();
-                            return;
-                        }
+                    if (data && data.followers !== undefined) {
+                        countElem.innerText = Number(data.followers).toLocaleString();
                     }
                 }
             } catch (e) {
-                console.warn('Corsproxy + Countik failed, trying next provider...');
-            }
-
-            // Endpoint 2: TikWM via AllOrigins proxy
-            try {
-                const targetUrl = `https://www.tikwm.com/api/user/info?unique_id=${username}`;
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-                const fallbackRes = await fetch(proxyUrl);
-                if (fallbackRes.ok) {
-                    const fallbackData = await fallbackRes.json();
-                    const json = JSON.parse(fallbackData.contents);
-                    if (json && json.data && json.data.stats && json.data.stats.followerCount !== undefined) {
-                        countElem.innerText = Number(json.data.stats.followerCount).toLocaleString();
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn('AllOrigins + TikWM failed.');
+                console.error('Failed to fetch follower count:', e);
             }
         }
 
@@ -903,7 +876,8 @@
             setInterval(updateTime, 10000);
 
             fetchTikTokFollowers();
-            setInterval(fetchTikTokFollowers, 30000);
+            // Fetch live follower updates every 5 seconds
+            setInterval(fetchTikTokFollowers, 5000);
         })();
     </script>
 
