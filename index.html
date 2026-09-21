@@ -296,11 +296,6 @@
             color: var(--pill-text);
         }
 
-        .badge.broken {
-            background: #f87171;
-            color: #ffffff;
-        }
-
         .link-icon {
             width: 18px;
             height: 18px;
@@ -646,7 +641,7 @@
                 </a>
             </nav>
 
-            <!-- TikTok Live Stats Standalone Card (Non-clickable, above Projects) -->
+            <!-- TikTok Live Stats Standalone Card -->
             <div class="project-card standalone-card">
                 <div class="project-header">
                     <div class="project-title">
@@ -858,22 +853,24 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
-        // Live TikTok Follower Count Fetcher using Countik API
+        // Updated TikTok Follower Count Fetcher
         async function fetchTikTokFollowers() {
             const countElem = document.getElementById('tiktokFollowers');
+            const username = 'user90481726354';
             
             try {
-                const res = await fetch(`https://countik.com/api/exist/user90481726354`);
-                if (!res.ok) throw new Error('API request failed');
+                // Using TikWM API which allows CORS and bypasses Cloudflare checks
+                const res = await fetch(`https://www.tikwm.com/api/user/info?unique_id=${username}`);
+                if (!res.ok) throw new Error('Network error');
                 
-                const data = await res.json();
-                
-                if (data && data.status === 'success' && data.followerCount !== undefined) {
-                    countElem.innerText = Number(data.followerCount).toLocaleString();
+                const json = await res.json();
+                if (json && json.data && json.data.stats && json.data.stats.followerCount !== undefined) {
+                    countElem.innerText = Number(json.data.stats.followerCount).toLocaleString();
                 } else if (countElem.innerText === '--') {
                     countElem.innerText = '--';
                 }
             } catch (err) {
+                console.error('Failed to fetch TikTok followers:', err);
                 if (countElem.innerText === '--') {
                     countElem.innerText = '--';
                 }
@@ -886,9 +883,9 @@
             updateTime();
             setInterval(updateTime, 10000);
 
-            // TikTok Live Count initialization and interval polling
+            // Fetch live count instantly and poll every 15 seconds
             fetchTikTokFollowers();
-            setInterval(fetchTikTokFollowers, 10000);
+            setInterval(fetchTikTokFollowers, 15000);
         })();
     </script>
 
