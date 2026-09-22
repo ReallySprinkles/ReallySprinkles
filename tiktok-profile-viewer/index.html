@@ -847,7 +847,7 @@
             listDisplay.style.display = 'none';
 
             try {
-                const res = await fetch(`/api/tiktok-profile-viewer?username=${encodeURIComponent(input)}`);
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer?username=${encodeURIComponent(input)}`);
                 const data = await res.json();
 
                 if (!res.ok || data.error) {
@@ -901,7 +901,7 @@
             listDisplay.style.display = 'block';
 
             try {
-                const res = await fetch(`/api/tiktok-profile-viewer/followinglist?username=${encodeURIComponent(currentLoadedUsername)}`);
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer/followinglist?username=${encodeURIComponent(currentLoadedUsername)}`);
                 const data = await res.json();
 
                 if (!res.ok || data.isPrivate || data.error || !data.list || data.list.length === 0) {
@@ -928,7 +928,7 @@
             listDisplay.style.display = 'block';
 
             try {
-                const res = await fetch(`/api/tiktok-profile-viewer/followerlist?username=${encodeURIComponent(currentLoadedUsername)}`);
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer/followerlist?username=${encodeURIComponent(currentLoadedUsername)}`);
                 const data = await res.json();
 
                 if (!res.ok || data.error || !data.list || data.list.length === 0) {
