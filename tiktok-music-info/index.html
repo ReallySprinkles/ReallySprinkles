@@ -515,19 +515,6 @@
     </div>
 
     <script>
-        function extractMusicId(input) {
-            const urlPattern = /music\/[^-\s]+-(\d+)/i;
-            const match = input.match(urlPattern);
-            if (match && match[1]) {
-                return match[1];
-            }
-            const digitsOnly = input.match(/\d{15,}/);
-            if (digitsOnly) {
-                return digitsOnly[0];
-            }
-            return input;
-        }
-
         async function lookupMusic() {
             const rawInput = document.getElementById('musicInput').value.trim();
             const statusMsg = document.getElementById('statusMsg');
@@ -539,13 +526,12 @@
                 return;
             }
 
-            const musicId = extractMusicId(rawInput);
-
             statusMsg.innerText = 'Fetching music details...';
             card.style.display = 'none';
 
             try {
-                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-music-info?music_id=${encodeURIComponent(musicId)}`);
+                // Fixed: Sends raw input string directly using `url` parameter instead of stripped `music_id`
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-music-info?url=${encodeURIComponent(rawInput)}`);
                 const data = await res.json();
 
                 if (!res.ok || data.error) {
@@ -557,13 +543,13 @@
                 document.getElementById('title').innerText = data.title || 'Untitled Track';
                 document.getElementById('author').innerText = data.author ? `by @${data.author}` : 'Unknown Author';
                 
-                audioPlayer.src = data.play || '';
+                audioPlayer.src = data.play || data.playUrl || '';
 
-                document.getElementById('videoCount').innerText = Number(data.video_count || 0).toLocaleString();
+                document.getElementById('videoCount').innerText = Number(data.video_count || data.videoCount || 0).toLocaleString();
                 document.getElementById('duration').innerText = data.duration ? `${data.duration}s` : 'Unknown';
                 document.getElementById('original').innerText = data.original ? 'Yes' : 'No';
                 document.getElementById('album').innerText = data.album || 'N/A';
-                document.getElementById('musicId').innerText = data.id || musicId;
+                document.getElementById('musicId').innerText = data.id || 'N/A';
 
                 statusMsg.innerText = `Successfully loaded music info.`;
                 card.style.display = 'flex';
