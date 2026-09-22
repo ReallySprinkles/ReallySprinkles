@@ -530,7 +530,7 @@
             card.style.display = 'none';
 
             try {
-                const res = await fetch(`/api/tiktok-music-info?url=${encodeURIComponent(rawInput)}`);
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-music-info?url=${encodeURIComponent(rawInput)}`);
                 const data = await res.json();
 
                 if (!res.ok || data.error) {
