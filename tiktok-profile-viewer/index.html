@@ -570,7 +570,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 6px 0;
+            padding: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
@@ -579,10 +579,11 @@
         }
 
         .list-item-avatar {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: cover;
+            border: 1px solid var(--glass-border);
         }
 
         .list-item-info {
@@ -901,15 +902,18 @@
             listDisplay.style.display = 'block';
 
             try {
-                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer/followinglist?username=${encodeURIComponent(currentLoadedUsername)}`);
-                const data = await res.json();
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-following?username=${encodeURIComponent(currentLoadedUsername)}`);
+                const json = await res.json();
 
-                if (!res.ok || data.isPrivate || data.error || !data.list || data.list.length === 0) {
+                // Extract following array directly from json.data.following or json.data
+                const rawList = json?.data?.following || json?.data?.list || json?.list || [];
+
+                if (!res.ok || json.error || !Array.isArray(rawList) || rawList.length === 0) {
                     listContent.innerHTML = '<div class="list-message">This user’s following list is private or unavailable.</div>';
                     return;
                 }
 
-                renderUserList(data.list);
+                renderUserList(rawList);
             } catch (err) {
                 console.error(err);
                 listContent.innerHTML = '<div class="list-message">This user’s following list is private or unavailable.</div>';
@@ -928,15 +932,17 @@
             listDisplay.style.display = 'block';
 
             try {
-                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer/followerlist?username=${encodeURIComponent(currentLoadedUsername)}`);
-                const data = await res.json();
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-followers?username=${encodeURIComponent(currentLoadedUsername)}`);
+                const json = await res.json();
 
-                if (!res.ok || data.error || !data.list || data.list.length === 0) {
+                const rawList = json?.data?.followers || json?.data?.list || json?.list || [];
+
+                if (!res.ok || json.error || !Array.isArray(rawList) || rawList.length === 0) {
                     listContent.innerHTML = '<div class="list-message">This user’s followers list is private or unavailable.</div>';
                     return;
                 }
 
-                renderUserList(data.list);
+                renderUserList(rawList);
             } catch (err) {
                 console.error(err);
                 listContent.innerHTML = '<div class="list-message">This user’s followers list is private or unavailable.</div>';
@@ -945,15 +951,28 @@
 
         function renderUserList(users) {
             const listContent = document.getElementById('listContent');
-            listContent.innerHTML = users.map(u => `
-                <div class="list-item-user">
-                    <img class="list-item-avatar" src="${u.avatar || './icons/finn_the_human_pfp_.jpeg'}" alt="Avatar" onerror="this.src='./icons/finn_the_human_pfp_.jpeg'">
-                    <div class="list-item-info">
-                        <span class="list-item-name">${u.nickname || u.username}</span>
-                        <span class="list-item-handle">@${u.username}</span>
+
+            listContent.innerHTML = users.map(u => {
+                // Parse nested avatar from avatar_thumb, avatar_168x168, or fallback string
+                const avatar = u.avatar_thumb?.url_list?.[0]
+                    || u.avatar_168x168?.url_list?.[0]
+                    || u.avatar_300x300?.url_list?.[0]
+                    || u.avatar
+                    || './icons/finn_the_human_pfp_.jpeg';
+
+                const username = u.unique_id || u.username || u.uniqueId || 'unknown';
+                const nickname = u.nickname || username;
+
+                return `
+                    <div class="list-item-user">
+                        <img class="list-item-avatar" src="${avatar}" alt="Avatar" onerror="this.src='./icons/finn_the_human_pfp_.jpeg'">
+                        <div class="list-item-info">
+                            <span class="list-item-name">${nickname}</span>
+                            <span class="list-item-handle">@${username}</span>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         document.getElementById('historyBtn').addEventListener('click', function(e) {
