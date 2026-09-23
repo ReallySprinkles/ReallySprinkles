@@ -932,7 +932,7 @@
             listDisplay.style.display = 'block';
 
             try {
-                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-followers?username=${encodeURIComponent(currentLoadedUsername)}`);
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer/followerlist?username=${encodeURIComponent(currentLoadedUsername)}`);
                 const json = await res.json();
 
                 const rawList = json?.data?.followers || json?.data?.list || json?.data || json?.list || [];
