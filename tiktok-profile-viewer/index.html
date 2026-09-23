@@ -902,11 +902,11 @@
             listDisplay.style.display = 'block';
 
             try {
-                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-following?username=${encodeURIComponent(currentLoadedUsername)}`);
+                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer/followinglist?username=${encodeURIComponent(currentLoadedUsername)}`);
                 const json = await res.json();
 
-                // Extract following array directly from json.data.following or json.data
-                const rawList = json?.data?.following || json?.data?.list || json?.list || [];
+                // Extract following array directly from json.data.following, json.data, or root list
+                const rawList = json?.data?.following || json?.data?.list || json?.data || json?.list || [];
 
                 if (!res.ok || json.error || !Array.isArray(rawList) || rawList.length === 0) {
                     listContent.innerHTML = '<div class="list-message">This user’s following list is private or unavailable.</div>';
@@ -935,7 +935,7 @@
                 const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-followers?username=${encodeURIComponent(currentLoadedUsername)}`);
                 const json = await res.json();
 
-                const rawList = json?.data?.followers || json?.data?.list || json?.list || [];
+                const rawList = json?.data?.followers || json?.data?.list || json?.data || json?.list || [];
 
                 if (!res.ok || json.error || !Array.isArray(rawList) || rawList.length === 0) {
                     listContent.innerHTML = '<div class="list-message">This user’s followers list is private or unavailable.</div>';
