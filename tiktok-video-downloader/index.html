@@ -370,6 +370,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
             transition: opacity 0.2s ease;
         }
 
@@ -501,8 +502,8 @@
                 <div id="author" class="video-author"></div>
 
                 <div class="download-actions">
-                    <a id="dlVideo" class="dl-btn" href="#" target="_blank" download>DOWNLOAD NO-WATERMARK VIDEO</a>
-                    <a id="dlMusic" class="dl-btn" href="#" target="_blank" download>DOWNLOAD AUDIO</a>
+                    <button id="dlVideo" class="dl-btn" onclick="triggerDownload(currentVideoUrl, 'tiktok_video.mp4')">DOWNLOAD NO-WATERMARK VIDEO</button>
+                    <button id="dlMusic" class="dl-btn" onclick="triggerDownload(currentMusicUrl, 'tiktok_audio.mp3')">DOWNLOAD AUDIO</button>
                 </div>
 
                 <div class="stats-grid">
@@ -530,6 +531,47 @@
     </div>
 
     <script>
+        let currentVideoUrl = '';
+        let currentMusicUrl = '';
+
+        async function triggerDownload(url, filename) {
+            const statusMsg = document.getElementById('statusMsg');
+            if (!url) {
+                statusMsg.innerText = 'Download link unavailable.';
+                return;
+            }
+
+            statusMsg.innerText = 'Preparing download file...';
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const blob = await response.blob();
+                
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(blobUrl);
+
+                statusMsg.innerText = 'Download initiated!';
+            } catch (error) {
+                console.error('Direct download failed, attempting window open:', error);
+                // Fallback to direct navigation if CORS blocks blob fetching
+                const a = document.createElement('a');
+                a.href = url;
+                a.setAttribute('download', filename);
+                a.target = '_self';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                statusMsg.innerText = 'Prompting download...';
+            }
+        }
+
         async function lookupVideo() {
             const rawInput = document.getElementById('videoInput').value.trim();
             const statusMsg = document.getElementById('statusMsg');
@@ -556,13 +598,13 @@
                 document.getElementById('title').innerText = data.title || 'Untitled Video';
                 document.getElementById('author').innerText = data.author ? `@${data.author}` : 'Unknown Author';
 
-                videoPlayer.src = data.playUrl || data.downloadUrl || '';
+                currentVideoUrl = data.downloadUrl || data.playUrl || '';
+                currentMusicUrl = data.musicUrl || '';
+
+                videoPlayer.src = currentVideoUrl;
                 if (data.cover) {
                     videoPlayer.poster = data.cover;
                 }
-
-                document.getElementById('dlVideo').href = data.downloadUrl || data.playUrl || '#';
-                document.getElementById('dlMusic').href = data.musicUrl || '#';
 
                 const seconds = Math.round((data.durationMs || 0) / 1000);
                 document.getElementById('duration').innerText = seconds ? `${seconds}s` : 'Unknown';
