@@ -558,60 +558,85 @@
             try {
                 const endpoint = `https://api.reallysprinkles.com/api/tiktok-reposts-viewer?username=${encodeURIComponent(currentUsername)}&cursor=${currentCursor}`;
                 const res = await fetch(endpoint);
-                const data = await res.json();
+                const json = await res.json();
 
-                if (!res.ok || data.status !== 'success') {
-                    statusMsg.innerText = data.error || 'Failed to retrieve reposts.';
+                if (!res.ok || json.status !== 'success' || !json.data) {
+                    statusMsg.innerText = json.error || 'Failed to retrieve reposts.';
                     return;
                 }
 
-                if (!data.reposts || data.reposts.length === 0) {
+                const d = json.data;
+                const rawList = d.reposts || [];
+
+                if (rawList.length === 0) {
                     if (isNewSearch) statusMsg.innerText = 'No reposted videos found for this account.';
                     else statusMsg.innerText = 'No more reposts to load.';
                     loadMoreBtn.style.display = 'none';
                     return;
                 }
 
-                hasMore = data.hasMore;
-                currentCursor = data.nextCursor || currentCursor;
+                hasMore = !!d.has_more;
+                currentCursor = d.next_cursor !== undefined ? d.next_cursor : currentCursor;
 
                 const proxyBase = 'https://api.reallysprinkles.com/api/download-proxy';
 
-                data.reposts.forEach(item => {
+                rawList.forEach(item => {
                     const card = document.createElement('div');
                     card.className = 'video-card';
 
-                    const videoDl = `${proxyBase}?url=${encodeURIComponent(item.media.playUrl)}&filename=${item.id}_video.mp4`;
-                    const audioDl = `${proxyBase}?url=${encodeURIComponent(item.media.musicUrl)}&filename=${item.id}_audio.mp3`;
+                    // Extract raw play URL and fallback options from dev.omar-thing payload
+                    const playUrl = item.video?.play_addr?.url_list?.[0] || 
+                                    item.video?.download_addr?.url_list?.[0] || 
+                                    item.video?.play_addr_h264?.url_list?.[0] || '';
+
+                    const coverUrl = item.video?.cover?.url_list?.[0] || 
+                                     item.video?.origin_cover?.url_list?.[0] || 
+                                     item.video?.dynamic_cover?.url_list?.[0] || '';
+
+                    const musicUrl = item.music?.play_url?.url_list?.[0] || 
+                                     item.music?.play_url?.uri || '';
+
+                    const videoId = item.aweme_id || item.id || 'tiktok';
+                    const desc = item.desc || 'No description available';
+                    const authorNick = item.author?.nickname || 'Creator';
+                    const authorId = item.author?.unique_id || item.author?.uniqueId || 'unknown';
+
+                    const plays = item.statistics?.play_count ?? item.statistics?.playCount ?? 0;
+                    const likes = item.statistics?.digg_count ?? item.statistics?.diggCount ?? 0;
+                    const comments = item.statistics?.comment_count ?? item.statistics?.commentCount ?? 0;
+                    const shares = item.statistics?.share_count ?? item.statistics?.shareCount ?? 0;
+
+                    const videoDl = `${proxyBase}?media_url=${encodeURIComponent(playUrl)}&action=download&filename=${videoId}_video.mp4`;
+                    const audioDl = `${proxyBase}?media_url=${encodeURIComponent(musicUrl)}&action=download&filename=${videoId}_audio.mp3`;
 
                     card.innerHTML = `
-                        <video class="video-player" controls playsinline poster="${item.media.cover}">
-                            <source src="${item.media.playUrl}" type="video/mp4">
+                        <video class="video-player" controls playsinline poster="${coverUrl}">
+                            <source src="${playUrl}" type="video/mp4">
                             Your browser does not support HTML5 video.
                         </video>
-                        <div class="video-title">${item.desc}</div>
-                        <div class="video-author">Original by @${item.author.uniqueId} (${item.author.nickname})</div>
+                        <div class="video-title">${desc}</div>
+                        <div class="video-author">Original by @${authorId} (${authorNick})</div>
 
                         <div class="download-actions">
-                            <a class="dl-btn" href="${videoDl}" target="_self">DOWNLOAD NO-WATERMARK VIDEO</a>
-                            ${item.media.musicUrl ? `<a class="dl-btn" href="${audioDl}" target="_self">DOWNLOAD AUDIO</a>` : ''}
+                            ${playUrl ? `<a class="dl-btn" href="${videoDl}" target="_self">DOWNLOAD NO-WATERMARK VIDEO</a>` : ''}
+                            ${musicUrl ? `<a class="dl-btn" href="${audioDl}" target="_self">DOWNLOAD AUDIO</a>` : ''}
                         </div>
 
                         <div class="stats-grid">
                             <div class="stat-box">
-                                <span class="stat-value">${formatNumber(item.stats.plays)}</span>
+                                <span class="stat-value">${formatNumber(plays)}</span>
                                 <span class="stat-label">Plays</span>
                             </div>
                             <div class="stat-box">
-                                <span class="stat-value">${formatNumber(item.stats.likes)}</span>
+                                <span class="stat-value">${formatNumber(likes)}</span>
                                 <span class="stat-label">Likes</span>
                             </div>
                             <div class="stat-box">
-                                <span class="stat-value">${formatNumber(item.stats.comments)}</span>
+                                <span class="stat-value">${formatNumber(comments)}</span>
                                 <span class="stat-label">Comments</span>
                             </div>
                             <div class="stat-box">
-                                <span class="stat-value">${formatNumber(item.stats.shares)}</span>
+                                <span class="stat-value">${formatNumber(shares)}</span>
                                 <span class="stat-label">Shares</span>
                             </div>
                         </div>
@@ -619,7 +644,7 @@
                     feed.appendChild(card);
                 });
 
-                statusMsg.innerText = `Loaded ${feed.children.length} reposts for @${data.username}.`;
+                statusMsg.innerText = `Loaded ${feed.children.length} reposts for @${d.username || currentUsername}.`;
 
                 if (hasMore) {
                     loadMoreBtn.style.display = 'block';
