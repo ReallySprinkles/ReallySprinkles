@@ -152,6 +152,13 @@
             justify-content: space-between;
         }
 
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         .user-brand {
             display: flex;
             align-items: center;
@@ -174,7 +181,7 @@
             text-transform: lowercase;
         }
 
-        .back-link {
+        .nav-link {
             font-family: var(--mono-font);
             font-size: 0.72rem;
             color: var(--text-primary);
@@ -192,7 +199,7 @@
             transition: all 0.2s ease;
         }
 
-        .back-link:hover {
+        .nav-link:hover {
             opacity: 1;
             background: rgba(255, 255, 255, 0.15);
         }
@@ -640,6 +647,7 @@
         @media (max-width: 480px) {
             h1 { font-size: 2.1rem; }
             .vertical-text { display: none; }
+            .nav-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .stat-box.full-width { grid-column: span 2; }
         }
@@ -667,7 +675,12 @@
                 <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop avatar" onerror="this.style.display='none'">
                 <span class="user-name">gloop</span>
             </div>
-            <a href="./index.html" class="back-link">&larr; ASCEND TO SURFACE</a>
+            <div class="nav-actions">
+                <a href="https://reallysprinkles.com/tiktok-music-info" class="nav-link">MUSIC INFO</a>
+                <a href="https://reallysprinkles.com/tiktok-video-downloader" class="nav-link">VIDEO DOWNLOADER</a>
+                <a href="https://reallysprinkles.com/tiktok-reposts-viewer" class="nav-link">REPOSTS VIEWER</a>
+                <a href="./index.html" class="nav-link">&larr; ASCEND TO SURFACE</a>
+            </div>
         </header>
 
         <div class="page-title-box">
