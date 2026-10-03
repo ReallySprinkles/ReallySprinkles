@@ -1,563 +1,885 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" data-theme="system">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>gloop — Guides, projects and downloads</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>gloop’s Stuff</title>
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#0d1117',
-                        foreground: '#f0f6fc',
-                        card: '#161b22',
-                        border: 'rgba(240, 246, 252, 0.12)',
-                        primary: {
-                            DEFAULT: '#38bdf8',
-                            foreground: '#0f172a'
-                        },
-                        muted: {
-                            DEFAULT: '#161b22',
-                            foreground: '#8b949e'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Roboto', 'sans-serif'],
-                        display: ['Roboto', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- Google Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0" rel="stylesheet" />
+    <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
+    <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
 
     <style>
+        :root {
+            --bg-top: #65a2a2;
+            --bg-bottom: #123040;
+            --text-primary: #0a1820;
+            --text-secondary: rgba(10, 24, 32, 0.7);
+            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(10, 24, 32, 0.15);
+            --accent-color: #0b1d28;
+            --pill-bg: #0a1820;
+            --pill-text: #65a2a2;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.18);
+        }
+
+        [data-theme="dark"] {
+            --bg-top: #0d222e;
+            --bg-bottom: #050d12;
+            --text-primary: #b2e0e0;
+            --text-secondary: rgba(178, 224, 224, 0.65);
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(178, 224, 224, 0.2);
+            --accent-color: #5ce1e6;
+            --pill-bg: #5ce1e6;
+            --pill-text: #050d12;
+            --card-bg: rgba(0, 0, 0, 0.25);
+            --card-border: rgba(178, 224, 224, 0.15);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            [data-theme="system"] {
+                --bg-top: #0d222e;
+                --bg-bottom: #050d12;
+                --text-primary: #b2e0e0;
+                --text-secondary: rgba(178, 224, 224, 0.65);
+                --glass-bg: rgba(0, 0, 0, 0.2);
+                --glass-border: rgba(178, 224, 224, 0.2);
+                --accent-color: #5ce1e6;
+                --pill-bg: #5ce1e6;
+                --pill-text: #050d12;
+                --card-bg: rgba(0, 0, 0, 0.25);
+                --card-border: rgba(178, 224, 224, 0.15);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            background-color: #0d1117;
-            color: #f0f6fc;
-            font-family: 'Roboto', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 20px 120px 20px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
+            position: relative;
         }
 
-        .glass {
-            background: rgba(22, 27, 34, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-        }
-
-        .aurora {
-            position: absolute;
-            top: -100px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(139, 92, 246, 0.1) 40%, transparent 70%);
-            filter: blur(60px);
+        .vertical-text {
+            position: fixed;
+            left: 12px;
+            top: 25%;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            opacity: 0.45;
+            white-space: nowrap;
             pointer-events: none;
             z-index: 0;
+            text-transform: uppercase;
         }
 
-        .brand-letter-gradient {
-            background: linear-gradient(135deg, #38bdf8 0%, #c084fc 50%, #f472b6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .ascii-art {
+            position: absolute;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.35;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+        .ascii-1 { top: 18%; right: 12%; }
+        .ascii-2 { top: 38%; right: 8%; }
+        .ascii-3 { top: 62%; left: 8%; }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+            position: relative;
+            z-index: 1;
         }
 
-        .glow-ring {
-            box-shadow: 0 0 25px -5px rgba(56, 189, 248, 0.25);
+        .depth-radar-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            opacity: 0.85;
         }
 
-        .m3-transition {
-            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+        .radar-circle {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
 
-        .modal-backdrop {
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
+        .radar-circle::after {
+            content: '';
+            width: 5px;
+            height: 5px;
+            background: currentColor;
+            border-radius: 50%;
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.35s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .profile-header {
+            margin-bottom: 28px;
+            margin-top: 10px;
+        }
+
+        .avatar-wrapper {
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--text-primary);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 0.95;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .subtitle-badge {
+            display: inline-block;
+            font-style: italic;
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
+        .section-tag {
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: inline-block;
+            opacity: 0.75;
+        }
+
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-primary);
+            font-weight: 600;
+            text-decoration: none;
+            padding: 8px 14px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .social-link svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .social-link:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .projects {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        a.project-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--text-primary);
+        }
+
+        .standalone-card {
+            margin-bottom: 32px;
+        }
+
+        .project-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .project-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .badge {
+            font-family: var(--mono-font);
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: var(--pill-bg);
+            color: var(--pill-text);
+        }
+
+        .link-icon {
+            width: 18px;
+            height: 18px;
+            opacity: 0.6;
+        }
+
+        .project-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            line-height: 1.45;
+        }
+
+        /* TikTok Live Count Styling */
+        .tiktok-stats-container {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tiktok-follower-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tiktok-follower-number {
+            font-family: var(--mono-font);
+            font-size: 1.6rem;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        .tiktok-follower-label {
+            font-family: var(--mono-font);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
+        }
+
+        .live-dot-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono-font);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.85;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #f87171;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #f87171;
+            animation: pulse-animation 1.5s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(248, 113, 113, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+        }
+
+        .repo-container {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .repo-url-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 8px 12px;
+            gap: 10px;
+        }
+
+        .repo-url {
+            font-family: var(--mono-font);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+
+        .repo-url::-webkit-scrollbar {
+            display: none;
+        }
+
+        .copy-btn {
+            background: var(--pill-bg);
+            color: var(--pill-text);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: var(--mono-font);
+            cursor: pointer;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .app-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 700;
+            font-family: var(--mono-font);
+            font-size: 0.78rem;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: background 0.2s ease;
+        }
+
+        .app-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .settings-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .settings-header {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 18px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .setting-label {
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.8;
+        }
+
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .theme-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: var(--mono-font);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            opacity: 0.6;
+            transition: all 0.2s ease;
+        }
+
+        .theme-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .theme-btn.active {
+            background: var(--pill-bg);
+            color: var(--pill-text);
+            opacity: 1;
+        }
+
+        .ocean-bottom-info {
+            font-family: var(--mono-font);
+            font-size: 0.72rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.75;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            text-align: center;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.6;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .bottom-nav-wrapper {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: auto;
+        }
+
+        .bottom-nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--pill-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 9999px;
+            padding: 5px 8px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            text-decoration: none;
+            color: var(--pill-text);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            border-radius: 9999px;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.6;
+            transition: opacity 0.2s ease, background 0.2s ease;
+        }
+
+        .nav-item.active {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .nav-icon {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 2.6rem; }
+            .vertical-text { display: none; }
         }
     </style>
 </head>
+<body>
 
-<body class="min-h-screen w-full relative">
-
-    <div class="aurora" aria-hidden="true"></div>
-
-    <!-- Menu Toggle Button -->
-    <button type="button" id="menuToggleBtn" onclick="toggleNav()" aria-label="Open menu" class="fixed top-4 left-4 z-[70] grid size-12 place-items-center rounded-[18px] border border-border glass text-foreground m3-transition hover:scale-105 active:scale-95 shadow-lg">
-        <span class="material-symbols-rounded leading-none" id="menuIcon">menu</span>
-    </button>
-
-    <!-- Overlay Backdrop -->
-    <div id="navOverlay" onclick="toggleNav()" class="fixed inset-0 z-[60] bg-background/50 transition-opacity duration-300 pointer-events-none opacity-0"></div>
-
-    <!-- Navigation Drawer -->
-    <nav id="navDrawer" class="fixed top-4 left-4 z-[65] overflow-hidden border border-border glass transition-all duration-300 pointer-events-none w-12 h-12 rounded-[18px] opacity-0 shadow-2xl">
-        <ul class="flex h-full flex-col justify-center gap-1 px-4 pt-16 pb-4">
-            <li>
-                <a class="flex w-full items-center gap-3 rounded-[20px] px-3 py-2 text-left font-display text-base font-medium m3-transition hover:bg-white/10 text-foreground" href="#">
-                    <span class="material-symbols-rounded text-[22px]">home</span>Home
-                </a>
-            </li>
-            <li>
-                <a href="#projects-section" onclick="toggleNav()" class="flex w-full items-center gap-3 rounded-[20px] px-3 py-2 text-left font-display text-base font-medium m3-transition hover:bg-white/10 text-muted-foreground hover:text-foreground">
-                    <span class="material-symbols-rounded text-[22px]">folder_special</span>Projects
-                </a>
-            </li>
-            <li>
-                <a href="#articles-section" onclick="toggleNav()" class="flex w-full items-center gap-3 rounded-[20px] px-3 py-2 text-left font-display text-base font-medium m3-transition hover:bg-white/10 text-muted-foreground hover:text-foreground">
-                    <span class="material-symbols-rounded text-[22px]">article</span>Articles
-                </a>
-            </li>
-            <li>
-                <button type="button" onclick="openAuthModal()" class="flex w-full items-center gap-3 rounded-[20px] px-3 py-2 text-left font-display text-base font-medium m3-transition hover:bg-white/10 text-muted-foreground hover:text-foreground">
-                    <span class="material-symbols-rounded text-[22px]">person</span><span id="navAuthLabel">Login / Sign Up</span>
-                </button>
-            </li>
-            <li id="adminNavBtn" class="hidden">
-                <button type="button" onclick="openAdminModal()" class="flex w-full items-center gap-3 rounded-[20px] px-3 py-2 text-left font-display text-base font-medium m3-transition hover:bg-white/10 text-amber-400">
-                    <span class="material-symbols-rounded text-[22px]">edit_note</span>Create Article
-                </button>
-            </li>
-            <li id="logoutNavBtn" class="hidden">
-                <button type="button" onclick="handleLogout()" class="flex w-full items-center gap-3 rounded-[20px] px-3 py-2 text-left font-display text-base font-medium m3-transition hover:bg-white/10 text-red-400">
-                    <span class="material-symbols-rounded text-[22px]">logout</span>Logout
-                </button>
-            </li>
-        </ul>
-    </nav>
-
-    <!-- Main Container -->
-    <main class="pb-16 relative z-10">
-        <div class="mx-auto max-w-[1200px] px-5 py-10 md:px-12 md:py-20">
-            
-            <!-- Hero Section -->
-            <section class="relative">
-                <div class="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
-                    <div>
-                        <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-border glass px-4 py-2 text-[13px] font-medium tracking-wide text-foreground">
-                            <span class="material-symbols-rounded text-[18px] text-sky-400">auto_awesome</span>Updated weekly
-                        </p>
-                        <h1 class="font-display text-[42px] leading-[1.02] font-medium tracking-tight md:text-[60px] lg:text-[76px]">
-                            <span class="brand-letter-gradient font-bold">gloop</span>
-                        </h1>
-                        <p class="mt-4 max-w-xl text-[18px] leading-relaxed text-muted-foreground">Find the downloads, projects, and guides from gloop.</p>
-                        
-                        <!-- Follower & Project Counter Stats -->
-                        <div class="mt-6 flex items-center gap-6 p-4 rounded-2xl border border-border/60 glass w-fit">
-                            <div>
-                                <span id="followerCount" class="text-2xl font-bold text-sky-400">12.4K</span>
-                                <p class="text-xs text-muted-foreground">Followers</p>
-                            </div>
-                            <div class="h-8 w-px bg-border"></div>
-                            <div>
-                                <span id="projectCount" class="text-2xl font-bold text-purple-400">18</span>
-                                <p class="text-xs text-muted-foreground">Projects</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 flex flex-wrap items-center gap-4">
-                            <a href="#articles-section">
-                                <button class="m3-transition inline-flex items-center justify-center gap-2 rounded-full text-[15px] font-medium px-7 h-14 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold shadow-lg hover:shadow-sky-500/20 active:scale-[0.98]">
-                                    View Articles<span class="material-symbols-rounded text-[20px]">arrow_forward</span>
-                                </button>
-                            </a>
-                            <span id="userWelcomeBadge" class="text-[14px] text-muted-foreground">Sign in to publish guides or comment.</span>
-                        </div>
-                    </div>
-                    
-                    <div class="relative">
-                        <div class="overflow-hidden rounded-[36px] border border-border glow-ring bg-slate-900/60 p-2">
-                            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop" alt="gloop banner" class="h-[240px] w-full object-cover rounded-[28px] md:h-[380px]" />
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Verification System Cards -->
-            <section class="mt-20 grid gap-6 md:grid-cols-2">
-                <div>
-                    <div class="rounded-[28px] border border-border glass p-6 md:p-7 h-full">
-                        <h3 class="font-display text-[20px] font-medium">Verified checkmarks</h3>
-                        <p class="mt-2 text-[15px] leading-relaxed text-muted-foreground">Every signed-in account gets a verified badge next to its name, so you always know who you're reading.</p>
-                        <ul class="mt-4 space-y-3 text-[15px]">
-                            <li class="flex items-center gap-3">
-                                <span class="material-symbols-rounded text-amber-400">verified</span>
-                                <span><strong>Golden check</strong> — @gloop, the developer and site owner (First user registered).</span>
-                            </li>
-                            <li class="flex items-center gap-3">
-                                <span class="material-symbols-rounded text-emerald-400">verified</span>
-                                <span><strong>Green check</strong> — Community moderators.</span>
-                            </li>
-                            <li class="flex items-center gap-3">
-                                <span class="material-symbols-rounded text-sky-400">verified</span>
-                                <span><strong>Blue check</strong> — Verified members.</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex h-full flex-col justify-center rounded-[28px] border border-border bg-slate-800/40 p-7 md:p-8">
-                        <h3 class="font-display text-[20px] font-medium">Join the conversation</h3>
-                        <p class="mt-2 text-[15px] leading-relaxed text-muted-foreground">Articles are open for discussion. Sign in to post articles (owner) or leave comments with your verified badge.</p>
-                        <div class="mt-5" id="authBoxAction">
-                            <button onclick="openAuthModal()" class="m3-transition inline-flex items-center justify-center gap-2 rounded-full text-[15px] font-medium px-7 h-12 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold active:scale-[0.98]">
-                                Sign in
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Projects Section -->
-            <section class="mt-20" id="projects-section">
-                <div class="flex items-center gap-3 mb-8">
-                    <span class="h-1 w-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full"></span>
-                    <h2 class="font-display text-[28px] font-medium tracking-tight md:text-[40px]">Projects</h2>
-                </div>
-                <div class="grid gap-6 sm:grid-cols-3" id="projectsContainer">
-                    <div class="rounded-[24px] border border-border glass p-6 hover:border-purple-500/40 m3-transition">
-                        <span class="material-symbols-rounded text-purple-400 text-3xl mb-3">terminal</span>
-                        <h3 class="font-bold text-lg mb-1">gloop OS Tweaks</h3>
-                        <p class="text-sm text-muted-foreground mb-4">A collection of custom scripts and tools designed to streamline system performance.</p>
-                        <span class="text-xs px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">Active</span>
-                    </div>
-                    <div class="rounded-[24px] border border-border glass p-6 hover:border-purple-500/40 m3-transition">
-                        <span class="material-symbols-rounded text-pink-400 text-3xl mb-3">palette</span>
-                        <h3 class="font-bold text-lg mb-1">Material Fluid Icons</h3>
-                        <p class="text-sm text-muted-foreground mb-4">Custom vector icon pack designed with modern dynamic theme algorithms.</p>
-                        <span class="text-xs px-3 py-1 rounded-full bg-pink-500/10 text-pink-400 border border-pink-500/20">Released</span>
-                    </div>
-                    <div class="rounded-[24px] border border-border glass p-6 hover:border-purple-500/40 m3-transition">
-                        <span class="material-symbols-rounded text-sky-400 text-3xl mb-3">api</span>
-                        <h3 class="font-bold text-lg mb-1">Gloop Sync API</h3>
-                        <p class="text-sm text-muted-foreground mb-4">Lightweight JSON synchronization endpoint for publishing dynamic website articles.</p>
-                        <span class="text-xs px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">v1.2</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Articles Section -->
-            <section class="mt-20" id="articles-section">
-                <div class="flex flex-wrap items-end justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <span class="h-1 w-10 bg-gradient-to-r from-sky-400 to-purple-500 rounded-full"></span>
-                        <h2 class="font-display text-[28px] font-medium tracking-tight md:text-[40px]">Latest articles</h2>
-                    </div>
-                    <button id="createArticleTopBtn" onclick="openAdminModal()" class="hidden m3-transition inline-flex items-center justify-center gap-2 rounded-full px-5 h-10 bg-amber-500/10 border border-amber-500/30 text-amber-400 font-medium hover:bg-amber-500/20">
-                        <span class="material-symbols-rounded text-[18px]">add</span> New Article
-                    </button>
-                </div>
-
-                <div id="articlesContainer" class="mt-8 grid gap-6 sm:grid-cols-2">
-                    <!-- Dynamic Articles Rendered Here -->
-                </div>
-            </section>
-
-        </div>
-    </main>
-
-    <!-- Auth Modal -->
-    <div id="authModal" class="fixed inset-0 z-[100] modal-backdrop flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-border rounded-[28px] p-6 md:p-8 max-w-md w-full shadow-2xl relative">
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-                <span class="material-symbols-rounded">close</span>
-            </button>
-            <h2 class="text-2xl font-bold mb-2" id="authTitle">Sign In / Register</h2>
-            <p class="text-sm text-muted-foreground mb-6">Note: The first user registered will automatically become the site Owner (@gloop)!</p>
-            
-            <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-muted-foreground mb-1">Username</label>
-                    <input type="text" id="authUsername" required class="w-full bg-slate-950 border border-border rounded-xl px-4 py-3 text-foreground outline-none focus:border-sky-500" placeholder="e.g. gloop">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-muted-foreground mb-1">Password</label>
-                    <input type="password" id="authPassword" required class="w-full bg-slate-950 border border-border rounded-xl px-4 py-3 text-foreground outline-none focus:border-sky-500" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 rounded-xl m3-transition mt-2">
-                    Continue
-                </button>
-            </form>
-        </div>
+    <div class="vertical-text">
+        The river keeps flowing, just like the sea
     </div>
 
-    <!-- Admin / Create Article Modal -->
-    <div id="adminModal" class="fixed inset-0 z-[100] modal-backdrop flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-border rounded-[28px] p-6 md:p-8 max-w-lg w-full shadow-2xl relative">
-            <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-                <span class="material-symbols-rounded">close</span>
-            </button>
-            <h2 class="text-2xl font-bold mb-4">Create / Sync Article API</h2>
-            
-            <form id="articleForm" onsubmit="handleSaveArticle(event)" class="space-y-4">
-                <input type="hidden" id="articleId">
-                <div>
-                    <label class="block text-xs font-medium text-muted-foreground mb-1">Title</label>
-                    <input type="text" id="articleTitle" required class="w-full bg-slate-950 border border-border rounded-xl px-4 py-2.5 text-foreground outline-none focus:border-sky-500" placeholder="Article title">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-muted-foreground mb-1">Image URL</label>
-                    <input type="url" id="articleImage" required class="w-full bg-slate-950 border border-border rounded-xl px-4 py-2.5 text-foreground outline-none focus:border-sky-500" placeholder="https://images.unsplash.com/...">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-muted-foreground mb-1">Excerpt / Description</label>
-                    <textarea id="articleExcerpt" required rows="3" class="w-full bg-slate-950 border border-border rounded-xl px-4 py-2.5 text-foreground outline-none focus:border-sky-500" placeholder="Brief overview..."></textarea>
-                </div>
-                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl m3-transition mt-2">
-                    Publish to API
-                </button>
-            </form>
+    <div class="ascii-art ascii-1">~ . (&deg;)))&gt;. ~</div>
+    <div class="ascii-art ascii-2">&gt;&middot;)))&gt;&middot;</div>
+    <div class="ascii-art ascii-3">&gt;(((&deg;)</div>
+
+    <div class="container">
+
+        <div class="depth-radar-header">
+            <div class="radar-circle"></div>
+            <span id="radar-depth-text">o 01 &middot; SURFACE &middot; 0000m</span>
         </div>
+
+        <div id="home-tab" class="tab-content active">
+            <header class="profile-header">
+                <div class="avatar-wrapper">
+                    <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop Avatar">
+                </div>
+                <h1>gloop</h1>
+                <div class="subtitle-badge">content creator who just posts anything for fun</div>
+            </header>
+
+            <nav class="social-links">
+                <a class="social-link" href="https://www.tiktok.com/@user90481726354" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.31 1.54-1.28 2.53.02 1.08.62 2.07 1.56 2.57.94.52 2.12.51 3.04-.03.79-.45 1.29-1.31 1.32-2.22.03-4.31.01-8.62.01-12.93z"/></svg>
+                    TikTok
+                </a>
+                <a class="social-link" href="https://www.instagram.com/imgloopbro" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    Instagram
+                </a>
+                <a class="social-link" href="https://discord.gg/Ta8ZtP4sCf" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                    Discord
+                </a>
+                <a class="social-link" href="https://twitter.com/imgloopbro" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    X
+                </a>
+                <a class="social-link" href="https://github.com/reallysprinkles" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub
+                </a>
+                <a class="social-link" href="https://www.youtube.com/@imgloopbroo" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    YouTube
+                </a>
+                <a class="social-link" href="mailto:help@reallysprinkles.com">
+                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    Email
+                </a>
+            </nav>
+
+            <!-- TikTok Live Stats Standalone Card -->
+            <div class="project-card standalone-card">
+                <div class="project-header">
+                    <div class="project-title">
+                        <span>TikTok Profile</span>
+                    </div>
+                </div>
+                <p class="project-description">
+                    @user90481726354 on TikTok
+                </p>
+
+                <div class="tiktok-stats-container">
+                    <div class="tiktok-follower-box">
+                        <span class="tiktok-follower-number" id="tiktokFollowers">--</span>
+                        <span class="tiktok-follower-label">Followers</span>
+                    </div>
+                    <div class="live-dot-container">
+                        <div class="pulse-dot"></div>
+                        <span>UPDATES LIVE</span>
+                    </div>
+                </div>
+            </div>
+
+            <span class="section-tag">// PROJECTS</span>
+
+            <main class="projects">
+                <!-- IPSW Checker Project Card -->
+                <a class="project-card" href="https://reallysprinkles.com/ipsw" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>Firmware Signing Check</span>
+                            <span class="badge">TOOL</span>
+                        </div>
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </div>
+                    <p class="project-description">
+                        Check real-time Apple iOS, iPadOS, and device firmware signing status powered by IPSW API.
+                    </p>
+                </a>
+
+                <a class="project-card" href="https://reallysprinkles.github.io/respring" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>Web respringer</span>
+                            <span class="badge">PWA</span>
+                        </div>
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </div>
+                    <p class="project-description">
+                        A minimal Progressive Web App (PWA) that runs a respring-style script inside a sandboxed iframe.
+                    </p>
+                </a>
+
+                <a class="project-card" href="https://www.reallysprinkles.com/editipa" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>iPA Editor</span>
+                            <span class="badge">WEB</span>
+                        </div>
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </div>
+                    <p class="project-description">
+                        A simple iPA editor.
+                    </p>
+                </a>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>AltStore Repo</span>
+                            <span class="badge">REPOSITORY</span>
+                        </div>
+                    </div>
+                    <p class="project-description">
+                        My main altstore repository. It includes apps like Unc0ver and much more useful stuff
+                    </p>
+
+                    <div class="repo-container">
+                        <div class="repo-url-box">
+                            <span class="repo-url" id="repoUrl">https://reallysprinkles.com/altstorerepo.json</span>
+                            <button class="copy-btn" onclick="copyRepoUrl()" id="copyBtn">COPY</button>
+                        </div>
+
+                        <div class="btn-grid">
+                            <a class="app-btn" href="sidestore://source?url=https://reallysprinkles.com/altstorerepo.json">SideStore</a>
+                            <a class="app-btn" href="altstore://source?url=https://reallysprinkles.com/altstorerepo.json">AltStore</a>
+                            <a class="app-btn" href="ksign://source/https://reallysprinkles.com/altstorerepo.json">KSign</a>
+                            <a class="app-btn" href="esign://addsource?url=https://reallysprinkles.com/altstorerepo.json">eSign</a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <div class="ocean-bottom-info">
+                somewhere at sea &middot; calm &middot; <span id="current-time">04:12 AM</span>
+            </div>
+
+            <footer>
+                <div>And that’s all.</div>
+                <div>gloop / 2026</div>
+            </footer>
+        </div>
+
+        <div id="settings-tab" class="tab-content">
+            <div class="settings-card">
+                <div class="settings-header">Settings</div>
+                <div class="setting-group">
+                    <div class="setting-label">Appearance</div>
+                    <div class="theme-selector">
+                        <button class="theme-btn" onclick="setTheme('dark')" id="theme-btn-dark">
+                            <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-5.4-5.4c0-1.81.89-3.42 2.26-4.4C12.92 3.04 12.46 3 12 3z"/></svg>
+                            DARK
+                        </button>
+                        <button class="theme-btn" onclick="setTheme('light')" id="theme-btn-light">
+                            <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
+                            LIGHT
+                        </button>
+                        <button class="theme-btn" onclick="setTheme('system')" id="theme-btn-system">
+                            <svg viewBox="0 0 24 24"><path d="M4 6h16v10H4z" fill="none"/><path d="M20 4H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h6l-2 2v1h8v-1l-2-2h6c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 12H4V6h16v10z"/></svg>
+                            AUTO
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ocean-bottom-info" style="margin-top: 30px;">
+                somewhere at sea &middot; calm
+            </div>
+
+            <footer>
+                <div>And that’s all.</div>
+                <div>gloop / 2026</div>
+            </footer>
+        </div>
+
     </div>
 
-    <!-- Application Script -->
+    <div class="bottom-nav-wrapper">
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="switchTab('home')" id="nav-home">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                SURFACE
+            </button>
+            <button class="nav-item" onclick="switchTab('settings')" id="nav-settings">
+                <svg class="nav-icon" viewBox="0 0 24 24">
+                    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6-3.6z"/>
+                </svg>
+                SETTINGS
+            </button>
+        </nav>
+    </div>
+
     <script>
-        // Initial Articles Data Store
-        const INITIAL_ARTICLES = [
-            {
-                id: "1",
-                title: "Android Tuning & Performance Optimization",
-                excerpt: "Complete guide on tweaking system values and removing bloatware without root.",
-                image: "https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?q=80&w=800&auto=format&fit=crop",
-                author: "gloop",
-                badge: "gold",
-                date: "Oct 2026"
-            },
-            {
-                id: "2",
-                title: "Material Design 3 Integration Blueprint",
-                excerpt: "Learn how to build fluid themes using modern dynamic color algorithms.",
-                image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=800&auto=format&fit=crop",
-                author: "gloop",
-                badge: "gold",
-                date: "Sep 2026"
-            }
-        ];
-
-        // System State
-        let currentUser = JSON.parse(localStorage.getItem('gloop_user')) || null;
-        let usersStore = JSON.parse(localStorage.getItem('gloop_users_db')) || [];
-        let articlesStore = JSON.parse(localStorage.getItem('gloop_articles_api')) || INITIAL_ARTICLES;
-
-        // UI Initialization
-        document.addEventListener('DOMContentLoaded', () => {
-            renderArticles();
-            updateAuthUI();
-        });
-
-        // Navigation Drawer Logic
-        let navOpen = false;
-        function toggleNav() {
-            navOpen = !navOpen;
-            const drawer = document.getElementById('navDrawer');
-            const overlay = document.getElementById('navOverlay');
-            const icon = document.getElementById('menuIcon');
-
-            if (navOpen) {
-                drawer.classList.remove('w-12', 'h-12', 'pointer-events-none', 'opacity-0');
-                drawer.classList.add('w-64', 'h-80', 'pointer-events-auto', 'opacity-100');
-                overlay.classList.remove('pointer-events-none', 'opacity-0');
-                overlay.classList.add('pointer-events-auto', 'opacity-100');
-                icon.innerText = 'close';
-            } else {
-                drawer.classList.add('w-12', 'h-12', 'pointer-events-none', 'opacity-0');
-                drawer.classList.remove('w-64', 'h-80', 'pointer-events-auto', 'opacity-100');
-                overlay.classList.add('pointer-events-none', 'opacity-0');
-                overlay.classList.remove('pointer-events-auto', 'opacity-100');
-                icon.innerText = 'menu';
-            }
+        function copyRepoUrl() {
+            const urlText = document.getElementById('repoUrl').innerText;
+            navigator.clipboard.writeText(urlText).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = 'COPIED!';
+                setTimeout(() => {
+                    btn.innerText = 'COPY';
+                }, 2000);
+            }).catch(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = 'COPIED!';
+                setTimeout(() => {
+                    btn.innerText = 'COPY';
+                }, 2000);
+            });
         }
 
-        // Auth Logic
-        function openAuthModal() {
-            document.getElementById('authModal').classList.remove('hidden');
-        }
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const navItems = document.querySelectorAll('.nav-item');
+            const radarText = document.getElementById('radar-depth-text');
 
-        function closeAuthModal() {
-            document.getElementById('authModal').classList.add('hidden');
-        }
+            tabs.forEach(tab => tab.classList.remove('active'));
+            navItems.forEach(item => item.classList.remove('active'));
 
-        function handleAuth(e) {
-            e.preventDefault();
-            const username = document.getElementById('authUsername').value.trim();
-            const password = document.getElementById('authPassword').value;
-
-            if (!username || !password) return;
-
-            let existingUser = usersStore.find(u => u.username.toLowerCase() === username.toLowerCase());
-
-            if (!existingUser) {
-                // First user registered becomes owner!
-                const isOwner = usersStore.length === 0;
-                existingUser = {
-                    username,
-                    password,
-                    role: isOwner ? 'owner' : 'member',
-                    badge: isOwner ? 'gold' : 'blue'
-                };
-                usersStore.push(existingUser);
-                localStorage.setItem('gloop_users_db', JSON.stringify(usersStore));
+            if (tabName === 'home') {
+                document.getElementById('home-tab').classList.add('active');
+                document.getElementById('nav-home').classList.add('active');
+                if (radarText) radarText.innerText = 'o 01 · SURFACE · 0000m';
+            } else if (tabName === 'settings') {
+                document.getElementById('settings-tab').classList.add('active');
+                document.getElementById('nav-settings').classList.add('active');
+                if (radarText) radarText.innerText = 'o 02 · SHALLOW · 0060m';
             }
 
-            currentUser = existingUser;
-            localStorage.setItem('gloop_user', JSON.stringify(currentUser));
-
-            closeAuthModal();
-            updateAuthUI();
-            renderArticles();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function handleLogout() {
-            currentUser = null;
-            localStorage.removeItem('gloop_user');
-            updateAuthUI();
-            renderArticles();
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            updateThemeButtons(theme);
         }
 
-        function updateAuthUI() {
-            const welcomeBadge = document.getElementById('userWelcomeBadge');
-            const navAuthLabel = document.getElementById('navAuthLabel');
-            const authBoxAction = document.getElementById('authBoxAction');
-            const adminNavBtn = document.getElementById('adminNavBtn');
-            const logoutNavBtn = document.getElementById('logoutNavBtn');
-            const createArticleTopBtn = document.getElementById('createArticleTopBtn');
+        function updateThemeButtons(theme) {
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`theme-btn-${theme}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
 
-            if (currentUser) {
-                const badgeColor = currentUser.role === 'owner' ? 'text-amber-400' : 'text-sky-400';
-                welcomeBadge.innerHTML = `Signed in as <strong class="${badgeColor}">@${currentUser.username}</strong> (${currentUser.role.toUpperCase()})`;
-                navAuthLabel.innerText = currentUser.username;
-                
-                authBoxAction.innerHTML = `
-                    <p class="text-sm text-emerald-400 font-medium">Logged in and verified!</p>
-                `;
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = timeStr;
+        }
 
-                logoutNavBtn.classList.remove('hidden');
-
-                if (currentUser.role === 'owner') {
-                    adminNavBtn.classList.remove('hidden');
-                    createArticleTopBtn.classList.remove('hidden');
-                } else {
-                    adminNavBtn.classList.add('hidden');
-                    createArticleTopBtn.classList.add('hidden');
+        // Direct TikTok Follower Fetcher via custom endpoint
+        async function fetchTikTokFollowers() {
+            const countElem = document.getElementById('tiktokFollowers');
+            try {
+                const res = await fetch('https://api.reallysprinkles.com/api/tiktok-followers', { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.followers !== undefined) {
+                        countElem.innerText = Number(data.followers).toLocaleString();
+                    }
                 }
-            } else {
-                welcomeBadge.innerText = 'Sign in to publish guides or comment.';
-                navAuthLabel.innerText = 'Login / Sign Up';
-                authBoxAction.innerHTML = `
-                    <button onclick="openAuthModal()" class="m3-transition inline-flex items-center justify-center gap-2 rounded-full text-[15px] font-medium px-7 h-12 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold active:scale-[0.98]">
-                        Sign in
-                    </button>
-                `;
-                adminNavBtn.classList.add('hidden');
-                logoutNavBtn.classList.add('hidden');
-                createArticleTopBtn.classList.add('hidden');
+            } catch (e) {
+                console.error('Failed to fetch follower count:', e);
             }
         }
 
-        // Admin Article Management
-        function openAdminModal(articleId = null) {
-            document.getElementById('adminModal').classList.remove('hidden');
-            if (articleId) {
-                const art = articlesStore.find(a => a.id === articleId);
-                if (art) {
-                    document.getElementById('articleId').value = art.id;
-                    document.getElementById('articleTitle').value = art.title;
-                    document.getElementById('articleImage').value = art.image;
-                    document.getElementById('articleExcerpt').value = art.excerpt;
-                }
-            } else {
-                document.getElementById('articleForm').reset();
-                document.getElementById('articleId').value = '';
-            }
-        }
+        (function init() {
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            setTheme(savedTheme);
+            updateTime();
+            setInterval(updateTime, 10000);
 
-        function closeAdminModal() {
-            document.getElementById('adminModal').classList.add('hidden');
-        }
-
-        async function handleSaveArticle(e) {
-            e.preventDefault();
-            if (!currentUser || currentUser.role !== 'owner') return;
-
-            const id = document.getElementById('articleId').value || Date.now().toString();
-            const title = document.getElementById('articleTitle').value;
-            const image = document.getElementById('articleImage').value;
-            const excerpt = document.getElementById('articleExcerpt').value;
-
-            const articleData = {
-                id,
-                title,
-                image,
-                excerpt,
-                author: currentUser.username,
-                badge: 'gold',
-                date: 'Oct 2026'
-            };
-
-            const existingIndex = articlesStore.findIndex(a => a.id === id);
-            if (existingIndex > -1) {
-                articlesStore[existingIndex] = articleData;
-            } else {
-                articlesStore.unshift(articleData);
-            }
-
-            // Sync with local API state
-            localStorage.setItem('gloop_articles_api', JSON.stringify(articlesStore));
-
-            closeAdminModal();
-            renderArticles();
-        }
-
-        function deleteArticle(id) {
-            if (!currentUser || currentUser.role !== 'owner') return;
-            articlesStore = articlesStore.filter(a => a.id !== id);
-            localStorage.setItem('gloop_articles_api', JSON.stringify(articlesStore));
-            renderArticles();
-        }
-
-        // Render Articles to DOM
-        function renderArticles() {
-            const container = document.getElementById('articlesContainer');
-            if (!articlesStore.length) {
-                container.innerHTML = `<p class="col-span-2 text-center text-muted-foreground py-10">No articles available.</p>`;
-                return;
-            }
-
-            container.innerHTML = articlesStore.map(art => `
-                <div class="rounded-[28px] border border-border glass p-5 flex flex-col justify-between hover:border-sky-500/40 m3-transition group">
-                    <div>
-                        <div class="overflow-hidden rounded-[20px] mb-4 h-48">
-                            <img src="${art.image}" alt="${art.title}" class="w-full h-full object-cover group-hover:scale-105 m3-transition">
-                        </div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="material-symbols-rounded text-amber-400 text-sm">verified</span>
-                            <span class="text-xs font-semibold text-amber-400">@${art.author}</span>
-                            <span class="text-xs text-muted-foreground">• ${art.date}</span>
-                        </div>
-                        <h3 class="font-display text-xl font-bold mb-2 group-hover:text-sky-400 m3-transition">${art.title}</h3>
-                        <p class="text-sm text-muted-foreground leading-relaxed">${art.excerpt}</p>
-                    </div>
-
-                    ${currentUser && currentUser.role === 'owner' ? `
-                        <div class="mt-4 pt-4 border-t border-border/50 flex gap-2 justify-end">
-                            <button onclick="openAdminModal('${art.id}')" class="text-xs px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500/20">Edit</button>
-                            <button onclick="deleteArticle('${art.id}')" class="text-xs px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20">Delete</button>
-                        </div>
-                    ` : ''}
-                </div>
-            `).join('');
-        }
+            fetchTikTokFollowers();
+            // Fetch live follower updates every 5 seconds
+            setInterval(fetchTikTokFollowers, 5000);
+        })();
     </script>
+
 </body>
 </html>
