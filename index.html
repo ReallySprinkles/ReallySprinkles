@@ -8,7 +8,7 @@
     <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
     <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
 
-    <!-- Fixed Google Fonts Links -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -100,62 +100,6 @@
             word-wrap: normal;
             direction: ltr;
             -webkit-font-smoothing: antialiased;
-        }
-
-        /* Continuous Scrolling Announcement Bar (Like Video #2) */
-        .announcement-bar-container {
-            position: fixed;
-            top: 16px;
-            left: 72px;
-            right: 16px;
-            z-index: 998;
-            height: 44px;
-            background: var(--md-sys-color-surface-container-low);
-            border: 1px solid var(--md-sys-color-outline-variant);
-            border-radius: 14px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .ticker-track {
-            display: flex;
-            width: max-content;
-            animation: scroll-ticker 18s linear infinite;
-        }
-
-        .ticker-track:hover {
-            animation-play-state: paused;
-        }
-
-        .ticker-item {
-            font-family: var(--mono-font);
-            font-size: 0.8rem;
-            color: var(--md-sys-color-on-background);
-            opacity: 0.85;
-            white-space: nowrap;
-            padding-right: 50px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .ticker-badge {
-            background-color: var(--md-sys-color-primary-container);
-            color: var(--md-sys-color-on-primary-container);
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: var(--md-shape-full);
-            text-transform: uppercase;
-        }
-
-        @keyframes scroll-ticker {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
         }
 
         /* Overlay Loader */
@@ -697,6 +641,7 @@
             border: none;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            cursor: pointer;
             transition: background-color 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
@@ -890,17 +835,6 @@
         </div>
     </div>
 
-    <!-- Continuous Auto-Scrolling Ticker (Video #2 style) -->
-    <div class="announcement-bar-container">
-        <div class="ticker-track">
-            <div class="ticker-item"><span class="ticker-badge">Notice</span> The app is almost done! Check back later.</div>
-            <div class="ticker-item"><span class="ticker-badge">Update</span> New AltStore tools added to repo!</div>
-            <!-- Duplicated elements for seamless infinite scroll -->
-            <div class="ticker-item"><span class="ticker-badge">Notice</span> The app is almost done! Check back later.</div>
-            <div class="ticker-item"><span class="ticker-badge">Update</span> New AltStore tools added to repo!</div>
-        </div>
-    </div>
-
     <div class="vertical-text">
         The river keeps flowing, just like the sea
     </div>
@@ -1052,10 +986,10 @@
                         </div>
 
                         <div class="btn-grid">
-                            <a class="app-btn" href="sidestore://source?url=https://reallysprinkles.com/altstorerepo.json">SideStore</a>
-                            <a class="app-btn" href="altstore://source?url=https://reallysprinkles.com/altstorerepo.json">AltStore</a>
-                            <a class="app-btn" href="ksign://source/https://reallysprinkles.com/altstorerepo.json">KSign</a>
-                            <a class="app-btn" href="esign://addsource?url=https://reallysprinkles.com/altstorerepo.json">eSign</a>
+                            <button class="app-btn" onclick="openAppScheme('sidestore://source?url=https://reallysprinkles.com/altstorerepo.json')">SideStore</button>
+                            <button class="app-btn" onclick="openAppScheme('altstore://source?url=https://reallysprinkles.com/altstorerepo.json')">AltStore</button>
+                            <button class="app-btn" onclick="openAppScheme('ksign://source/https://reallysprinkles.com/altstorerepo.json')">KSign</button>
+                            <button class="app-btn" onclick="openAppScheme('esign://addsource?url=https://reallysprinkles.com/altstorerepo.json')">eSign</button>
                         </div>
                     </div>
                 </div>
@@ -1123,6 +1057,46 @@
     </div>
 
     <script>
+        // Send page analytics hit to custom endpoint
+        function trackPageHit() {
+            try {
+                let sessionId = localStorage.getItem('analytics_session_id');
+                if (!sessionId) {
+                    sessionId = 'session-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now();
+                    localStorage.setItem('analytics_session_id', sessionId);
+                }
+
+                const payloadData = JSON.stringify({
+                    "user-agent": navigator.userAgent,
+                    "locale": navigator.language || "en-US",
+                    "location": "EG",
+                    "referrer": document.referrer || "",
+                    "pathname": window.location.pathname,
+                    "href": window.location.href
+                });
+
+                const analyticsPayload = {
+                    "timestamp": new Date().toISOString(),
+                    "action": "page_hit",
+                    "version": "1",
+                    "session_id": sessionId,
+                    "payload": payloadData
+                };
+
+                fetch('https://api2.reallysprinkles.com/~api/analytics', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(analyticsPayload)
+                }).catch(err => console.error('Analytics tracking failed:', err));
+            } catch (e) {
+                console.error('Analytics error:', e);
+            }
+        }
+
+        function openAppScheme(url) {
+            window.location.href = url;
+        }
+
         function copyRepoUrl() {
             const urlText = document.getElementById('repoUrl').innerText;
             navigator.clipboard.writeText(urlText).then(() => {
@@ -1264,6 +1238,7 @@
         }
 
         (function init() {
+            trackPageHit();
             const savedTheme = localStorage.getItem('theme') || 'dark';
             setTheme(savedTheme);
             updateTime();
