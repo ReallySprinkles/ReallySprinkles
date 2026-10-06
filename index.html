@@ -8,49 +8,73 @@
     <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
     <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
 
+    <!-- Material Design Font (Roboto) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --bg-top: #65a2a2;
-            --bg-bottom: #123040;
-            --text-primary: #0a1820;
-            --text-secondary: rgba(10, 24, 32, 0.7);
-            --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(10, 24, 32, 0.15);
-            --accent-color: #0b1d28;
-            --pill-bg: #0a1820;
-            --pill-text: #65a2a2;
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --card-border: rgba(255, 255, 255, 0.18);
+            /* Material Design 3 Light Tokens (Ocean Themed) */
+            --md-sys-color-background: #EBF4F6;
+            --md-sys-color-on-background: #081C24;
+            --md-sys-color-surface: #F2F8F9;
+            --md-sys-color-surface-container-lowest: #FFFFFF;
+            --md-sys-color-surface-container-low: #E4EFF1;
+            --md-sys-color-surface-container: #DBEAEB;
+            --md-sys-color-surface-container-high: #D0E3E5;
+            --md-sys-color-primary: #124D63;
+            --md-sys-color-on-primary: #FFFFFF;
+            --md-sys-color-primary-container: #C3E8F5;
+            --md-sys-color-on-primary-container: #001E2B;
+            --md-sys-color-secondary-container: #CCE6EB;
+            --md-sys-color-on-secondary-container: #051F26;
+            --md-sys-color-outline: #6E838B;
+            --md-sys-color-outline-variant: #BECED4;
+            
+            --mono-font: 'Roboto Mono', ui-monospace, monospace;
+            --body-font: 'Roboto', -apple-system, sans-serif;
+            --md-shape-full: 9999px;
+            --md-shape-xlarge: 28px;
+            --md-shape-medium: 12px;
         }
 
         [data-theme="dark"] {
-            --bg-top: #0d222e;
-            --bg-bottom: #050d12;
-            --text-primary: #b2e0e0;
-            --text-secondary: rgba(178, 224, 224, 0.65);
-            --glass-bg: rgba(0, 0, 0, 0.2);
-            --glass-border: rgba(178, 224, 224, 0.2);
-            --accent-color: #5ce1e6;
-            --pill-bg: #5ce1e6;
-            --pill-text: #050d12;
-            --card-bg: rgba(0, 0, 0, 0.25);
-            --card-border: rgba(178, 224, 224, 0.15);
+            /* Material Design 3 Dark Tokens */
+            --md-sys-color-background: #0B1418;
+            --md-sys-color-on-background: #DEE3E6;
+            --md-sys-color-surface: #101B21;
+            --md-sys-color-surface-container-lowest: #080F13;
+            --md-sys-color-surface-container-low: #142127;
+            --md-sys-color-surface-container: #18282F;
+            --md-sys-color-surface-container-high: #20313A;
+            --md-sys-color-primary: #86D2EB;
+            --md-sys-color-on-primary: #003547;
+            --md-sys-color-primary-container: #004D65;
+            --md-sys-color-on-primary-container: #C3E8F5;
+            --md-sys-color-secondary-container: #334A52;
+            --md-sys-color-on-secondary-container: #CCE6EB;
+            --md-sys-color-outline: #889C9F;
+            --md-sys-color-outline-variant: #3F4D52;
         }
 
         @media (prefers-color-scheme: dark) {
             [data-theme="system"] {
-                --bg-top: #0d222e;
-                --bg-bottom: #050d12;
-                --text-primary: #b2e0e0;
-                --text-secondary: rgba(178, 224, 224, 0.65);
-                --glass-bg: rgba(0, 0, 0, 0.2);
-                --glass-border: rgba(178, 224, 224, 0.2);
-                --accent-color: #5ce1e6;
-                --pill-bg: #5ce1e6;
-                --pill-text: #050d12;
-                --card-bg: rgba(0, 0, 0, 0.25);
-                --card-border: rgba(178, 224, 224, 0.15);
+                --md-sys-color-background: #0B1418;
+                --md-sys-color-on-background: #DEE3E6;
+                --md-sys-color-surface: #101B21;
+                --md-sys-color-surface-container-lowest: #080F13;
+                --md-sys-color-surface-container-low: #142127;
+                --md-sys-color-surface-container: #18282F;
+                --md-sys-color-surface-container-high: #20313A;
+                --md-sys-color-primary: #86D2EB;
+                --md-sys-color-on-primary: #003547;
+                --md-sys-color-primary-container: #004D65;
+                --md-sys-color-on-primary-container: #C3E8F5;
+                --md-sys-color-secondary-container: #334A52;
+                --md-sys-color-on-secondary-container: #CCE6EB;
+                --md-sys-color-outline: #889C9F;
+                --md-sys-color-outline-variant: #3F4D52;
             }
         }
 
@@ -62,31 +86,31 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
-            background-attachment: fixed;
-            color: var(--text-primary);
+            font-family: var(--body-font);
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 20px 120px 20px;
+            padding: 24px 20px 130px 20px;
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
             position: relative;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .vertical-text {
             position: fixed;
-            left: 12px;
+            left: 16px;
             top: 25%;
             transform: rotate(-90deg);
             transform-origin: left top;
             font-family: var(--mono-font);
             font-size: 0.75rem;
             letter-spacing: 0.15em;
-            opacity: 0.45;
+            opacity: 0.4;
             white-space: nowrap;
             pointer-events: none;
             z-index: 0;
@@ -97,58 +121,62 @@
             position: absolute;
             font-family: var(--mono-font);
             font-size: 0.75rem;
-            opacity: 0.35;
+            opacity: 0.3;
             pointer-events: none;
             user-select: none;
             z-index: 0;
         }
-        .ascii-1 { top: 18%; right: 12%; }
-        .ascii-2 { top: 38%; right: 8%; }
-        .ascii-3 { top: 62%; left: 8%; }
+        .ascii-1 { top: 18%; right: 10%; }
+        .ascii-2 { top: 38%; right: 6%; }
+        .ascii-3 { top: 62%; left: 6%; }
 
         .container {
             width: 100%;
-            max-width: 520px;
+            max-width: 540px;
             position: relative;
             z-index: 1;
         }
 
+        /* Material Header Pill */
         .depth-radar-header {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             font-family: var(--mono-font);
-            font-size: 0.72rem;
-            letter-spacing: 0.12em;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
             margin-bottom: 24px;
+            padding: 6px 16px;
+            background-color: var(--md-sys-color-surface-container);
+            color: var(--md-sys-color-on-background);
+            border-radius: var(--md-shape-full);
             text-transform: uppercase;
-            opacity: 0.85;
+            font-weight: 500;
         }
 
         .radar-circle {
-            width: 18px;
-            height: 18px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            border: 1px solid currentColor;
+            border: 2px solid var(--md-sys-color-primary);
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
 
         .radar-circle::after {
             content: '';
-            width: 5px;
-            height: 5px;
-            background: currentColor;
+            width: 4px;
+            height: 4px;
+            background: var(--md-sys-color-primary);
             border-radius: 50%;
         }
 
         .tab-content {
             display: none;
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.35s ease;
+            transform: translateY(12px);
+            transition: opacity 0.3s cubic-bezier(0.2, 0, 0, 1), transform 0.3s cubic-bezier(0.2, 0, 0, 1);
         }
 
         .tab-content.active {
@@ -158,85 +186,86 @@
         }
 
         .profile-header {
-            margin-bottom: 28px;
-            margin-top: 10px;
+            margin-bottom: 32px;
+            margin-top: 8px;
         }
 
         .avatar-wrapper {
             display: inline-block;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            position: relative;
         }
 
         .avatar {
-            width: 90px;
-            height: 90px;
+            width: 96px;
+            height: 96px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1px solid var(--text-primary);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--md-sys-color-outline-variant);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         h1 {
-            font-size: 3.2rem;
+            font-size: 3rem;
             font-weight: 900;
-            letter-spacing: -0.04em;
-            line-height: 0.95;
+            letter-spacing: -0.03em;
+            line-height: 1;
             margin-bottom: 12px;
-            color: var(--text-primary);
+            color: var(--md-sys-color-on-background);
         }
 
         .subtitle-badge {
-            display: inline-block;
-            font-style: italic;
+            display: block;
             font-size: 1.05rem;
-            font-weight: 500;
-            color: var(--text-primary);
-            opacity: 0.9;
+            font-weight: 400;
+            color: var(--md-sys-color-on-background);
+            opacity: 0.8;
         }
 
         .section-tag {
             font-family: var(--mono-font);
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             letter-spacing: 0.15em;
             text-transform: uppercase;
             margin-bottom: 16px;
             display: inline-block;
-            opacity: 0.75;
+            font-weight: 700;
+            color: var(--md-sys-color-primary);
         }
 
         .social-links {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
+        /* Material 3 Assist Chips */
         .social-link {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            color: var(--text-primary);
-            font-weight: 600;
+            gap: 8px;
+            color: var(--md-sys-color-on-background);
+            font-weight: 500;
             text-decoration: none;
-            padding: 8px 14px;
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 9999px;
-            font-size: 0.82rem;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            transition: transform 0.2s ease, background-color 0.2s ease;
+            padding: 8px 16px;
+            background-color: var(--md-sys-color-surface-container-low);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-shape-full);
+            font-size: 0.85rem;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
         }
 
         .social-link svg {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             fill: currentColor;
         }
 
         .social-link:hover {
-            transform: translateY(-2px);
-            background: rgba(255, 255, 255, 0.15);
+            background-color: var(--md-sys-color-surface-container-high);
+            border-color: var(--md-sys-color-outline);
+            transform: translateY(-1px);
         }
 
         .projects {
@@ -246,73 +275,75 @@
             margin-bottom: 40px;
         }
 
+        /* Material 3 Surface Containers / Cards */
         .project-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: 20px;
+            background-color: var(--md-sys-color-surface-container-low);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-shape-xlarge);
+            padding: 24px;
             text-decoration: none;
             color: inherit;
             display: block;
-            transition: transform 0.25s ease, border-color 0.25s ease;
+            transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
         }
 
         a.project-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--text-primary);
+            background-color: var(--md-sys-color-surface-container);
+            border-color: var(--md-sys-color-primary);
+            transform: translateY(-2px);
         }
 
         .standalone-card {
             margin-bottom: 32px;
+            background-color: var(--md-sys-color-surface-container);
         }
 
         .project-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
 
         .project-title {
-            font-size: 1.2rem;
-            font-weight: 800;
+            font-size: 1.25rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 8px;
-            letter-spacing: -0.02em;
+            gap: 10px;
+            letter-spacing: -0.01em;
         }
 
+        /* Material Badge */
         .badge {
             font-family: var(--mono-font);
-            font-size: 0.62rem;
+            font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            padding: 3px 8px;
-            border-radius: 4px;
-            background: var(--pill-bg);
-            color: var(--pill-text);
+            padding: 4px 10px;
+            border-radius: var(--md-shape-full);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
         }
 
         .link-icon {
-            width: 18px;
-            height: 18px;
-            opacity: 0.6;
+            width: 20px;
+            height: 20px;
+            opacity: 0.7;
         }
 
         .project-description {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            line-height: 1.45;
+            font-size: 0.92rem;
+            opacity: 0.85;
+            line-height: 1.5;
         }
 
         /* TikTok Live Count Styling */
         .tiktok-stats-container {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px dashed var(--glass-border);
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--md-sys-color-outline-variant);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -325,9 +356,10 @@
 
         .tiktok-follower-number {
             font-family: var(--mono-font);
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 900;
             line-height: 1.1;
+            color: var(--md-sys-color-primary);
         }
 
         .tiktok-follower-label {
@@ -341,12 +373,12 @@
         .live-dot-container {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-family: var(--mono-font);
-            font-size: 0.65rem;
+            font-size: 0.68rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            opacity: 0.85;
+            opacity: 0.9;
         }
 
         .pulse-dot {
@@ -365,27 +397,27 @@
         }
 
         .repo-container {
-            margin-top: 14px;
+            margin-top: 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .repo-url-box {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 8px 12px;
+            background-color: var(--md-sys-color-surface-container-lowest);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-shape-medium);
+            padding: 10px 14px;
             gap: 10px;
         }
 
         .repo-url {
             font-family: var(--mono-font);
-            font-size: 0.78rem;
-            color: var(--accent-color);
+            font-size: 0.8rem;
+            color: var(--md-sys-color-primary);
             overflow-x: auto;
             white-space: nowrap;
             scrollbar-width: none;
@@ -395,12 +427,13 @@
             display: none;
         }
 
+        /* Material M3 Button */
         .copy-btn {
-            background: var(--pill-bg);
-            color: var(--pill-text);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
             border: none;
-            border-radius: 8px;
-            padding: 6px 12px;
+            border-radius: var(--md-shape-full);
+            padding: 8px 16px;
             font-size: 0.75rem;
             font-weight: 700;
             font-family: var(--mono-font);
@@ -408,55 +441,60 @@
             flex-shrink: 0;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            transition: background-color 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            opacity: 0.9;
         }
 
         .btn-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 10px;
         }
 
+        /* M3 Tonal Buttons for Apps */
         .app-btn {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 9px;
-            background: var(--glass-bg);
-            color: var(--text-primary);
+            padding: 12px;
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
             text-decoration: none;
             font-weight: 700;
             font-family: var(--mono-font);
-            font-size: 0.78rem;
-            border-radius: 10px;
-            border: 1px solid var(--glass-border);
+            font-size: 0.8rem;
+            border-radius: var(--md-shape-full);
+            border: none;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            transition: background 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.1s ease;
         }
 
         .app-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
         }
 
         .settings-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
+            background-color: var(--md-sys-color-surface-container-low);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-shape-xlarge);
             padding: 24px;
         }
 
         .settings-header {
-            font-size: 1.4rem;
-            font-weight: 800;
-            margin-bottom: 18px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
         }
 
         .setting-group {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .setting-label {
@@ -467,54 +505,56 @@
             opacity: 0.8;
         }
 
+        /* M3 Segmented Button */
         .theme-selector {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.2);
+            gap: 4px;
+            background-color: var(--md-sys-color-surface-container-lowest);
             padding: 4px;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
+            border-radius: var(--md-shape-full);
+            border: 1px solid var(--md-sys-color-outline-variant);
         }
 
         .theme-btn {
             background: transparent;
             border: none;
-            color: var(--text-primary);
-            padding: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            color: var(--md-sys-color-on-background);
+            padding: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
             font-family: var(--mono-font);
-            border-radius: 8px;
+            border-radius: var(--md-shape-full);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            opacity: 0.6;
-            transition: all 0.2s ease;
+            opacity: 0.7;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
         }
 
         .theme-btn svg {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             fill: currentColor;
         }
 
         .theme-btn.active {
-            background: var(--pill-bg);
-            color: var(--pill-text);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
             opacity: 1;
         }
 
         .ocean-bottom-info {
             font-family: var(--mono-font);
-            font-size: 0.72rem;
+            font-size: 0.75rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
             opacity: 0.75;
-            margin-top: 30px;
+            margin-top: 32px;
             margin-bottom: 20px;
+            text-align: center;
         }
 
         footer {
@@ -527,9 +567,10 @@
             gap: 4px;
         }
 
+        /* M3 Navigation Bar */
         .bottom-nav-wrapper {
             position: fixed;
-            bottom: 20px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 9999;
@@ -539,47 +580,48 @@
         .bottom-nav {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: var(--pill-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 9999px;
-            padding: 5px 8px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+            gap: 8px;
+            background-color: var(--md-sys-color-surface-container-high);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: var(--md-shape-full);
+            padding: 6px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
         .nav-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 16px;
+            gap: 8px;
+            padding: 10px 20px;
             text-decoration: none;
-            color: var(--pill-text);
+            color: var(--md-sys-color-on-background);
             background: transparent;
             border: none;
             cursor: pointer;
-            border-radius: 9999px;
+            border-radius: var(--md-shape-full);
             font-family: var(--mono-font);
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            opacity: 0.6;
-            transition: opacity 0.2s ease, background 0.2s ease;
+            opacity: 0.65;
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
         }
 
         .nav-item.active {
             opacity: 1;
-            background: rgba(255, 255, 255, 0.15);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
         }
 
         .nav-icon {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             fill: currentColor;
         }
 
         @media (max-width: 480px) {
-            h1 { font-size: 2.6rem; }
+            h1 { font-size: 2.5rem; }
             .vertical-text { display: none; }
         }
     </style>
@@ -607,7 +649,7 @@
                     <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop Avatar">
                 </div>
                 <h1>gloop</h1>
-                <div class="subtitle-badge">content creator who just posts anything for fun</div>
+                <span class="subtitle-badge">content creator who just posts anything for fun</span>
             </header>
 
             <nav class="social-links">
@@ -766,7 +808,7 @@
                 </div>
             </div>
 
-            <div class="ocean-bottom-info" style="margin-top: 30px;">
+            <div class="ocean-bottom-info">
                 somewhere at sea &middot; calm
             </div>
 
@@ -853,7 +895,6 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
-        // Direct TikTok Follower Fetcher via custom endpoint
         async function fetchTikTokFollowers() {
             const countElem = document.getElementById('tiktokFollowers');
             try {
@@ -876,7 +917,6 @@
             setInterval(updateTime, 10000);
 
             fetchTikTokFollowers();
-            // Fetch live follower updates every 5 seconds
             setInterval(fetchTikTokFollowers, 5000);
         })();
     </script>
