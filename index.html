@@ -31,6 +31,9 @@
             --md-sys-color-on-secondary-container: #051F26;
             --md-sys-color-outline: #6E838B;
             --md-sys-color-outline-variant: #BECED4;
+            --md-sys-color-error: #BA1A1A;
+            --md-sys-color-error-container: #FFDAD6;
+            --md-sys-color-on-error-container: #410002;
             
             --mono-font: 'Roboto Mono', ui-monospace, monospace;
             --body-font: 'Roboto', -apple-system, sans-serif;
@@ -56,6 +59,9 @@
             --md-sys-color-on-secondary-container: #CCE6EB;
             --md-sys-color-outline: #889C9F;
             --md-sys-color-outline-variant: #3F4D52;
+            --md-sys-color-error: #FFB4AB;
+            --md-sys-color-error-container: #93000A;
+            --md-sys-color-on-error-container: #FFDAD6;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -75,6 +81,9 @@
                 --md-sys-color-on-secondary-container: #CCE6EB;
                 --md-sys-color-outline: #889C9F;
                 --md-sys-color-outline-variant: #3F4D52;
+                --md-sys-color-error: #FFB4AB;
+                --md-sys-color-error-container: #93000A;
+                --md-sys-color-on-error-container: #FFDAD6;
             }
         }
 
@@ -347,11 +356,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            min-height: 60px;
         }
 
         .tiktok-follower-box {
             display: flex;
             flex-direction: column;
+            justify-content: center;
         }
 
         .tiktok-follower-number {
@@ -394,6 +405,83 @@
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(248, 113, 113, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+        }
+
+        /* Material 3 Circular Progress Indicator */
+        .m3-spinner {
+            width: 28px;
+            height: 28px;
+            animation: m3-rotate 1.4s linear infinite;
+        }
+
+        .m3-spinner circle {
+            stroke: var(--md-sys-color-primary);
+            stroke-dasharray: 80, 200;
+            stroke-dashoffset: 0;
+            stroke-linecap: round;
+            animation: m3-dash 1.4s ease-in-out infinite;
+        }
+
+        @keyframes m3-rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes m3-dash {
+            0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 100, 200; stroke-dashoffset: -15px; }
+            100% { stroke-dasharray: 100, 200; stroke-dashoffset: -125px; }
+        }
+
+        /* Error UI Banner inside TikTok Card */
+        .tiktok-error-box {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background-color: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+            border-radius: var(--md-shape-medium);
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tiktok-error-text {
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .tiktok-error-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tiktok-btn {
+            border: none;
+            border-radius: var(--md-shape-full);
+            padding: 6px 14px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            font-family: var(--mono-font);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: opacity 0.2s ease;
+        }
+
+        .tiktok-btn-primary {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+        }
+
+        .tiktok-btn-secondary {
+            background-color: transparent;
+            color: var(--md-sys-color-on-error-container);
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        .tiktok-btn:hover {
+            opacity: 0.85;
         }
 
         .repo-container {
@@ -694,14 +782,28 @@
                     @nullclue on TikTok
                 </p>
 
-                <div class="tiktok-stats-container">
+                <div class="tiktok-stats-container" id="tiktokStatsContainer">
                     <div class="tiktok-follower-box">
-                        <span class="tiktok-follower-number" id="tiktokFollowers">--</span>
+                        <span class="tiktok-follower-number" id="tiktokFollowers">
+                            <!-- Material 3 Circular Progress Indicator -->
+                            <svg class="m3-spinner" viewBox="0 0 50 50">
+                                <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                            </svg>
+                        </span>
                         <span class="tiktok-follower-label">Followers</span>
                     </div>
                     <div class="live-dot-container">
                         <div class="pulse-dot"></div>
                         <span>UPDATES LIVE</span>
+                    </div>
+                </div>
+
+                <!-- Error Container -->
+                <div class="tiktok-error-box" id="tiktokErrorBox">
+                    <span class="tiktok-error-text">Failed to fetch TikTok followers</span>
+                    <div class="tiktok-error-actions">
+                        <button class="tiktok-btn tiktok-btn-primary" onclick="retryTikTokFetch()">Retry</button>
+                        <button class="tiktok-btn tiktok-btn-secondary" onclick="continueAnyway()">Continue Anyway</button>
                     </div>
                 </div>
             </div>
@@ -895,19 +997,59 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
+        let isFirstLoad = true;
+        let updateInterval = null;
+
+        function showSpinner() {
+            const countElem = document.getElementById('tiktokFollowers');
+            countElem.innerHTML = `
+                <svg class="m3-spinner" viewBox="0 0 50 50">
+                    <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                </svg>
+            `;
+            document.getElementById('tiktokErrorBox').style.display = 'none';
+        }
+
         async function fetchTikTokFollowers() {
             const countElem = document.getElementById('tiktokFollowers');
+            const errorBox = document.getElementById('tiktokErrorBox');
+
+            if (isFirstLoad) {
+                showSpinner();
+                // Artificial 2-second delay on the first call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+
             try {
                 const res = await fetch('https://api.reallysprinkles.com/api/tiktok-followers', { cache: 'no-store' });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.followers !== undefined) {
-                        countElem.innerText = Number(data.followers).toLocaleString();
-                    }
+                if (!res.ok) throw new Error('Network response was not ok');
+                
+                const data = await res.json();
+                if (data && data.followers !== undefined) {
+                    countElem.innerText = Number(data.followers).toLocaleString();
+                    errorBox.style.display = 'none';
+                    isFirstLoad = false;
+                } else {
+                    throw new Error('Invalid data format');
                 }
             } catch (e) {
                 console.error('Failed to fetch follower count:', e);
+                if (isFirstLoad) {
+                    errorBox.style.display = 'flex';
+                } else {
+                    countElem.innerText = '--';
+                }
             }
+        }
+
+        function retryTikTokFetch() {
+            fetchTikTokFollowers();
+        }
+
+        function continueAnyway() {
+            document.getElementById('tiktokErrorBox').style.display = 'none';
+            document.getElementById('tiktokFollowers').innerText = '--';
+            isFirstLoad = false;
         }
 
         (function init() {
@@ -917,7 +1059,7 @@
             setInterval(updateTime, 10000);
 
             fetchTikTokFollowers();
-            setInterval(fetchTikTokFollowers, 5000);
+            updateInterval = setInterval(fetchTikTokFollowers, 5000);
         })();
     </script>
 
