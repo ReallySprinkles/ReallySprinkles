@@ -1057,7 +1057,7 @@
     </div>
 
     <script>
-        // Send page analytics hit to custom endpoint
+        // Track Page Hits: Standard POST Fetch call visible under Fetch/XHR in Network tab
         function trackPageHit() {
             try {
                 let sessionId = localStorage.getItem('analytics_session_id');
@@ -1083,13 +1083,19 @@
                     "payload": payloadData
                 };
 
+                // Standard fetch request to log transparently in the Network Tab
                 fetch('https://api2.reallysprinkles.com/~api/analytics', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json' 
+                    },
                     body: JSON.stringify(analyticsPayload)
-                }).catch(err => console.error('Analytics tracking failed:', err));
+                })
+                .then(res => res.json())
+                .then(data => console.log('[Analytics Hit Logged]:', data))
+                .catch(err => console.error('[Analytics Error]:', err));
             } catch (e) {
-                console.error('Analytics error:', e);
+                console.error('Analytics exception:', e);
             }
         }
 
@@ -1189,6 +1195,7 @@
             document.getElementById('tiktokErrorBox').style.display = 'none';
         }
 
+        // Fetch TikTok Followers: Standard GET fetch call appearing clearly in Network tab
         async function fetchTikTokFollowers() {
             const countElem = document.getElementById('tiktokFollowers');
             const errorBox = document.getElementById('tiktokErrorBox');
@@ -1196,12 +1203,16 @@
             if (isFirstLoad) {
                 showSpinner();
                 hideOverlayError();
-                await new Promise(resolve => setTimeout(resolve, 1200));
             }
 
             try {
-                const res = await fetch('https://api.reallysprinkles.com/api/tiktok-followers', { cache: 'no-store' });
-                if (!res.ok) throw new Error('Network response was not ok');
+                // Direct Fetch HTTP Request visible under Network Inspector
+                const res = await fetch('https://api.reallysprinkles.com/api/tiktok-followers', { 
+                    method: 'GET',
+                    cache: 'no-store' 
+                });
+                
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 
                 const data = await res.json();
                 if (data && data.followers !== undefined) {
@@ -1212,10 +1223,10 @@
                         hideOverlayLoader();
                     }
                 } else {
-                    throw new Error('Invalid data format');
+                    throw new Error('Invalid JSON structure returned');
                 }
             } catch (e) {
-                console.error('Failed to fetch follower count:', e);
+                console.error('[TikTok Fetch Error]:', e);
                 if (isFirstLoad) {
                     showOverlayError();
                     errorBox.style.display = 'flex';
@@ -1238,13 +1249,18 @@
         }
 
         (function init() {
+            // Fires initial page hit analytics call
             trackPageHit();
+            
             const savedTheme = localStorage.getItem('theme') || 'dark';
             setTheme(savedTheme);
             updateTime();
             setInterval(updateTime, 10000);
 
+            // Fires initial TikTok live follower counter call
             fetchTikTokFollowers();
+            
+            // Polls TikTok live followers API every 5 seconds
             updateInterval = setInterval(fetchTikTokFollowers, 5000);
         })();
     </script>
