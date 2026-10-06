@@ -8,11 +8,11 @@
     <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
     <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
 
-    <!-- Material Design Font (Roboto, Roboto Mono & Google Material Symbols) -->
+    <!-- Fixed Google Fonts Links -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0..1,0&display=block" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -102,7 +102,63 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Full Screen Overlay Loading Circle */
+        /* Continuous Scrolling Announcement Bar (Like Video #2) */
+        .announcement-bar-container {
+            position: fixed;
+            top: 16px;
+            left: 72px;
+            right: 16px;
+            z-index: 998;
+            height: 44px;
+            background: var(--md-sys-color-surface-container-low);
+            border: 1px solid var(--md-sys-color-outline-variant);
+            border-radius: 14px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .ticker-track {
+            display: flex;
+            width: max-content;
+            animation: scroll-ticker 18s linear infinite;
+        }
+
+        .ticker-track:hover {
+            animation-play-state: paused;
+        }
+
+        .ticker-item {
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            color: var(--md-sys-color-on-background);
+            opacity: 0.85;
+            white-space: nowrap;
+            padding-right: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticker-badge {
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: var(--md-shape-full);
+            text-transform: uppercase;
+        }
+
+        @keyframes scroll-ticker {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Overlay Loader */
         #loading-overlay {
             position: fixed;
             top: 0;
@@ -206,7 +262,7 @@
             max-width: 540px;
             position: relative;
             z-index: 1;
-            margin-top: 50px;
+            margin-top: 55px;
         }
 
         .depth-radar-header {
@@ -831,6 +887,17 @@
     <div class="top-menu-bar">
         <div class="menu-btn-icon" onclick="switchTab('settings')" aria-label="Settings">
             <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+        </div>
+    </div>
+
+    <!-- Continuous Auto-Scrolling Ticker (Video #2 style) -->
+    <div class="announcement-bar-container">
+        <div class="ticker-track">
+            <div class="ticker-item"><span class="ticker-badge">Notice</span> The app is almost done! Check back later.</div>
+            <div class="ticker-item"><span class="ticker-badge">Update</span> New AltStore tools added to repo!</div>
+            <!-- Duplicated elements for seamless infinite scroll -->
+            <div class="ticker-item"><span class="ticker-badge">Notice</span> The app is almost done! Check back later.</div>
+            <div class="ticker-item"><span class="ticker-badge">Update</span> New AltStore tools added to repo!</div>
         </div>
     </div>
 
