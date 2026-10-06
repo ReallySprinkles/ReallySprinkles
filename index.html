@@ -1057,8 +1057,8 @@
     </div>
 
     <script>
-        // Track Page Hits: Standard POST Fetch call visible under Fetch/XHR in Network tab
-        function trackPageHit() {
+        // Send page analytics hit using standard fetch API
+        async function trackPageHit() {
             try {
                 let sessionId = localStorage.getItem('analytics_session_id');
                 if (!sessionId) {
@@ -1083,19 +1083,19 @@
                     "payload": payloadData
                 };
 
-                // Standard fetch request to log transparently in the Network Tab
-                fetch('https://api2.reallysprinkles.com/~api/analytics', {
+                const response = await fetch('https://api2.reallysprinkles.com/~api/analytics', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json' 
                     },
                     body: JSON.stringify(analyticsPayload)
-                })
-                .then(res => res.json())
-                .then(data => console.log('[Analytics Hit Logged]:', data))
-                .catch(err => console.error('[Analytics Error]:', err));
-            } catch (e) {
-                console.error('Analytics exception:', e);
+                });
+                
+                if (response.ok) {
+                    console.log('Analytics tracking logged successfully.');
+                }
+            } catch (err) {
+                console.error('Analytics tracking failed:', err);
             }
         }
 
@@ -1195,7 +1195,7 @@
             document.getElementById('tiktokErrorBox').style.display = 'none';
         }
 
-        // Fetch TikTok Followers: Standard GET fetch call appearing clearly in Network tab
+        // Fetch TikTok followers using standard fetch API
         async function fetchTikTokFollowers() {
             const countElem = document.getElementById('tiktokFollowers');
             const errorBox = document.getElementById('tiktokErrorBox');
@@ -1203,16 +1203,16 @@
             if (isFirstLoad) {
                 showSpinner();
                 hideOverlayError();
+                await new Promise(resolve => setTimeout(resolve, 1200));
             }
 
             try {
-                // Direct Fetch HTTP Request visible under Network Inspector
                 const res = await fetch('https://api.reallysprinkles.com/api/tiktok-followers', { 
                     method: 'GET',
                     cache: 'no-store' 
                 });
-                
-                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+
+                if (!res.ok) throw new Error('Network response was not ok');
                 
                 const data = await res.json();
                 if (data && data.followers !== undefined) {
@@ -1223,10 +1223,10 @@
                         hideOverlayLoader();
                     }
                 } else {
-                    throw new Error('Invalid JSON structure returned');
+                    throw new Error('Invalid data format');
                 }
             } catch (e) {
-                console.error('[TikTok Fetch Error]:', e);
+                console.error('Failed to fetch follower count:', e);
                 if (isFirstLoad) {
                     showOverlayError();
                     errorBox.style.display = 'flex';
@@ -1249,18 +1249,13 @@
         }
 
         (function init() {
-            // Fires initial page hit analytics call
             trackPageHit();
-            
             const savedTheme = localStorage.getItem('theme') || 'dark';
             setTheme(savedTheme);
             updateTime();
             setInterval(updateTime, 10000);
 
-            // Fires initial TikTok live follower counter call
             fetchTikTokFollowers();
-            
-            // Polls TikTok live followers API every 5 seconds
             updateInterval = setInterval(fetchTikTokFollowers, 5000);
         })();
     </script>
