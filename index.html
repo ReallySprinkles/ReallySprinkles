@@ -815,15 +815,14 @@
 
     <!-- Overlay Loader -->
     <div id="loading-overlay">
-        <svg class="m3-spinner overlay-spinner" viewBox="0 0 50 50">
+        <svg id="overlay-spinner-icon" class="m3-spinner overlay-spinner" viewBox="0 0 50 50">
             <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
         </svg>
-        <div style="font-family: var(--mono-font); font-size: 0.85rem; letter-spacing: 0.1em; opacity: 0.8;">LOADING WEBSITE...</div>
+        <div id="overlay-loading-text" style="font-family: var(--mono-font); font-size: 0.85rem; letter-spacing: 0.1em; opacity: 0.8;">LOADING WEBSITE...</div>
         <div id="overlay-error-actions" style="display: none; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
-            <span style="font-family: var(--mono-font); font-size: 0.8rem; color: var(--md-sys-color-error);">Failed to load TikTok stats</span>
-            <div style="display: flex; gap: 10px;">
-                <button class="tiktok-btn tiktok-btn-primary" onclick="retryTikTokFetch()">Retry</button>
-                <button class="tiktok-btn tiktok-btn-secondary" onclick="continueAnyway()">Continue Anyway</button>
+            <span id="overlay-error-text" style="font-family: var(--mono-font); font-size: 0.8rem; color: var(--md-sys-color-error);">Something went wrong..</span>
+            <div style="display: flex; gap: 10px;" id="overlay-error-buttons">
+                <!-- Retry button ONLY will be populated here if analytics fails -->
             </div>
         </div>
     </div>
@@ -920,7 +919,7 @@
                 <div class="tiktok-error-box" id="tiktokErrorBox">
                     <span class="tiktok-error-text">Failed to fetch TikTok followers</span>
                     <div class="tiktok-error-actions">
-                        <button class="tiktok-btn tiktok-btn-primary" onclick="retryTikTokFetch()">Retry</button>
+                        <button class="tiktok-btn tiktok-btn-primary" onclick="retryInitialLoad()">Retry</button>
                         <button class="tiktok-btn tiktok-btn-secondary" onclick="continueAnyway()">Continue Anyway</button>
                     </div>
                 </div>
@@ -1059,44 +1058,41 @@
     <script>
         // Send page analytics hit using standard fetch API
         async function trackPageHit() {
-            try {
-                let sessionId = localStorage.getItem('analytics_session_id');
-                if (!sessionId) {
-                    sessionId = 'session-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now();
-                    localStorage.setItem('analytics_session_id', sessionId);
-                }
-
-                const payloadData = JSON.stringify({
-                    "user-agent": navigator.userAgent,
-                    "locale": navigator.language || "en-US",
-                    "location": "EG",
-                    "referrer": document.referrer || "",
-                    "pathname": window.location.pathname,
-                    "href": window.location.href
-                });
-
-                const analyticsPayload = {
-                    "timestamp": new Date().toISOString(),
-                    "action": "page_hit",
-                    "version": "1",
-                    "session_id": sessionId,
-                    "payload": payloadData
-                };
-
-                const response = await fetch('https://api2.reallysprinkles.com/~api/analytics', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify(analyticsPayload)
-                });
-                
-                if (response.ok) {
-                    console.log('Analytics tracking logged successfully.');
-                }
-            } catch (err) {
-                console.error('Analytics tracking failed:', err);
+            let sessionId = localStorage.getItem('analytics_session_id');
+            if (!sessionId) {
+                sessionId = 'session-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now();
+                localStorage.setItem('analytics_session_id', sessionId);
             }
+
+            const payloadData = JSON.stringify({
+                "user-agent": navigator.userAgent,
+                "locale": navigator.language || "en-US",
+                "location": "EG",
+                "referrer": document.referrer || "",
+                "pathname": window.location.pathname,
+                "href": window.location.href
+            });
+
+            const analyticsPayload = {
+                "timestamp": new Date().toISOString(),
+                "action": "page_hit",
+                "version": "1",
+                "session_id": sessionId,
+                "payload": payloadData
+            };
+
+            const response = await fetch('https://api2.reallysprinkles.com/~api/analytics', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify(analyticsPayload)
+            });
+            
+            if (!response.ok) {
+                throw new Error('Analytics failed to track');
+            }
+            console.log('Analytics tracking logged successfully.');
         }
 
         function openAppScheme(url) {
@@ -1175,8 +1171,26 @@
             }
         }
 
-        function showOverlayError() {
+        function showOverlayError(errorMessage, showContinueButton = true) {
             const actions = document.getElementById('overlay-error-actions');
+            const errorText = document.getElementById('overlay-error-text');
+            const errorButtons = document.getElementById('overlay-error-buttons');
+            
+            if (errorText) errorText.innerText = errorMessage;
+
+            if (errorButtons) {
+                if (showContinueButton) {
+                    errorButtons.innerHTML = `
+                        <button class="tiktok-btn tiktok-btn-primary" onclick="retryInitialLoad()">Retry</button>
+                        <button class="tiktok-btn tiktok-btn-secondary" onclick="continueAnyway()">Continue Anyway</button>
+                    `;
+                } else {
+                    errorButtons.innerHTML = `
+                        <button class="tiktok-btn tiktok-btn-primary" onclick="retryInitialLoad()">Retry</button>
+                    `;
+                }
+            }
+
             if (actions) actions.style.display = 'flex';
         }
 
@@ -1197,48 +1211,86 @@
 
         // Fetch TikTok followers using standard fetch API
         async function fetchTikTokFollowers() {
-            const countElem = document.getElementById('tiktokFollowers');
-            const errorBox = document.getElementById('tiktokErrorBox');
+            const res = await fetch('https://api.reallysprinkles.com/api/tiktok-followers', { 
+                method: 'GET',
+                cache: 'no-store' 
+            });
 
+            if (!res.ok) throw new Error('Network response was not ok');
+            
+            const data = await res.json();
+            if (data && data.followers !== undefined) {
+                return data.followers;
+            } else {
+                throw new Error('Invalid data format');
+            }
+        }
+
+        // Synchronous concurrent load for both APIs after 2s delay
+        async function loadInitialAPIs() {
             if (isFirstLoad) {
                 showSpinner();
                 hideOverlayError();
-                await new Promise(resolve => setTimeout(resolve, 1200));
             }
 
+            // Enforce exact 2000ms delay as specified
+            const delayPromise = new Promise(resolve => setTimeout(resolve, 2000));
+            
             try {
-                const res = await fetch('https://api.reallysprinkles.com/api/tiktok-followers', { 
-                    method: 'GET',
-                    cache: 'no-store' 
-                });
+                // Execute delay, TikTok followers API, and Analytics API in parallel
+                const [_, tiktokResult, analyticsResult] = await Promise.allSettled([
+                    delayPromise,
+                    fetchTikTokFollowers(),
+                    trackPageHit()
+                ]);
 
-                if (!res.ok) throw new Error('Network response was not ok');
-                
-                const data = await res.json();
-                if (data && data.followers !== undefined) {
-                    countElem.innerText = Number(data.followers).toLocaleString();
+                // Check analytics status first
+                if (analyticsResult.status === 'rejected') {
+                    if (isFirstLoad) {
+                        showOverlayError("Something went wrong..", false); // Retry button ONLY
+                    }
+                    return;
+                }
+
+                // Check TikTok followers status
+                if (tiktokResult.status === 'fulfilled') {
+                    const countElem = document.getElementById('tiktokFollowers');
+                    const errorBox = document.getElementById('tiktokErrorBox');
+                    countElem.innerText = Number(tiktokResult.value).toLocaleString();
                     errorBox.style.display = 'none';
+
                     if (isFirstLoad) {
                         isFirstLoad = false;
                         hideOverlayLoader();
                     }
                 } else {
-                    throw new Error('Invalid data format');
+                    throw new Error('TikTok Followers failed to load');
                 }
+
             } catch (e) {
-                console.error('Failed to fetch follower count:', e);
+                console.error('Initial API loading error:', e);
                 if (isFirstLoad) {
-                    showOverlayError();
-                    errorBox.style.display = 'flex';
-                } else {
-                    countElem.innerText = '--';
+                    showOverlayError("Failed to load TikTok stats", true);
+                    document.getElementById('tiktokErrorBox').style.display = 'flex';
                 }
             }
         }
 
-        function retryTikTokFetch() {
+        async function updateTikTokPeriodic() {
+            try {
+                const followers = await fetchTikTokFollowers();
+                const countElem = document.getElementById('tiktokFollowers');
+                const errorBox = document.getElementById('tiktokErrorBox');
+                countElem.innerText = Number(followers).toLocaleString();
+                errorBox.style.display = 'none';
+            } catch (e) {
+                console.error('Failed periodic TikTok fetch:', e);
+            }
+        }
+
+        function retryInitialLoad() {
             hideOverlayError();
-            fetchTikTokFollowers();
+            loadInitialAPIs();
         }
 
         function continueAnyway() {
@@ -1249,14 +1301,14 @@
         }
 
         (function init() {
-            trackPageHit();
             const savedTheme = localStorage.getItem('theme') || 'dark';
             setTheme(savedTheme);
             updateTime();
             setInterval(updateTime, 10000);
 
-            fetchTikTokFollowers();
-            updateInterval = setInterval(fetchTikTokFollowers, 5000);
+            // Trigger both APIs synchronously after 2 seconds
+            loadInitialAPIs();
+            updateInterval = setInterval(updateTikTokPeriodic, 5000);
         })();
     </script>
 
