@@ -818,7 +818,7 @@
         <svg id="overlay-spinner-icon" class="m3-spinner overlay-spinner" viewBox="0 0 50 50">
             <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
         </svg>
-        <div id="overlay-loading-text" style="font-family: var(--mono-font); font-size: 0.85rem; letter-spacing: 0.1em; opacity: 0.8;">LOADING WEBSITE...</div>
+        <div id="overlay-loading-text" style="font-family: var(--mono-font); font-size: 0.85rem; letter-spacing: 0.1em; opacity: 0.8;">LOADING...</div>
         <div id="overlay-error-actions" style="display: none; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
             <span id="overlay-error-text" style="font-family: var(--mono-font); font-size: 0.8rem; color: var(--md-sys-color-error);">Something went wrong..</span>
             <div style="display: flex; gap: 10px;" id="overlay-error-buttons">
@@ -1081,7 +1081,7 @@
                 "payload": payloadData
             };
 
-            const response = await fetch('https://api2.reallysprinkles.com/~api/analytics', {
+            const response = await fetch('https://api2.imgloop.site/~api/analytics', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json' 
@@ -1090,9 +1090,9 @@
             });
             
             if (!response.ok) {
-                throw new Error('Analytics failed to track');
+                throw new Error('Load failed');
             }
-            console.log('Analytics tracking logged successfully.');
+            console.log('Loaded successfully!');
         }
 
         function openAppScheme(url) {
