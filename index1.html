@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" content="#0f1417">
+    <title>gloop’s Stuff</title>
+
+    <link rel="icon" type="image/jpeg" href="./icons/finn_the_human_pfp_.jpeg">
+    <link rel="apple-touch-icon" href="./icons/finn_the_human_pfp_.jpeg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+
+    <style>
+        /* =========================================================
+           Material 3 design tokens
+           Tonal palette generated around the original cyan accent
+           ========================================================= */
+        :root {
+            /* Color roles (dark scheme) */
+            --md-sys-color-background: #0f1417;
+            --md-sys-color-on-background: #dee3e7;
+            --md-sys-color-surface: #0f1417;
+            --md-sys-color-on-surface: #dee3e7;
+            --md-sys-color-on-surface-variant: #c0c8cd;
+            --md-sys-color-surface-container-lowest: #0a0f11;
+            --md-sys-color-surface-container-low: #171c1f;
+            --md-sys-color-surface-container: #1b2023;
+            --md-sys-color-surface-container-high: #262b2e;
+            --md-sys-color-surface-container-highest: #313639;
+            --md-sys-color-primary: #86d2eb;
+            --md-sys-color-on-primary: #003547;
+            --md-sys-color-primary-container: #004d65;
+            --md-sys-color-on-primary-container: #c3e8ff;
+            --md-sys-color-secondary: #b3cad5;
+            --md-sys-color-on-secondary: #1e333c;
+            --md-sys-color-secondary-container: #354a53;
+            --md-sys-color-on-secondary-container: #cfe6f2;
+            --md-sys-color-outline: #8a9297;
+            --md-sys-color-outline-variant: #40484c;
+            --md-sys-color-error: #ffb4ab;
+            --md-sys-color-on-error: #690005;
+            --md-sys-color-error-container: #93000a;
+            --md-sys-color-on-error-container: #ffdad6;
+            --md-sys-color-scrim: #000000;
+
+            /* Typography */
+            --mono-font: 'Roboto Mono', ui-monospace, monospace;
+            --body-font: 'Roboto', -apple-system, sans-serif;
+
+            /* Shape scale */
+            --md-shape-xsmall: 4px;
+            --md-shape-small: 8px;
+            --md-shape-medium: 12px;
+            --md-shape-large: 16px;
+            --md-shape-xlarge: 28px;
+            --md-shape-full: 9999px;
+
+            /* Elevation */
+            --md-elevation-1: 0 1px 2px rgba(0,0,0,0.30), 0 1px 3px 1px rgba(0,0,0,0.15);
+            --md-elevation-2: 0 1px 2px rgba(0,0,0,0.30), 0 2px 6px 2px rgba(0,0,0,0.15);
+            --md-elevation-3: 0 1px 3px rgba(0,0,0,0.30), 0 4px 8px 3px rgba(0,0,0,0.15);
+
+            /* Motion */
+            --md-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+            --md-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+            --md-easing-decelerate: cubic-bezier(0, 0, 0, 1);
+        }
+
+        [data-theme="light"] {
+            --md-sys-color-background: #f6fafe;
+            --md-sys-color-on-background: #171c1f;
+            --md-sys-color-surface: #f6fafe;
+            --md-sys-color-on-surface: #171c1f;
+            --md-sys-color-on-surface-variant: #40484c;
+            --md-sys-color-surface-container-lowest: #ffffff;
+            --md-sys-color-surface-container-low: #f0f4f8;
+            --md-sys-color-surface-container: #eaeef2;
+            --md-sys-color-surface-container-high: #e4e9ed;
+            --md-sys-color-surface-container-highest: #dee3e7;
+            --md-sys-color-primary: #006688;
+            --md-sys-color-on-primary: #ffffff;
+            --md-sys-color-primary-container: #c3e8ff;
+            --md-sys-color-on-primary-container: #001e2b;
+            --md-sys-color-secondary: #4d616c;
+            --md-sys-color-on-secondary: #ffffff;
+            --md-sys-color-secondary-container: #d0e6f2;
+            --md-sys-color-on-secondary-container: #081e27;
+            --md-sys-color-outline: #70787d;
+            --md-sys-color-outline-variant: #c0c8cd;
+            --md-sys-color-error: #ba1a1a;
+            --md-sys-color-on-error: #ffffff;
+            --md-sys-color-error-container: #ffdad6;
+            --md-sys-color-on-error-container: #410002;
+
+            --md-elevation-1: 0 1px 2px rgba(0,0,0,0.20), 0 1px 3px 1px rgba(0,0,0,0.10);
+            --md-elevation-2: 0 1px 2px rgba(0,0,0,0.20), 0 2px 6px 2px rgba(0,0,0,0.10);
+            --md-elevation-3: 0 1px 3px rgba(0,0,0,0.20), 0 4px 8px 3px rgba(0,0,0,0.10);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--body-font);
+            background-color: var(--md-sys-color-background);
+            color: var(--md-sys-color-on-background);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 20px 120px 20px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+            transition: background-color 0.3s var(--md-easing-standard), color 0.3s var(--md-easing-standard);
+        }
+
+        .material-symbols-rounded {
+            font-family: 'Material Symbols Rounded';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* =========================================================
+           Interaction: state layers + ripple (M3)
+           ========================================================= */
+        .state-layer {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .state-layer::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: currentColor;
+            opacity: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            transition: opacity 0.2s var(--md-easing-standard);
+            z-index: -1;
+        }
+
+        .state-layer:hover::after { opacity: 0.08; }
+        .state-layer:focus-visible::after { opacity: 0.10; }
+        .state-layer:active::after { opacity: 0.10; }
+
+        .state-layer:focus-visible {
+            outline: 3px solid var(--md-sys-color-primary);
+            outline-offset: 2px;
+        }
+
+        .ripple-wave {
+            position: absolute;
+            border-radius: 50%;
+            background-color: currentColor;
+            opacity: 0.12;
+            transform: scale(0);
+            pointer-events: none;
+            animation: ripple-expand 0.55s var(--md-easing-decelerate) forwards;
+            z-index: -1;
+        }
+
+        @keyframes ripple-expand {
+            to { transform: scale(1); opacity: 0; }
+        }
+
+        /* =========================================================
+           Overlay loader (scrim + circular progress)
+           ========================================================= */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(15, 20, 23, 0.94);
+            background-color: color-mix(in srgb, var(--md-sys-color-surface) 94%, transparent);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: opacity 0.5s var(--md-easing-standard), visibility 0.5s var(--md-easing-standard);
+        }
+
+        #loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .overlay-spinner {
+            width: 56px;
+            height: 56px;
+        }
+
+        .vertical-text {
+            position: fixed;
+            left: 16px;
+            top: 25%;
+            transform: rotate(-90deg);
+            transform-origin: left top;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            opacity: 0.3;
+            color: var(--md-sys-color-on-surface-variant);
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            text-transform: uppercase;
+        }
+
+        .ascii-art {
+            position: absolute;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            opacity: 0.25;
+            color: var(--md-sys-color-on-surface-variant);
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+        .ascii-1 { top: 18%; right: 10%; }
+        .ascii-2 { top: 38%; right: 6%; }
+        .ascii-3 { top: 62%; left: 6%; }
+
+        /* =========================================================
+           Top app bar action (icon button, tonal)
+           ========================================================= */
+        .top-menu-bar {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-btn-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--md-sys-color-surface-container-high);
+            color: var(--md-sys-color-on-surface-variant);
+            border: none;
+            border-radius: var(--md-shape-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--md-elevation-1);
+            transition: box-shadow 0.2s var(--md-easing-standard), transform 0.2s var(--md-easing-standard);
+        }
+
+        .menu-btn-icon:hover {
+            box-shadow: var(--md-elevation-2);
+        }
+
+        .menu-btn-icon:active {
+            transform: scale(0.94);
+        }
+
+        .menu-btn-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 540px;
+            position: relative;
+            z-index: 1;
+            margin-top: 55px;
+        }
+
+        /* Assist chip (depth indicator) */
+        .depth-radar-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            margin-bottom: 24px;
+            height: 32px;
+            padding: 0 14px 0 10px;
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+            border-radius: var(--md-shape-small);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .radar-circle {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--md-sys-color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .radar-circle::after {
+            content: '';
+            width: 4px;
+            height: 4px;
+            background: var(--md-sys-color-primary);
+            border-radius: 50%;
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.35s var(--md-easing-emphasized), transform 0.35s var(--md-easing-emphasized);
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .profile-header {
+            margin-bottom: 28px;
+            margin-top: 8px;
+        }
+
+        .avatar-wrapper {
+            display: inline-block;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--md-sys-color-primary-container);
+            box-shadow: var(--md-elevation-2);
+            transition: transform 0.3s var(--md-easing-emphasized);
+        }
+
+        .avatar:hover {
+            transform: scale(1.04);
+        }
+
+        /* Display medium */
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: 8px;
+            color: var(--md-sys-color-on-surface);
+        }
+
+        /* Body large */
+        .subtitle-badge {
+            display: block;
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 0.03em;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* Label large */
+        .section-tag {
+            font-family: var(--mono-font);
+            font-size: 0.78rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: inline-block;
+            font-weight: 700;
+            color: var(--md-sys-color-primary);
+        }
+
+        /* Assist chips (social links) */
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 32px;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 36px;
+            color: var(--md-sys-color-on-surface-variant);
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            text-decoration: none;
+            padding: 0 16px 0 12px;
+            background-color: transparent;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-shape-small);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: box-shadow 0.2s var(--md-easing-standard), transform 0.2s var(--md-easing-standard);
+        }
+
+        .social-link svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--md-sys-color-primary);
+        }
+
+        .social-link:hover {
+            box-shadow: var(--md-elevation-1);
+        }
+
+        .social-link:active {
+            transform: scale(0.97);
+        }
+
+        .projects {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        /* Filled cards */
+        .project-card {
+            background-color: var(--md-sys-color-surface-container-low);
+            border: none;
+            border-radius: var(--md-shape-xlarge);
+            padding: 24px;
+            text-decoration: none;
+            color: var(--md-sys-color-on-surface);
+            display: block;
+            transition: box-shadow 0.25s var(--md-easing-standard), transform 0.25s var(--md-easing-emphasized), background-color 0.25s var(--md-easing-standard);
+        }
+
+        a.project-card {
+            cursor: pointer;
+            box-shadow: var(--md-elevation-1);
+        }
+
+        a.project-card:hover {
+            box-shadow: var(--md-elevation-2);
+            transform: translateY(-2px);
+        }
+
+        a.project-card:active {
+            transform: scale(0.985);
+        }
+
+        .standalone-card {
+            margin-bottom: 32px;
+            background-color: var(--md-sys-color-surface-container-high);
+        }
+
+        .project-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        /* Title large */
+        .project-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0;
+            flex-wrap: wrap;
+        }
+
+        /* Suggestion-style tag */
+        .badge {
+            font-family: var(--mono-font);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 10px;
+            border-radius: var(--md-shape-small);
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+        }
+
+        .link-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            color: var(--md-sys-color-primary);
+            opacity: 0.8;
+            transition: transform 0.2s var(--md-easing-standard), opacity 0.2s var(--md-easing-standard);
+        }
+
+        a.project-card:hover .link-icon {
+            transform: translate(2px, -2px);
+            opacity: 1;
+        }
+
+        /* Body medium */
+        .project-description {
+            font-size: 0.875rem;
+            letter-spacing: 0.25px;
+            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.5;
+        }
+
+        .tiktok-stats-container {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--md-sys-color-outline-variant);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 60px;
+        }
+
+        .tiktok-follower-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .tiktok-follower-number {
+            font-family: var(--mono-font);
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--md-sys-color-primary);
+        }
+
+        .tiktok-follower-label {
+            font-family: var(--mono-font);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .live-dot-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 28px;
+            padding: 0 12px;
+            border-radius: var(--md-shape-full);
+            background-color: var(--md-sys-color-surface-container-highest);
+            font-family: var(--mono-font);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #f87171;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #f87171;
+            animation: pulse-animation 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(248, 113, 113, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+        }
+
+        /* Circular progress indicator */
+        .m3-spinner {
+            width: 28px;
+            height: 28px;
+            animation: m3-rotate 1.4s linear infinite;
+        }
+
+        .m3-spinner circle {
+            stroke: var(--md-sys-color-primary);
+            stroke-dasharray: 80, 200;
+            stroke-dashoffset: 0;
+            stroke-linecap: round;
+            animation: m3-dash 1.4s ease-in-out infinite;
+        }
+
+        @keyframes m3-rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes m3-dash {
+            0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; }
+            50% { stroke-dasharray: 100, 200; stroke-dashoffset: -15px; }
+            100% { stroke-dasharray: 100, 200; stroke-dashoffset: -125px; }
+        }
+
+        .tiktok-error-box {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background-color: var(--md-sys-color-error-container);
+            color: var(--md-sys-color-on-error-container);
+            border-radius: var(--md-shape-large);
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tiktok-error-text {
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .tiktok-error-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons: filled / outlined */
+        .tiktok-btn {
+            border: none;
+            border-radius: var(--md-shape-full);
+            height: 40px;
+            padding: 0 24px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: var(--mono-font);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: box-shadow 0.2s var(--md-easing-standard), transform 0.1s ease;
+        }
+
+        .tiktok-btn:active {
+            transform: scale(0.97);
+        }
+
+        .tiktok-btn-primary {
+            background-color: var(--md-sys-color-primary);
+            color: var(--md-sys-color-on-primary);
+        }
+
+        .tiktok-btn-primary:hover {
+            box-shadow: var(--md-elevation-1);
+        }
+
+        .tiktok-btn-secondary {
+            background-color: transparent;
+            color: var(--md-sys-color-on-error-container);
+            border: 1px solid var(--md-sys-color-outline);
+        }
+
+        #loading-overlay .tiktok-btn-secondary {
+            color: var(--md-sys-color-primary);
+        }
+
+        .repo-container {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Outlined text-field style URL box */
+        .repo-url-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: transparent;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-shape-xsmall);
+            padding: 8px 8px 8px 16px;
+            gap: 10px;
+        }
+
+        .repo-url {
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            color: var(--md-sys-color-primary);
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+        }
+
+        .repo-url::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Filled tonal button */
+        .copy-btn {
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+            border: none;
+            border-radius: var(--md-shape-full);
+            height: 40px;
+            padding: 0 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: var(--mono-font);
+            cursor: pointer;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: box-shadow 0.2s var(--md-easing-standard), transform 0.1s ease;
+        }
+
+        .copy-btn:hover {
+            box-shadow: var(--md-elevation-1);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .app-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+            padding: 0 16px;
+            background-color: var(--md-sys-color-primary-container);
+            color: var(--md-sys-color-on-primary-container);
+            text-decoration: none;
+            font-weight: 700;
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            border-radius: var(--md-shape-full);
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: box-shadow 0.2s var(--md-easing-standard), transform 0.2s var(--md-easing-standard);
+        }
+
+        .app-btn:hover {
+            box-shadow: var(--md-elevation-1);
+        }
+
+        .app-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Settings */
+        .settings-card {
+            background-color: var(--md-sys-color-surface-container-low);
+            border-radius: var(--md-shape-xlarge);
+            padding: 24px;
+        }
+
+        /* Headline small */
+        .settings-header {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .setting-label {
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--md-sys-color-on-surface-variant);
+        }
+
+        /* Segmented button */
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            background-color: transparent;
+            border: 1px solid var(--md-sys-color-outline);
+            border-radius: var(--md-shape-full);
+            overflow: hidden;
+        }
+
+        .theme-btn {
+            background: transparent;
+            border: none;
+            border-right: 1px solid var(--md-sys-color-outline);
+            color: var(--md-sys-color-on-surface);
+            height: 40px;
+            padding: 0 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            font-family: var(--mono-font);
+            border-radius: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: background-color 0.25s var(--md-easing-standard), color 0.25s var(--md-easing-standard);
+        }
+
+        .theme-btn:last-child {
+            border-right: none;
+        }
+
+        .theme-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .theme-btn.active {
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .ocean-bottom-info {
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--md-sys-color-on-surface-variant);
+            margin-top: 32px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            font-family: var(--mono-font);
+            font-size: 0.75rem;
+            color: var(--md-sys-color-on-surface-variant);
+            opacity: 0.8;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* =========================================================
+           Navigation bar (docked, pill indicator)
+           ========================================================= */
+        .bottom-nav-wrapper {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 9999;
+            background-color: var(--md-sys-color-surface-container);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            box-shadow: 0 -1px 0 var(--md-sys-color-outline-variant);
+            transition: background-color 0.3s var(--md-easing-standard);
+        }
+
+        .bottom-nav {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 8px;
+            max-width: 540px;
+            margin: 0 auto;
+            height: 80px;
+            padding: 12px 16px 16px;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 0;
+            text-decoration: none;
+            color: var(--md-sys-color-on-surface-variant);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-family: var(--mono-font);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            transition: color 0.25s var(--md-easing-standard);
+        }
+
+        .nav-indicator {
+            position: relative;
+            overflow: hidden;
+            width: 64px;
+            height: 32px;
+            border-radius: var(--md-shape-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.25s var(--md-easing-emphasized);
+        }
+
+        .nav-item:hover .nav-indicator {
+            background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent);
+        }
+
+        .nav-item:active .nav-indicator {
+            background-color: color-mix(in srgb, var(--md-sys-color-on-surface) 10%, transparent);
+        }
+
+        .nav-item:focus-visible {
+            outline: none;
+        }
+
+        .nav-item:focus-visible .nav-indicator {
+            outline: 3px solid var(--md-sys-color-primary);
+            outline-offset: 1px;
+        }
+
+        .nav-item.active {
+            color: var(--md-sys-color-on-surface);
+        }
+
+        .nav-item.active .nav-indicator {
+            background-color: var(--md-sys-color-secondary-container);
+            color: var(--md-sys-color-on-secondary-container);
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 2.2rem; }
+            .vertical-text { display: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+            .m3-spinner, .m3-spinner circle, .pulse-dot { animation-duration: 1.4s !important; animation-iteration-count: infinite !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Overlay Loader -->
+    <div id="loading-overlay">
+        <svg id="overlay-spinner-icon" class="m3-spinner overlay-spinner" viewBox="0 0 50 50">
+            <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+        <div id="overlay-loading-text" style="font-family: var(--mono-font); font-size: 0.85rem; letter-spacing: 0.1em; opacity: 0.8;">LOADING...</div>
+        <div id="overlay-error-actions" style="display: none; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
+            <span id="overlay-error-text" style="font-family: var(--mono-font); font-size: 0.8rem; color: var(--md-sys-color-error);">Something went wrong..</span>
+            <div style="display: flex; gap: 10px;" id="overlay-error-buttons">
+                <!-- Retry button ONLY will be populated here if analytics fails -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Left Menu Button -->
+    <div class="top-menu-bar">
+        <button class="menu-btn-icon state-layer" onclick="switchTab('settings')" aria-label="Settings">
+            <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+        </button>
+    </div>
+
+    <div class="vertical-text">
+        The river keeps flowing, just like the sea
+    </div>
+
+    <div class="ascii-art ascii-1">~ . (&deg;)))&gt;. ~</div>
+    <div class="ascii-art ascii-2">&gt;&middot;)))&gt;&middot;</div>
+    <div class="ascii-art ascii-3">&gt;(((&deg;)</div>
+
+    <div class="container">
+
+        <div class="depth-radar-header">
+            <div class="radar-circle"></div>
+            <span id="radar-depth-text">o 01 &middot; SURFACE &middot; 0000m</span>
+        </div>
+
+        <div id="home-tab" class="tab-content active">
+            <header class="profile-header">
+                <div class="avatar-wrapper">
+                    <img class="avatar" src="./icons/finn_the_human_pfp_.jpeg" alt="gloop Avatar">
+                </div>
+                <h1>gloop</h1>
+                <span class="subtitle-badge">content creator who just posts anything for fun</span>
+            </header>
+
+            <nav class="social-links">
+                <a class="social-link state-layer" href="https://www.tiktok.com/@user90481726354" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.82.56-1.31 1.54-1.28 2.53.02 1.08.62 2.07 1.56 2.57.94.52 2.12.51 3.04-.03.79-.45 1.29-1.31 1.32-2.22.03-4.31.01-8.62.01-12.93z"/></svg>
+                    TikTok
+                </a>
+                <a class="social-link state-layer" href="https://www.instagram.com/imgloopbro" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    Instagram
+                </a>
+                <a class="social-link state-layer" href="https://discord.gg/Ta8ZtP4sCf" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+                    Discord
+                </a>
+                <a class="social-link state-layer" href="https://twitter.com/imgloopbro" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    X
+                </a>
+                <a class="social-link state-layer" href="https://github.com/reallysprinkles" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub
+                </a>
+                <a class="social-link state-layer" href="https://www.youtube.com/@imgloopbroo" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    YouTube
+                </a>
+                <a class="social-link state-layer" href="mailto:help@reallysprinkles.com">
+                    <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    Email
+                </a>
+            </nav>
+
+            <!-- TikTok Live Stats Standalone Card -->
+            <div class="project-card standalone-card">
+                <div class="project-header">
+                    <div class="project-title">
+                        <span>TikTok Followers (extracts data from tiktok directly)</span>
+                    </div>
+                </div>
+                <p class="project-description">
+                    @nullclue on TikTok
+                </p>
+
+                <div class="tiktok-stats-container" id="tiktokStatsContainer">
+                    <div class="tiktok-follower-box">
+                        <span class="tiktok-follower-number" id="tiktokFollowers">
+                            <svg class="m3-spinner" viewBox="0 0 50 50">
+                                <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                            </svg>
+                        </span>
+                        <span class="tiktok-follower-label">Followers</span>
+                    </div>
+                    <div class="live-dot-container">
+                        <div class="pulse-dot"></div>
+                        <span>UPDATES LIVE</span>
+                    </div>
+                </div>
+
+                <!-- Inner Error Container -->
+                <div class="tiktok-error-box" id="tiktokErrorBox">
+                    <span class="tiktok-error-text">Failed to fetch TikTok followers</span>
+                    <div class="tiktok-error-actions">
+                        <button class="tiktok-btn tiktok-btn-primary state-layer" onclick="retryInitialLoad()">Retry</button>
+                        <button class="tiktok-btn tiktok-btn-secondary state-layer" onclick="continueAnyway()">Continue Anyway</button>
+                    </div>
+                </div>
+            </div>
+
+            <span class="section-tag">// PROJECTS</span>
+
+            <main class="projects">
+                <a class="project-card state-layer" href="https://reallysprinkles.com/ipsw" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>Firmware Signing Check</span>
+                            <span class="badge">TOOL</span>
+                        </div>
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </div>
+                    <p class="project-description">
+                        Check real-time Apple iOS, iPadOS, and device firmware signing status powered by IPSW API.
+                    </p>
+                </a>
+
+                <a class="project-card state-layer" href="https://reallysprinkles.github.io/respring" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>Web respringer</span>
+                            <span class="badge">PWA</span>
+                        </div>
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </div>
+                    <p class="project-description">
+                        A minimal Progressive Web App (PWA) that runs a respring-style script inside a sandboxed iframe.
+                    </p>
+                </a>
+
+                <a class="project-card state-layer" href="https://www.reallysprinkles.com/editipa" target="_blank" rel="noopener noreferrer">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>iPA Editor</span>
+                            <span class="badge">WEB</span>
+                        </div>
+                        <svg class="link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </div>
+                    <p class="project-description">
+                        A simple iPA editor.
+                    </p>
+                </a>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div class="project-title">
+                            <span>AltStore Repo</span>
+                            <span class="badge">REPOSITORY</span>
+                        </div>
+                    </div>
+                    <p class="project-description">
+                        My main altstore repository. It includes apps like Unc0ver and much more useful stuff
+                    </p>
+
+                    <div class="repo-container">
+                        <div class="repo-url-box">
+                            <span class="repo-url" id="repoUrl">https://imgloop.site/altstorerepo.json</span>
+                            <button class="copy-btn state-layer" onclick="copyRepoUrl()" id="copyBtn">COPY</button>
+                        </div>
+
+                        <div class="btn-grid">
+                            <button class="app-btn state-layer" onclick="openAppScheme('sidestore://source?url=https://imgloop.site/altstorerepo.json')">SideStore</button>
+                            <button class="app-btn state-layer" onclick="openAppScheme('altstore://source?url=https://imgloop.site/altstorerepo.json')">AltStore</button>
+                            <button class="app-btn state-layer" onclick="openAppScheme('ksign://source/https://imgloop.site/altstorerepo.json')">KSign</button>
+                            <button class="app-btn state-layer" onclick="openAppScheme('esign://addsource?url=https://imgloop.site/altstorerepo.json')">eSign</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <div class="ocean-bottom-info">
+                somewhere at sea &middot; calm &middot; <span id="current-time">04:12 AM</span>
+            </div>
+
+            <footer>
+                <div>And that’s all.</div>
+                <div>gloop / 2026</div>
+            </footer>
+        </div>
+
+        <div id="settings-tab" class="tab-content">
+            <div class="settings-card">
+                <div class="settings-header">Settings</div>
+                <div class="setting-group">
+                    <div class="setting-label">Appearance</div>
+                    <div class="theme-selector">
+                        <button class="theme-btn state-layer" onclick="setTheme('dark')" id="theme-btn-dark">
+                            <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-5.4-5.4c0-1.81.89-3.42 2.26-4.4C12.92 3.04 12.46 3 12 3z"/></svg>
+                            DARK
+                        </button>
+                        <button class="theme-btn state-layer" onclick="setTheme('light')" id="theme-btn-light">
+                            <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 0 0-1.41 0 .996.996 0 0 0 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 0 0 0-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 0 0 0-1.41.996.996 0 0 0-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
+                            LIGHT
+                        </button>
+                        <button class="theme-btn state-layer" onclick="setTheme('system')" id="theme-btn-system">
+                            <svg viewBox="0 0 24 24"><path d="M4 6h16v10H4z" fill="none"/><path d="M20 4H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h6l-2 2v1h8v-1l-2-2h6c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 12H4V6h16v10z"/></svg>
+                            AUTO
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ocean-bottom-info">
+                somewhere at sea &middot; calm
+            </div>
+
+            <footer>
+                <div>And that’s all.</div>
+                <div>gloop / 2026</div>
+            </footer>
+        </div>
+
+    </div>
+
+    <div class="bottom-nav-wrapper">
+        <nav class="bottom-nav">
+            <button class="nav-item active" onclick="switchTab('home')" id="nav-home">
+                <span class="nav-indicator">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                    </svg>
+                </span>
+                SURFACE
+            </button>
+            <button class="nav-item" onclick="switchTab('settings')" id="nav-settings">
+                <span class="nav-indicator">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6-3.6z"/>
+                    </svg>
+                </span>
+                SETTINGS
+            </button>
+        </nav>
+    </div>
+
+    <script>
+        // Send page analytics hit using standard fetch API
+        async function trackPageHit() {
+            let sessionId = localStorage.getItem('analytics_session_id');
+            if (!sessionId) {
+                sessionId = 'session-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now();
+                localStorage.setItem('analytics_session_id', sessionId);
+            }
+
+            const payloadData = JSON.stringify({
+                "user-agent": navigator.userAgent,
+                "locale": navigator.language || "en-US",
+                "location": "EG",
+                "referrer": document.referrer || "",
+                "pathname": window.location.pathname,
+                "href": window.location.href
+            });
+
+            const analyticsPayload = {
+                "timestamp": new Date().toISOString(),
+                "action": "page_hit",
+                "version": "1",
+                "session_id": sessionId,
+                "payload": payloadData
+            };
+
+            const response = await fetch('https://api2.imgloop.site/~api/analytics', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify(analyticsPayload)
+            });
+            
+            if (!response.ok) {
+                throw new Error('Load failed');
+            }
+            console.log('Loaded successfully!');
+        }
+
+        function openAppScheme(url) {
+            window.location.href = url;
+        }
+
+        function copyRepoUrl() {
+            const urlText = document.getElementById('repoUrl').innerText;
+            navigator.clipboard.writeText(urlText).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = 'COPIED!';
+                setTimeout(() => {
+                    btn.innerText = 'COPY';
+                }, 2000);
+            }).catch(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = 'COPIED!';
+                setTimeout(() => {
+                    btn.innerText = 'COPY';
+                }, 2000);
+            });
+        }
+
+        function switchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const navItems = document.querySelectorAll('.nav-item');
+            const radarText = document.getElementById('radar-depth-text');
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            navItems.forEach(item => item.classList.remove('active'));
+
+            if (tabName === 'home') {
+                document.getElementById('home-tab').classList.add('active');
+                document.getElementById('nav-home').classList.add('active');
+                if (radarText) radarText.innerText = 'o 01 · SURFACE · 0000m';
+            } else if (tabName === 'settings') {
+                document.getElementById('settings-tab').classList.add('active');
+                document.getElementById('nav-settings').classList.add('active');
+                if (radarText) radarText.innerText = 'o 02 · SHALLOW · 0060m';
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function setTheme(theme) {
+            if (theme === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+            localStorage.setItem('theme', theme);
+            updateThemeButtons(theme);
+            updateThemeColorMeta();
+        }
+
+        // Keep the browser UI color in sync with the active theme
+        function updateThemeColorMeta() {
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (!meta) return;
+            requestAnimationFrame(() => {
+                meta.setAttribute('content', getComputedStyle(document.body).backgroundColor);
+            });
+        }
+
+        function updateThemeButtons(theme) {
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`theme-btn-${theme}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            const timeElem = document.getElementById('current-time');
+            if (timeElem) timeElem.innerText = timeStr;
+        }
+
+        let isFirstLoad = true;
+        let updateInterval = null;
+
+        function hideOverlayLoader() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function showOverlayError(errorMessage, showContinueButton = true) {
+            const actions = document.getElementById('overlay-error-actions');
+            const errorText = document.getElementById('overlay-error-text');
+            const errorButtons = document.getElementById('overlay-error-buttons');
+            
+            if (errorText) errorText.innerText = errorMessage;
+
+            if (errorButtons) {
+                if (showContinueButton) {
+                    errorButtons.innerHTML = `
+                        <button class="tiktok-btn tiktok-btn-primary state-layer" onclick="retryInitialLoad()">Retry</button>
+                        <button class="tiktok-btn tiktok-btn-secondary state-layer" onclick="continueAnyway()">Continue Anyway</button>
+                    `;
+                } else {
+                    errorButtons.innerHTML = `
+                        <button class="tiktok-btn tiktok-btn-primary state-layer" onclick="retryInitialLoad()">Retry</button>
+                    `;
+                }
+            }
+
+            if (actions) actions.style.display = 'flex';
+        }
+
+        function hideOverlayError() {
+            const actions = document.getElementById('overlay-error-actions');
+            if (actions) actions.style.display = 'none';
+        }
+
+        function showSpinner() {
+            const countElem = document.getElementById('tiktokFollowers');
+            countElem.innerHTML = `
+                <svg class="m3-spinner" viewBox="0 0 50 50">
+                    <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                </svg>
+            `;
+            document.getElementById('tiktokErrorBox').style.display = 'none';
+        }
+
+        // Fetch TikTok followers using standard fetch API
+        async function fetchTikTokFollowers() {
+            const res = await fetch('https://api.imgloop.site/api/tiktok-followers', { 
+                method: 'GET',
+                cache: 'no-store' 
+            });
+
+            if (!res.ok) throw new Error('Network response was not ok');
+            
+            const data = await res.json();
+            if (data && data.followers !== undefined) {
+                return data.followers;
+            } else {
+                throw new Error('Invalid data format');
+            }
+        }
+
+        // Synchronous concurrent load for both APIs after 2s delay
+        async function loadInitialAPIs() {
+            if (isFirstLoad) {
+                showSpinner();
+                hideOverlayError();
+            }
+
+            // Enforce exact 2000ms delay as specified
+            const delayPromise = new Promise(resolve => setTimeout(resolve, 2000));
+            
+            try {
+                // Execute delay, TikTok followers API, and Analytics API in parallel
+                const [_, tiktokResult, analyticsResult] = await Promise.allSettled([
+                    delayPromise,
+                    fetchTikTokFollowers(),
+                    trackPageHit()
+                ]);
+
+                // Check analytics status first
+                if (analyticsResult.status === 'rejected') {
+                    if (isFirstLoad) {
+                        showOverlayError("Something went wrong..", false); // Retry button ONLY
+                    }
+                    return;
+                }
+
+                // Check TikTok followers status
+                if (tiktokResult.status === 'fulfilled') {
+                    const countElem = document.getElementById('tiktokFollowers');
+                    const errorBox = document.getElementById('tiktokErrorBox');
+                    countElem.innerText = Number(tiktokResult.value).toLocaleString();
+                    errorBox.style.display = 'none';
+
+                    if (isFirstLoad) {
+                        isFirstLoad = false;
+                        hideOverlayLoader();
+                    }
+                } else {
+                    throw new Error('TikTok Followers failed to load');
+                }
+
+            } catch (e) {
+                console.error('Initial API loading error:', e);
+                if (isFirstLoad) {
+                    showOverlayError("Failed to load TikTok stats", true);
+                    document.getElementById('tiktokErrorBox').style.display = 'flex';
+                }
+            }
+        }
+
+        async function updateTikTokPeriodic() {
+            try {
+                const followers = await fetchTikTokFollowers();
+                const countElem = document.getElementById('tiktokFollowers');
+                const errorBox = document.getElementById('tiktokErrorBox');
+                countElem.innerText = Number(followers).toLocaleString();
+                errorBox.style.display = 'none';
+            } catch (e) {
+                console.error('Failed periodic TikTok fetch:', e);
+            }
+        }
+
+        function retryInitialLoad() {
+            hideOverlayError();
+            loadInitialAPIs();
+        }
+
+        function continueAnyway() {
+            document.getElementById('tiktokErrorBox').style.display = 'none';
+            document.getElementById('tiktokFollowers').innerText = '--';
+            isFirstLoad = false;
+            hideOverlayLoader();
+        }
+
+        // Material 3 ripple effect (delegated, works for dynamically added buttons too)
+        document.addEventListener('pointerdown', (e) => {
+            const trigger = e.target.closest('.state-layer, .nav-item');
+            if (!trigger) return;
+            const host = trigger.classList.contains('nav-item')
+                ? trigger.querySelector('.nav-indicator')
+                : trigger;
+            if (!host) return;
+            const rect = host.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height) * 2;
+            const wave = document.createElement('span');
+            wave.className = 'ripple-wave';
+            wave.style.width = wave.style.height = size + 'px';
+            wave.style.left = (e.clientX - rect.left - size / 2) + 'px';
+            wave.style.top = (e.clientY - rect.top - size / 2) + 'px';
+            host.appendChild(wave);
+            wave.addEventListener('animationend', () => wave.remove());
+        });
+
+        (function init() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+            updateTime();
+            setInterval(updateTime, 10000);
+
+            // Trigger both APIs synchronously after 2 seconds
+            loadInitialAPIs();
+            updateInterval = setInterval(updateTikTokPeriodic, 5000);
+        })();
+    </script>
+
+</body>
+</html>
