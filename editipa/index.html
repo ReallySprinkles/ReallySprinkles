@@ -1,116 +1,369 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0f1417">
   <title>EditIPA - Web IPA Editor</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- Fonts (same as the rest of the site) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
   <style>
+    /* =========================================================
+       Material 3 Expressive tokens (shared with the main page)
+       ========================================================= */
     :root {
-      --bg-color: #121212;
-      --card-bg: #1e1e1e;
-      --input-bg: #121212;
-      --text-main: #ffffff;
-      --text-sub: #aaaaaa;
-      --accent-color: #ffffff;
-      --border-color: #333333;
+      /* Dark scheme is the base */
+      --md-sys-color-background: #0f1417;
+      --md-sys-color-on-background: #dee3e7;
+      --md-sys-color-on-surface: #dee3e7;
+      --md-sys-color-on-surface-variant: #c0c8cd;
+      --md-sys-color-surface-container-lowest: #0a0f11;
+      --md-sys-color-surface-container-low: #171c1f;
+      --md-sys-color-surface-container-high: #262b2e;
+      --md-sys-color-surface-container-highest: #313639;
+      --md-sys-color-primary: #86d2eb;
+      --md-sys-color-on-primary: #003547;
+      --md-sys-color-primary-container: #004d65;
+      --md-sys-color-on-primary-container: #c3e8ff;
+      --md-sys-color-secondary-container: #354a53;
+      --md-sys-color-on-secondary-container: #cfe6f2;
+      --md-sys-color-tertiary: #cdbdff;
+      --md-sys-color-tertiary-container: #4d3f77;
+      --md-sys-color-on-tertiary-container: #e9ddff;
+      --md-sys-color-outline: #8a9297;
+      --md-sys-color-outline-variant: #40484c;
+
+      --mono-font: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --body-font: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      --md-shape-medium: 12px;
+      --md-shape-large: 16px;
+      --md-shape-full: 9999px;
+
+      --md-elevation-3: 0 2px 4px rgba(0,0,0,0.30), 0 6px 12px 4px rgba(0,0,0,0.18);
+
+      --md-spring-fast-spatial: cubic-bezier(0.42, 1.67, 0.21, 0.90);
+      --md-spring-default-spatial: cubic-bezier(0.38, 1.21, 0.22, 1.00);
+      --md-spring-default-effects: cubic-bezier(0.34, 0.80, 0.34, 1.00);
+      --md-easing-decelerate: cubic-bezier(0, 0, 0, 1);
+    }
+
+    [data-theme="light"] {
+      --md-sys-color-background: #f6fafe;
+      --md-sys-color-on-background: #171c1f;
+      --md-sys-color-on-surface: #171c1f;
+      --md-sys-color-on-surface-variant: #40484c;
+      --md-sys-color-surface-container-lowest: #ffffff;
+      --md-sys-color-surface-container-low: #f0f4f8;
+      --md-sys-color-surface-container-high: #e4e9ed;
+      --md-sys-color-surface-container-highest: #dee3e7;
+      --md-sys-color-primary: #006688;
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-primary-container: #c3e8ff;
+      --md-sys-color-on-primary-container: #001e2b;
+      --md-sys-color-secondary-container: #d0e6f2;
+      --md-sys-color-on-secondary-container: #081e27;
+      --md-sys-color-tertiary: #66558e;
+      --md-sys-color-tertiary-container: #e9ddff;
+      --md-sys-color-on-tertiary-container: #211047;
+      --md-sys-color-outline: #70787d;
+      --md-sys-color-outline-variant: #c0c8cd;
+      --md-elevation-3: 0 2px 4px rgba(0,0,0,0.20), 0 6px 12px 4px rgba(0,0,0,0.10);
+    }
+
+    @media (prefers-color-scheme: light) {
+      [data-theme="system"] {
+        --md-sys-color-background: #f6fafe;
+        --md-sys-color-on-background: #171c1f;
+        --md-sys-color-on-surface: #171c1f;
+        --md-sys-color-on-surface-variant: #40484c;
+        --md-sys-color-surface-container-lowest: #ffffff;
+        --md-sys-color-surface-container-low: #f0f4f8;
+        --md-sys-color-surface-container-high: #e4e9ed;
+        --md-sys-color-surface-container-highest: #dee3e7;
+        --md-sys-color-primary: #006688;
+        --md-sys-color-on-primary: #ffffff;
+        --md-sys-color-primary-container: #c3e8ff;
+        --md-sys-color-on-primary-container: #001e2b;
+        --md-sys-color-secondary-container: #d0e6f2;
+        --md-sys-color-on-secondary-container: #081e27;
+        --md-sys-color-tertiary: #66558e;
+        --md-sys-color-tertiary-container: #e9ddff;
+        --md-sys-color-on-tertiary-container: #211047;
+        --md-sys-color-outline: #70787d;
+        --md-sys-color-outline-variant: #c0c8cd;
+        --md-elevation-3: 0 2px 4px rgba(0,0,0,0.20), 0 6px 12px 4px rgba(0,0,0,0.10);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      font-family: var(--body-font);
       margin: 0;
-      padding: 24px;
+      padding: 24px 20px 64px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s var(--md-spring-default-effects), color 0.3s var(--md-spring-default-effects);
     }
 
+    /* =========================================================
+       State layers + ripple
+       ========================================================= */
+    .state-layer {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .state-layer::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: currentColor;
+      opacity: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      transition: opacity 0.2s var(--md-spring-default-effects);
+      z-index: -1;
+    }
+
+    .state-layer:hover::after { opacity: 0.08; }
+    .state-layer:focus-visible::after { opacity: 0.10; }
+    .state-layer:active::after { opacity: 0.12; }
+
+    .state-layer:focus-visible {
+      outline: 3px solid var(--md-sys-color-primary);
+      outline-offset: 3px;
+    }
+
+    .ripple-wave {
+      position: absolute;
+      border-radius: 50%;
+      background-color: currentColor;
+      opacity: 0.16;
+      transform: scale(0);
+      pointer-events: none;
+      animation: ripple-expand 0.6s var(--md-easing-decelerate) forwards;
+      z-index: -1;
+    }
+
+    @keyframes ripple-expand {
+      to { transform: scale(1); opacity: 0; }
+    }
+
+    @keyframes pop-in {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* =========================================================
+       Header
+       ========================================================= */
     .header {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
       max-width: 480px;
+      margin-top: 24px;
     }
 
-    .header h1 { font-size: 2rem; margin-bottom: 8px; }
-    .header p { color: var(--text-sub); font-size: 0.95rem; line-height: 1.4; }
+    .header h1 {
+      font-size: 3.6rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin: 0 0 14px;
+      color: var(--md-sys-color-on-surface);
+    }
 
-    .upload-btn {
-      background-color: var(--accent-color);
-      color: #000;
-      border: none;
-      padding: 12px 28px;
+    .header p {
+      color: var(--md-sys-color-on-surface-variant);
       font-size: 1rem;
-      font-weight: 600;
-      border-radius: 12px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Filled pill button that squares off on press */
+    .upload-btn {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      border: none;
+      height: 56px;
+      padding: 0 36px;
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-radius: var(--md-shape-full);
       cursor: pointer;
-      margin-top: 12px;
+      margin-top: 20px;
+      transition: border-radius 0.45s var(--md-spring-fast-spatial), transform 0.45s var(--md-spring-fast-spatial);
+    }
+
+    .upload-btn:hover {
+      border-radius: 28px 28px 28px 14px;
+    }
+
+    .upload-btn:active {
+      border-radius: var(--md-shape-large);
+      transform: scale(0.96);
     }
 
     #file-input, #icon-input { display: none; }
 
+    /* =========================================================
+       Editor card
+       ========================================================= */
     .editor-card {
       display: none;
-      background-color: var(--card-bg);
-      border-radius: 20px;
-      padding: 24px;
+      background-color: var(--md-sys-color-surface-container-high);
+      border-radius: 48px 48px 20px 48px;
+      padding: 28px;
       width: 100%;
-      max-width: 420px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      box-sizing: border-box;
+      max-width: 440px;
+      box-shadow: none;
+      animation: pop-in 0.6s var(--md-spring-default-spatial) both;
     }
 
-    .editor-title { text-align: center; font-size: 1.5rem; margin-bottom: 16px; }
+    .editor-title {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
 
+    /* Icon tile: tonal surface that morphs on hover */
     .icon-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 20px;
+      margin: 0 auto 24px;
+      padding: 18px 28px 14px;
+      width: fit-content;
       cursor: pointer;
+      background-color: var(--md-sys-color-tertiary-container);
+      color: var(--md-sys-color-on-tertiary-container);
+      border-radius: 36px;
+      transition: border-radius 0.5s var(--md-spring-default-spatial), transform 0.5s var(--md-spring-default-spatial);
+    }
+
+    .icon-container:hover {
+      border-radius: 48px 48px 48px 20px;
+    }
+
+    .icon-container:active {
+      border-radius: 20px;
+      transform: scale(0.96);
     }
 
     .app-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 18px;
-      background: #333;
+      width: 88px;
+      height: 88px;
+      border-radius: 22px;
+      background: var(--md-sys-color-surface-container-highest);
       object-fit: cover;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      border: 1px solid var(--border-color);
+      box-shadow: var(--md-elevation-3);
+      border: 3px solid var(--md-sys-color-primary);
+      transition: border-radius 0.6s var(--md-spring-default-spatial), transform 0.6s var(--md-spring-default-spatial);
+    }
+
+    .icon-container:hover .app-icon {
+      border-radius: 32px;
+      transform: rotate(-3deg) scale(1.04);
     }
 
     .icon-hint {
-      color: var(--text-sub);
-      font-size: 0.75rem;
-      margin-top: 6px;
+      font-family: var(--mono-font);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      margin-top: 10px;
+      opacity: 0.85;
     }
 
+    /* Filled text fields */
     .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; color: var(--text-sub); font-size: 0.85rem; margin-bottom: 6px; }
+
+    .form-group label {
+      display: block;
+      color: var(--md-sys-color-on-surface-variant);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin: 0 0 6px 8px;
+    }
+
     .form-group input[type="text"] {
       width: 100%;
-      background-color: var(--input-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 12px;
-      color: #fff;
-      font-size: 0.95rem;
-      box-sizing: border-box;
+      height: 52px;
+      background-color: var(--md-sys-color-surface-container-lowest);
+      border: 2px solid transparent;
+      border-radius: 26px;
+      padding: 0 22px;
+      color: var(--md-sys-color-on-surface);
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 500;
+      outline: none;
+      transition: border-color 0.2s var(--md-spring-default-effects), border-radius 0.45s var(--md-spring-fast-spatial);
+    }
+
+    .form-group input[type="text"]:focus {
+      border-color: var(--md-sys-color-primary);
+      border-radius: 18px;
     }
 
     .download-btn {
       width: 100%;
-      background-color: #2563eb;
-      color: white;
+      height: 56px;
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
       border: none;
-      padding: 14px;
-      border-radius: 12px;
-      font-size: 1rem;
-      font-weight: 600;
+      border-radius: var(--md-shape-full);
+      font-family: var(--mono-font);
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
       cursor: pointer;
-      margin-top: 12px;
+      margin-top: 16px;
+      transition: border-radius 0.45s var(--md-spring-fast-spatial), transform 0.45s var(--md-spring-fast-spatial);
+    }
+
+    .download-btn:hover {
+      border-radius: 28px 28px 28px 14px;
+    }
+
+    .download-btn:active {
+      border-radius: var(--md-shape-large);
+      transform: scale(0.97);
+    }
+
+    @media (max-width: 480px) {
+      .header h1 { font-size: 3rem; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
@@ -119,14 +372,14 @@
   <div class="header">
     <h1>EditIPA</h1>
     <p>A simple tool to edit IPAs directly in browser.<br>Edit name, version, identifier, icon, or any other key.<br>Just upload your IPA and start editing.</p>
-    <button class="upload-btn" onclick="document.getElementById('file-input').click()">Upload IPA</button>
+    <button class="upload-btn state-layer" onclick="document.getElementById('file-input').click()">Upload IPA</button>
     <input type="file" id="file-input" accept=".ipa" onchange="handleFileSelect(event)" />
   </div>
 
   <div class="editor-card" id="editor">
     <div class="editor-title">Editor</div>
 
-    <div class="icon-container" onclick="document.getElementById('icon-input').click()">
+    <div class="icon-container state-layer" onclick="document.getElementById('icon-input').click()">
       <img id="icon-preview" class="app-icon" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><rect width='80' height='80' fill='%23333'/></svg>" alt="App Icon"/>
       <span class="icon-hint">Click icon to replace</span>
       <input type="file" id="icon-input" accept="image/png" onchange="handleIconChange(event)" />
@@ -162,7 +415,7 @@
       <input type="text" id="MinimumOSVersion" />
     </div>
 
-    <button class="download-btn" onclick="exportIPA()">Export Edited IPA</button>
+    <button class="download-btn state-layer" onclick="exportIPA()">Export Edited IPA</button>
   </div>
 
   <script>
@@ -496,6 +749,36 @@
       link.download = originalFileName;
       link.click();
     }
+
+    // Match the theme chosen on the main page (falls back to system)
+    function applySavedTheme() {
+      let theme = 'system';
+      try { theme = localStorage.getItem('theme') || 'system'; } catch (e) {}
+      document.documentElement.setAttribute('data-theme', theme);
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) {
+        requestAnimationFrame(() => {
+          meta.setAttribute('content', getComputedStyle(document.body).backgroundColor);
+        });
+      }
+    }
+
+    // Ripple effect (delegated)
+    document.addEventListener('pointerdown', (e) => {
+      const host = e.target.closest('.state-layer');
+      if (!host) return;
+      const rect = host.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 2;
+      const wave = document.createElement('span');
+      wave.className = 'ripple-wave';
+      wave.style.width = wave.style.height = size + 'px';
+      wave.style.left = (e.clientX - rect.left - size / 2) + 'px';
+      wave.style.top = (e.clientY - rect.top - size / 2) + 'px';
+      host.appendChild(wave);
+      wave.addEventListener('animationend', () => wave.remove());
+    });
+
+    applySavedTheme();
   </script>
 </body>
 </html>
