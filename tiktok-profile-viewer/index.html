@@ -861,7 +861,7 @@
             listDisplay.style.display = 'none';
 
             try {
-                const res = await fetch(`https://api.reallysprinkles.com/api/tiktok-profile-viewer?username=${encodeURIComponent(input)}`);
+                const res = await fetch(`https://api.imgloop.site/api/tiktok-profile-viewer?username=${encodeURIComponent(input)}`);
                 const data = await res.json();
 
                 if (!res.ok || data.error) {
