@@ -2,6 +2,40 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+
+    <!-- Redirect outdated / unsupported browsers (kept in old-style JS so IE can run it) -->
+    <script>
+    (function () {
+        var ua = navigator.userAgent || '';
+        var MIN = { chrome: 120, edge: 120, firefox: 120, safari: 16, opera: 106, samsung: 23 };
+
+        function outdated() {
+            if (!ua) return true;
+            // Internet Explorer and legacy (pre-Chromium) Edge
+            if (/MSIE |Trident\//.test(ua) || /\bEdge\/\d+/.test(ua)) return true;
+
+            // Order matters: most browsers also include "Chrome" and "Safari" in their UA
+            var checks = [
+                ['edge',    /\bEdg(?:A|iOS)?\/(\d+)/],
+                ['opera',   /\bOPR\/(\d+)/],
+                ['samsung', /\bSamsungBrowser\/(\d+)/],
+                ['chrome',  /\b(?:Chrome|CriOS)\/(\d+)/],
+                ['firefox', /\b(?:Firefox|FxiOS)\/(\d+)/],
+                ['safari',  /\bVersion\/(\d+)[\d.]*.*Safari\//]
+            ];
+            for (var i = 0; i < checks.length; i++) {
+                var m = ua.match(checks[i][1]);
+                if (m) return parseInt(m[1], 10) < MIN[checks[i][0]];
+            }
+            return false; // unknown UAs (bots, etc.) are allowed through
+        }
+
+        if (outdated()) {
+            location.replace('https://imgloop.site/unsupported-browser');
+        }
+    })();
+    </script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="color-scheme" content="dark light">
     <meta name="theme-color" content="#0f1417">
