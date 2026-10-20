@@ -21,6 +21,11 @@
       "permanent": true
     },
     {
+      "source": "/api/v4/save_mood",
+      "destination": "https://api2.imgloop.site/api/v4/save_mood",
+      "permanent": true
+    },
+    {
       "source": "/api/v4/upload_avatar",
       "destination": "https://api.imgloop.site/api/v4/upload_avatar",
       "permanent": true
