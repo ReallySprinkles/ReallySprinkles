@@ -2,33 +2,27 @@
   "rewrites": [
     {
       "source": "/api/v4/NotificationSettings",
-      "destination": "https://api.imgloop.site/api/v4/NotificationSettings",
-      "permanent": true
+      "destination": "https://api.imgloop.site/api/v4/NotificationSettings"
     },
     {
       "source": "/api/v4/register_token",
-      "destination": "https://api.imgloop.site/api/v4/register_token",
-      "permanent": true
+      "destination": "https://api.imgloop.site/api/v4/register_token"
     },
     {
       "source": "/api/v4/update_user",
-      "destination": "https://api.imgloop.site/api/v4/update_user",
-      "permanent": true
+      "destination": "https://api.imgloop.site/api/v4/update_user"
     },
     {
       "source": "/api/v4/enable_tfa",
-      "destination": "https://api.imgloop.site/api/v4/enable_tfa",
-      "permanent": true
+      "destination": "https://api.imgloop.site/api/v4/enable_tfa"
     },
     {
       "source": "/api/v4/save_mood",
-      "destination": "https://api2.imgloop.site/api/v4/save_mood",
-      "permanent": true
+      "destination": "https://api2.imgloop.site/api/v4/save_mood"
     },
     {
       "source": "/api/v4/upload_avatar",
-      "destination": "https://api.imgloop.site/api/v4/upload_avatar",
-      "permanent": true
+      "destination": "https://api.imgloop.site/api/v4/upload_avatar"
     }
   ]
 }
