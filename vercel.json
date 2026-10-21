@@ -21,7 +21,7 @@
       "permanent": true
     },
     {
-      "source": "/api/v4/attachment*",
+      "source": "/api/v4/attachment",
       "destination": "https://imgloop.site/newPfp.jpg",
       "permanent": true
     },
