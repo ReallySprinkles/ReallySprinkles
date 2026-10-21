@@ -1,5 +1,5 @@
 {
-  "redirects": [
+  "rewrites": [
     {
       "source": "/api/v4/NotificationSettings",
       "destination": "https://api.imgloop.site/api/v4/NotificationSettings",
