@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <meta name="color-scheme" content="dark light">
+    <meta name="theme-color" content="#0f1417">
+    <title>Browser not supported | gloop’s Stuff</title>
+
+    <!-- No external fonts, scripts or analytics on purpose: this page has to load on old browsers
+         and must never redirect back to the main site (that would cause a loop). -->
+    <style>
+        /* Plain hex colors and basic layout only, so older browsers still render it. */
+        html, body { margin: 0; padding: 0; }
+        * { box-sizing: border-box; }
+
+        body {
+            background: #0f1417;
+            color: #dee3e7;
+            font-family: Roboto, "Segoe UI", -apple-system, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 48px 20px 40px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .wrap {
+            max-width: 540px;
+            margin: 0 auto;
+        }
+
+        /* The one memorable thing: a shape that keeps changing form, like the loader on the main site */
+        .shape {
+            width: 96px;
+            height: 96px;
+            background: #86d2eb;
+            border-radius: 38% 62% 55% 45% / 45% 40% 60% 55%;
+            margin-bottom: 32px;
+            -webkit-animation: morph 6s ease-in-out infinite;
+            animation: morph 6s ease-in-out infinite;
+        }
+
+        @-webkit-keyframes morph {
+            0%, 100% { border-radius: 38% 62% 55% 45% / 45% 40% 60% 55%; -webkit-transform: rotate(0deg); }
+            50%      { border-radius: 58% 42% 40% 60% / 55% 58% 42% 45%; -webkit-transform: rotate(12deg); }
+        }
+        @keyframes morph {
+            0%, 100% { border-radius: 38% 62% 55% 45% / 45% 40% 60% 55%; transform: rotate(0deg); }
+            50%      { border-radius: 58% 42% 40% 60% / 55% 58% 42% 45%; transform: rotate(12deg); }
+        }
+
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1.05;
+            margin: 0 0 16px;
+        }
+
+        p {
+            font-size: 1.05rem;
+            color: #c0c8cd;
+            margin: 0 0 12px;
+        }
+
+        .card {
+            background: #262b2e;
+            border-radius: 40px 40px 40px 16px;
+            padding: 28px;
+            margin: 32px 0 20px;
+        }
+
+        .card h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0 0 6px;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            margin-bottom: 18px;
+        }
+
+        .browsers {
+            margin: 0 -4px;
+        }
+
+        .browser {
+            display: inline-block;
+            margin: 4px;
+            padding: 12px 22px;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            -webkit-transition: border-radius 0.3s, -webkit-transform 0.3s;
+            transition: border-radius 0.3s, transform 0.3s;
+        }
+
+        .browser:hover, .browser:focus { border-radius: 14px; }
+        .browser:active { -webkit-transform: scale(0.95); transform: scale(0.95); }
+        .browser:focus { outline: 3px solid #86d2eb; outline-offset: 3px; }
+
+        .b-chrome  { background: #004d65; color: #c3e8ff; }
+        .b-firefox { background: #354a53; color: #cfe6f2; }
+        .b-edge    { background: #4d3f77; color: #e9ddff; }
+        .b-safari  { background: #86d2eb; color: #003547; }
+
+        .detected {
+            font-family: "Roboto Mono", Consolas, Menlo, monospace;
+            font-size: 0.75rem;
+            color: #8a9297;
+            word-wrap: break-word;
+            word-break: break-all;
+            margin: 24px 0 0;
+        }
+
+        .help {
+            font-size: 0.9rem;
+            margin-top: 16px;
+        }
+
+        .help a { color: #86d2eb; }
+
+        footer {
+            margin-top: 48px;
+            text-align: center;
+            font-family: "Roboto Mono", Consolas, Menlo, monospace;
+            font-size: 0.75rem;
+            color: #8a9297;
+        }
+
+        footer div { margin-bottom: 4px; }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 2.2rem; }
+            .card { padding: 22px; }
+        }
+
+        @media (prefers-color-scheme: light) {
+            body { background: #f6fafe; color: #171c1f; }
+            p { color: #40484c; }
+            .shape { background: #006688; }
+            .card { background: #e4e9ed; }
+            .b-chrome  { background: #c3e8ff; color: #001e2b; }
+            .b-firefox { background: #d0e6f2; color: #081e27; }
+            .b-edge    { background: #e9ddff; color: #211047; }
+            .b-safari  { background: #006688; color: #ffffff; }
+            .browser:focus { outline-color: #006688; }
+            .detected, footer { color: #70787d; }
+            .help a { color: #006688; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .shape { -webkit-animation: none; animation: none; }
+            .browser { -webkit-transition: none; transition: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="shape" aria-hidden="true"></div>
+
+        <h1>This browser is too old for this site</h1>
+        <p>The page needs features your browser doesn’t have, so it can’t load properly. Update your browser, or open this site in one of these:</p>
+
+        <div class="card">
+            <h2>Get a current browser</h2>
+            <p>They’re free, and the install takes a minute.</p>
+            <div class="browsers">
+                <a class="browser b-chrome" href="https://www.google.com/chrome/">Chrome</a>
+                <a class="browser b-firefox" href="https://www.mozilla.org/firefox/new/">Firefox</a>
+                <a class="browser b-edge" href="https://www.microsoft.com/edge">Edge</a>
+                <a class="browser b-safari" href="https://support.apple.com/en-us/102665">Safari</a>
+            </div>
+        </div>
+
+        <p class="help">Already on a recent browser? That’s a mistake on my end. Email <a href="mailto:help@reallysprinkles.com">help@reallysprinkles.com</a> and include the details below.</p>
+
+        <p class="detected" id="detected"></p>
+
+        <footer>
+            <div>And that’s all.</div>
+            <div>gloop / 2026</div>
+        </footer>
+    </div>
+
+    <script>
+        // Shows the detected user agent so false positives are easy to report (old-style JS on purpose)
+        (function () {
+            var el = document.getElementById('detected');
+            if (!el) return;
+            var text = 'Detected: ' + (navigator.userAgent || 'unknown');
+            if (typeof el.textContent !== 'undefined') { el.textContent = text; }
+            else { el.innerText = text; }
+        })();
+    </script>
+</body>
+</html>
