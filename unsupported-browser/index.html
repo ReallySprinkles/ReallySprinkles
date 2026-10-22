@@ -108,6 +108,42 @@
         .b-edge    { background: #4d3f77; color: #e9ddff; }
         .b-safari  { background: #86d2eb; color: #003547; }
 
+        /* Only shown (via script) when the visitor's browser is actually supported */
+        .supported {
+            display: none;
+            background: #4d3f77;
+            color: #e9ddff;
+            border-radius: 16px 40px 40px 40px;
+            padding: 24px 28px;
+            margin: 0 0 20px;
+        }
+
+        .supported.show { display: block; }
+
+        .supported p {
+            color: inherit;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 16px;
+        }
+
+        .go-btn {
+            display: inline-block;
+            padding: 12px 26px;
+            border-radius: 9999px;
+            background: #86d2eb;
+            color: #003547;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-decoration: none;
+            -webkit-transition: border-radius 0.3s, -webkit-transform 0.3s;
+            transition: border-radius 0.3s, transform 0.3s;
+        }
+
+        .go-btn:hover, .go-btn:focus { border-radius: 14px; }
+        .go-btn:active { -webkit-transform: scale(0.95); transform: scale(0.95); }
+        .go-btn:focus { outline: 3px solid #e9ddff; outline-offset: 3px; }
+
         .detected {
             font-family: "Roboto Mono", Consolas, Menlo, monospace;
             font-size: 0.75rem;
@@ -149,6 +185,9 @@
             .b-edge    { background: #e9ddff; color: #211047; }
             .b-safari  { background: #006688; color: #ffffff; }
             .browser:focus { outline-color: #006688; }
+            .supported { background: #e9ddff; color: #211047; }
+            .go-btn { background: #006688; color: #ffffff; }
+            .go-btn:focus { outline-color: #211047; }
             .detected, footer { color: #70787d; }
             .help a { color: #006688; }
         }
@@ -177,6 +216,11 @@
             </div>
         </div>
 
+        <div class="supported" id="supported">
+            <p>This browser is supported.</p>
+            <a class="go-btn" href="https://imgloop.site">Go to website</a>
+        </div>
+
         <p class="help">Already on a recent browser? That’s a mistake on my end. Email <a href="mailto:help@reallysprinkles.com">help@reallysprinkles.com</a> and include the details below.</p>
 
         <p class="detected" id="detected"></p>
@@ -190,9 +234,39 @@
     <script>
         // Shows the detected user agent so false positives are easy to report (old-style JS on purpose)
         (function () {
+            var ua = navigator.userAgent || '';
+
+            // Keep these numbers identical to the ones in the main index.html
+            var MIN = { chrome: 120, edge: 120, firefox: 120, safari: 11, opera: 106, samsung: 23 };
+
+            function outdated() {
+                if (!ua) return true;
+                if (/MSIE |Trident\//.test(ua) || /\bEdge\/\d+/.test(ua)) return true;
+
+                var checks = [
+                    ['edge',    /\bEdg(?:A|iOS)?\/(\d+)/],
+                    ['opera',   /\bOPR\/(\d+)/],
+                    ['samsung', /\bSamsungBrowser\/(\d+)/],
+                    ['chrome',  /\b(?:Chrome|CriOS)\/(\d+)/],
+                    ['firefox', /\b(?:Firefox|FxiOS)\/(\d+)/],
+                    ['safari',  /\bVersion\/(\d+)[\d.]*.*Safari\//]
+                ];
+                for (var i = 0; i < checks.length; i++) {
+                    var m = ua.match(checks[i][1]);
+                    if (m) return parseInt(m[1], 10) < MIN[checks[i][0]];
+                }
+                return false;
+            }
+
+            // Supported browser: reveal the "This browser is supported" block
+            var box = document.getElementById('supported');
+            if (box && !outdated()) {
+                box.className = box.className + ' show';
+            }
+
             var el = document.getElementById('detected');
             if (!el) return;
-            var text = 'Detected: ' + (navigator.userAgent || 'unknown');
+            var text = 'Detected: ' + ua;
             if (typeof el.textContent !== 'undefined') { el.textContent = text; }
             else { el.innerText = text; }
         })();
