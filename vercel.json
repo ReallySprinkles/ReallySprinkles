@@ -11,6 +11,11 @@
       "permanent": true
     },
     {
+      "source": "/ytliquidglass",
+      "destination": "https://ytliquidglass.imgloop.site/",
+      "permanent": true
+    },
+    {
       "source": "/api/v4/update_user",
       "destination": "https://api.imgloop.site/api/v4/update_user",
       "permanent": true
