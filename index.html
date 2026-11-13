@@ -233,35 +233,8 @@
         }
 
         /* =========================================================
-           Overlay loader + morphing loading indicator
+           Morphing loading indicator (used for cards)
            ========================================================= */
-        #loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(15, 20, 23, 0.94);
-            background-color: color-mix(in srgb, var(--md-sys-color-surface) 94%, transparent);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            transition: opacity 0.5s var(--md-spring-default-effects), visibility 0.5s var(--md-spring-default-effects);
-        }
-
-        #loading-overlay.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        /* Expressive loading indicator: a solid shape that morphs and rotates.
-           Reuses the existing <svg class="m3-spinner"> markup, so JS is untouched. */
         .m3-spinner {
             width: 28px;
             height: 28px;
@@ -272,11 +245,6 @@
 
         .m3-spinner circle {
             display: none;
-        }
-
-        .overlay-spinner {
-            width: 64px;
-            height: 64px;
         }
 
         @keyframes m3e-morph {
@@ -747,10 +715,6 @@
             border: 2px solid var(--md-sys-color-outline);
         }
 
-        #loading-overlay .tiktok-btn-secondary {
-            color: var(--md-sys-color-primary);
-        }
-
         .repo-container {
             margin-top: 20px;
             display: flex;
@@ -1028,20 +992,6 @@
     </style>
 </head>
 <body>
-
-    <!-- Overlay Loader -->
-    <div id="loading-overlay">
-        <svg id="overlay-spinner-icon" class="m3-spinner overlay-spinner" viewBox="0 0 50 50">
-            <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
-        </svg>
-        <div id="overlay-loading-text" style="font-family: var(--mono-font); font-size: 0.85rem; letter-spacing: 0.1em; opacity: 0.8;">LOADING...</div>
-        <div id="overlay-error-actions" style="display: none; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px;">
-            <span id="overlay-error-text" style="font-family: var(--mono-font); font-size: 0.8rem; color: var(--md-sys-color-error);">Something went wrong..</span>
-            <div style="display: flex; gap: 10px;" id="overlay-error-buttons">
-                <!-- Retry button ONLY will be populated here if analytics fails -->
-            </div>
-        </div>
-    </div>
 
     <!-- Top Left Menu Button -->
     <div class="top-menu-bar">
@@ -1405,43 +1355,7 @@
             if (timeElem) timeElem.innerText = timeStr;
         }
 
-        let isFirstLoad = true;
         let updateInterval = null;
-
-        function hideOverlayLoader() {
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) {
-                overlay.classList.add('hidden');
-            }
-        }
-
-        function showOverlayError(errorMessage, showContinueButton = true) {
-            const actions = document.getElementById('overlay-error-actions');
-            const errorText = document.getElementById('overlay-error-text');
-            const errorButtons = document.getElementById('overlay-error-buttons');
-            
-            if (errorText) errorText.innerText = errorMessage;
-
-            if (errorButtons) {
-                if (showContinueButton) {
-                    errorButtons.innerHTML = `
-                        <button class="tiktok-btn tiktok-btn-primary state-layer" onclick="retryInitialLoad()">Retry</button>
-                        <button class="tiktok-btn tiktok-btn-secondary state-layer" onclick="continueAnyway()">Continue Anyway</button>
-                    `;
-                } else {
-                    errorButtons.innerHTML = `
-                        <button class="tiktok-btn tiktok-btn-primary state-layer" onclick="retryInitialLoad()">Retry</button>
-                    `;
-                }
-            }
-
-            if (actions) actions.style.display = 'flex';
-        }
-
-        function hideOverlayError() {
-            const actions = document.getElementById('overlay-error-actions');
-            if (actions) actions.style.display = 'none';
-        }
 
         function showSpinner() {
             const countElem = document.getElementById('tiktokFollowers');
@@ -1472,10 +1386,7 @@
 
         // Synchronous concurrent load for both APIs after 2s delay
         async function loadInitialAPIs() {
-            if (isFirstLoad) {
-                showSpinner();
-                hideOverlayError();
-            }
+            showSpinner();
 
             // Enforce exact 2000ms delay as specified
             const delayPromise = new Promise(resolve => setTimeout(resolve, 2000));
@@ -1490,9 +1401,6 @@
 
                 // Check analytics status first
                 if (analyticsResult.status === 'rejected') {
-                    if (isFirstLoad) {
-                        showOverlayError("Something went wrong..", false); // Retry button ONLY
-                    }
                     return;
                 }
 
@@ -1502,21 +1410,12 @@
                     const errorBox = document.getElementById('tiktokErrorBox');
                     countElem.innerText = Number(tiktokResult.value).toLocaleString();
                     errorBox.style.display = 'none';
-
-                    if (isFirstLoad) {
-                        isFirstLoad = false;
-                        hideOverlayLoader();
-                    }
                 } else {
                     throw new Error('TikTok Followers failed to load');
                 }
 
             } catch (e) {
                 console.error('Initial API loading error:', e);
-                if (isFirstLoad) {
-                    showOverlayError("Failed to load TikTok stats", true);
-                    document.getElementById('tiktokErrorBox').style.display = 'flex';
-                }
             }
         }
 
@@ -1533,15 +1432,12 @@
         }
 
         function retryInitialLoad() {
-            hideOverlayError();
             loadInitialAPIs();
         }
 
         function continueAnyway() {
             document.getElementById('tiktokErrorBox').style.display = 'none';
             document.getElementById('tiktokFollowers').innerText = '--';
-            isFirstLoad = false;
-            hideOverlayLoader();
         }
 
         // Ripple effect (delegated, works for dynamically added buttons too)
